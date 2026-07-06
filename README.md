@@ -35,7 +35,13 @@ Chromium を kiosk モードで起動し、`npm run build && npm run start` し�
 ## ステータス
 
 - [x] リポジトリ初期化
-- [ ] モニター UI/UX デザイン（← いまここ）
-- [ ] カメラ連携
-- [ ] サーマルプリンター連携
-- [ ] Raspberry Pi デプロイ
+- [x] モニター UI/UX デザイン（全7フェーズ実装・静的ビルド確認済み）
+- [ ] カメラ連携（`Portrait` プレースホルダーを実カメラ映像に差し替え）
+- [ ] サーマルプリンター連携（`ReceiptStrip` を実際の印字データに）
+- [ ] Raspberry Pi デプロイ（Chromium kiosk）
+
+### 実装メモ
+
+- 画面は固定 1080×1920 の `Stage` を画面サイズにスケールして表示（実機・プレビュー共通）
+- 状態マシンは `app/kiosk/KioskApp.tsx`、各画面は `app/kiosk/screens/`
+- フォント: Bodoni Moda（ディスプレイ）/ Inter（UI）/ Space Mono（レシート）
