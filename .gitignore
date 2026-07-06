@@ -34,3 +34,10 @@ next-env.d.ts
 .vscode/*
 !.vscode/extensions.json
 .idea
+
+# backend (python)
+backend/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+backend/data/

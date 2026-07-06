@@ -2,25 +2,44 @@
 
 import { useEffect, useState } from "react";
 import Portrait from "@/app/components/Portrait";
+import {
+  BoothSession,
+  captureFrame,
+  Frame,
+  previewUrl,
+} from "@/app/lib/api";
 
 export default function CaptureScreen({
   total,
+  session,
   onComplete,
 }: {
   total: number;
-  onComplete: (frames: number[]) => void;
+  session: BoothSession | null;
+  onComplete: (frames: Frame[]) => void;
 }) {
   const [shot, setShot] = useState(0);
   const [count, setCount] = useState(3);
   const [flash, setFlash] = useState(false);
-  const [frames, setFrames] = useState<number[]>([]);
+  const [frames, setFrames] = useState<Frame[]>([]);
 
   useEffect(() => {
     let cancelled = false;
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+    const snap = async (seed: number): Promise<Frame> => {
+      if (session) {
+        try {
+          return await captureFrame(session.sessionId, seed);
+        } catch {
+          // fall through to the mock frame
+        }
+      }
+      return { seed, url: null };
+    };
+
     (async () => {
-      const captured: number[] = [];
+      const captured: Frame[] = [];
       for (let s = 0; s < total; s++) {
         if (cancelled) return;
         setShot(s);
@@ -30,9 +49,12 @@ export default function CaptureScreen({
           if (cancelled) return;
         }
         setCount(0);
+        // Fire the real capture the instant the flash starts.
+        const pending = snap(s);
         setFlash(true);
         await wait(130);
-        captured.push(s + 1);
+        captured.push(await pending);
+        if (cancelled) return;
         setFrames([...captured]);
         await wait(230);
         setFlash(false);
@@ -46,7 +68,7 @@ export default function CaptureScreen({
     return () => {
       cancelled = true;
     };
-  }, [total, onComplete]);
+  }, [total, session, onComplete]);
 
   return (
     <div className="flex h-full flex-col">
@@ -71,7 +93,16 @@ export default function CaptureScreen({
       {/* camera viewport */}
       <div className="flex flex-1 items-center justify-center px-[80px]">
         <div className="relative h-[1040px] w-[920px] overflow-hidden bg-ink">
-          <Portrait seed={shot} className="opacity-95" />
+          {session ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={previewUrl()}
+              alt=""
+              className="h-full w-full object-cover opacity-95"
+            />
+          ) : (
+            <Portrait seed={shot} className="opacity-95" />
+          )}
 
           {/* crop marks */}
           <Corner className="left-[24px] top-[24px]" />
@@ -111,14 +142,23 @@ export default function CaptureScreen({
       <div className="px-[80px] pb-[80px] pt-[40px]">
         <div className="grid grid-cols-3 gap-[24px]">
           {Array.from({ length: total }).map((_, i) => {
-            const done = frames.includes(i + 1);
+            const frame = frames[i];
             return (
               <div
                 key={i}
                 className="relative aspect-[3/4] overflow-hidden border border-[color:var(--color-ink)]"
               >
-                {done ? (
-                  <Portrait seed={i} />
+                {frame ? (
+                  frame.url ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={frame.url}
+                      alt=""
+                      className="h-full w-full object-cover grayscale"
+                    />
+                  ) : (
+                    <Portrait seed={frame.seed} />
+                  )
                 ) : (
                   <div className="flex h-full items-center justify-center bg-paper-bright">
                     <span className="font-display text-[80px] italic text-silver">

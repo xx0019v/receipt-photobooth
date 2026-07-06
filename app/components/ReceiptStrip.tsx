@@ -1,16 +1,18 @@
 import Portrait from "./Portrait";
 import { BRAND, editionDate, editionTime, issueNo } from "@/app/lib/edition";
+import type { Frame } from "@/app/lib/api";
 
 /**
  * The printed artefact — how the strip looks coming out of the thermal
  * receipt printer. Reused in Review, Printing and Done screens.
+ * Frames with a `url` show the real capture; otherwise the mock Portrait.
  */
 export default function ReceiptStrip({
   frames,
   serial,
   time,
 }: {
-  frames: number[];
+  frames: Frame[];
   serial: string;
   time?: string;
 }) {
@@ -49,8 +51,20 @@ export default function ReceiptStrip({
         {/* frames */}
         <div className="flex flex-col gap-[10px]">
           {frames.map((f) => (
-            <div key={f} className="aspect-[4/3] w-full overflow-hidden bg-ink">
-              <Portrait seed={f - 1} print />
+            <div
+              key={f.seed}
+              className="aspect-[4/3] w-full overflow-hidden bg-ink"
+            >
+              {f.url ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={f.url}
+                  alt=""
+                  className="h-full w-full object-cover grayscale contrast-125"
+                />
+              ) : (
+                <Portrait seed={f.seed} print />
+              )}
             </div>
           ))}
         </div>

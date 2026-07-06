@@ -3,6 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Stage from "@/app/components/Stage";
 import { serialNo, TOTAL_SHOTS } from "@/app/lib/edition";
+import {
+  BoothSession,
+  createSession,
+  Frame,
+} from "@/app/lib/api";
 import IdleScreen from "./screens/IdleScreen";
 import IntroScreen from "./screens/IntroScreen";
 import CaptureScreen from "./screens/CaptureScreen";
@@ -22,31 +27,47 @@ export { TOTAL_SHOTS };
 
 export default function KioskApp() {
   const [phase, setPhase] = useState<Phase>("idle");
-  /** captured frame ids (mock — real camera comes later) */
-  const [frames, setFrames] = useState<number[]>([]);
+  const [frames, setFrames] = useState<Frame[]>([]);
   const [serial, setSerial] = useState("0000-0000");
+  /** Backend session; null = offline/mock mode (UI still fully works). */
+  const [session, setSession] = useState<BoothSession | null>(null);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const go = useCallback((p: Phase) => setPhase(p), []);
 
+  // The backend prints every frame stored in a session, so each capture run
+  // (initial or retake) gets a fresh session. Failure -> mock mode.
+  const openSession = useCallback(async () => {
+    setSession(null);
+    try {
+      const s = await createSession();
+      setSession(s);
+      setSerial(s.serial);
+    } catch {
+      setSerial(serialNo());
+    }
+  }, []);
+
   const startSession = useCallback(() => {
     setFrames([]);
     setPhase("intro");
-  }, []);
+    void openSession();
+  }, [openSession]);
 
   const retake = useCallback(() => {
     setFrames([]);
     setPhase("capture");
-  }, []);
+    void openSession();
+  }, [openSession]);
 
-  const finishCapture = useCallback((captured: number[]) => {
+  const finishCapture = useCallback((captured: Frame[]) => {
     setFrames(captured);
-    setSerial(serialNo());
     setPhase("review");
   }, []);
 
   const reset = useCallback(() => {
     setFrames([]);
+    setSession(null);
     setPhase("idle");
   }, []);
 
@@ -66,7 +87,11 @@ export default function KioskApp() {
       {phase === "idle" && <IdleScreen onStart={startSession} />}
       {phase === "intro" && <IntroScreen onBegin={() => go("capture")} />}
       {phase === "capture" && (
-        <CaptureScreen total={TOTAL_SHOTS} onComplete={finishCapture} />
+        <CaptureScreen
+          total={TOTAL_SHOTS}
+          session={session}
+          onComplete={finishCapture}
+        />
       )}
       {phase === "review" && (
         <ReviewScreen
@@ -80,6 +105,7 @@ export default function KioskApp() {
         <PrintingScreen
           frames={frames}
           serial={serial}
+          session={session}
           onDone={() => go("done")}
         />
       )}

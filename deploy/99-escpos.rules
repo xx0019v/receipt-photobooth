@@ -1,0 +1,5 @@
+# udev rule: let the `pi` user talk to the USB thermal printer without root.
+# Replace idVendor/idProduct with the IDs from `lsusb`, then:
+#   sudo cp deploy/99-escpos.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload && sudo udevadm trigger
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0416", ATTRS{idProduct}=="5011", MODE="0664", GROUP="plugdev"

@@ -1,6 +1,7 @@
 "use client";
 
 import ReceiptStrip from "@/app/components/ReceiptStrip";
+import type { Frame } from "@/app/lib/api";
 
 export default function ReviewScreen({
   frames,
@@ -8,7 +9,7 @@ export default function ReviewScreen({
   onPrint,
   onRetake,
 }: {
-  frames: number[];
+  frames: Frame[];
   serial: string;
   onPrint: () => void;
   onRetake: () => void;

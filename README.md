@@ -28,6 +28,17 @@ npm install
 npm run dev      # http://localhost:3000
 ```
 
+### バックエンド（カメラ・プリンター）
+
+`backend/` に FastAPI バックエンドがある。モックドライバーで macOS でも全フローが動く:
+
+```bash
+cd backend && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+BOOTH_MOCK=1 .venv/bin/uvicorn booth.main:app --port 8000
+```
+
+UI はバックエンドを自動検出する（未起動ならモック表示のまま動作）。要件定義は `docs/backend-requirements.md`、セットアップ詳細は `backend/README.md`。
+
 ### Raspberry Pi キオスク運用（後日）
 
 Chromium を kiosk モードで起動し、`npm run build && npm run start` した本体を全画面表示する。
@@ -36,9 +47,10 @@ Chromium を kiosk モードで起動し、`npm run build && npm run start` し�
 
 - [x] リポジトリ初期化
 - [x] モニター UI/UX デザイン（全7フェーズ実装・静的ビルド確認済み）
-- [ ] カメラ連携（`Portrait` プレースホルダーを実カメラ映像に差し替え）
-- [ ] サーマルプリンター連携（`ReceiptStrip` を実際の印字データに）
-- [ ] Raspberry Pi デプロイ（Chromium kiosk）
+- [x] バックエンド実装（FastAPI + カメラ/プリンタードライバー、モックで E2E 確認済み）
+- [x] カメラ連携（UI をバックエンド API に接続。実機 Picamera2 検証は未）
+- [x] サーマルプリンター連携（レシート合成・ESC/POS 印字実装。実機検証は未）
+- [ ] Raspberry Pi 実機検証（Picamera2 / USB プリンター / Chromium kiosk）
 
 ### 実装メモ
 
