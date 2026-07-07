@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import ReceiptStrip from "@/app/components/ReceiptStrip";
+import MagazineCover from "@/app/components/MagazineCover";
 import { type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
+import { usePrintStyle } from "@/app/lib/printStyle";
 
 const DURATION = 3400;
 
@@ -21,8 +23,14 @@ export default function PrintingScreen({
   onClaim: () => void;
 }) {
   const { t, sub } = useLang();
+  const { style } = usePrintStyle();
   const [pct, setPct] = useState(0);
   const [done, setDone] = useState(false);
+
+  const isCover = style === "cover";
+  const slitW = isCover ? 680 : 1040;
+  const winW = isCover ? 640 : 1000;
+  const winH = isCover ? 924 : 372;
 
   useEffect(() => {
     const start = performance.now();
@@ -75,15 +83,15 @@ export default function PrintingScreen({
       {/* printer slit + ejecting ticket */}
       <div className="flex flex-1 flex-col items-center justify-center px-[40px]">
         {/* the machine slit */}
-        <div className="relative z-[20] w-[1040px]">
+        <div className="relative z-[20]" style={{ width: slitW }}>
           <div className="h-[22px] w-full rounded-t-[6px] bg-ink" />
           <div className="h-[9px] w-full bg-ink-soft shadow-[inset_0_-6px_10px_rgba(0,0,0,0.6)]" />
         </div>
 
-        {/* reveal window — the ticket slides down out of the slit */}
+        {/* reveal window — the artefact slides down out of the slit */}
         <div
-          className="relative w-[1000px] overflow-hidden"
-          style={{ height: 372 }}
+          className="relative overflow-hidden"
+          style={{ width: winW, height: winH }}
         >
           <div
             style={{
@@ -91,7 +99,11 @@ export default function PrintingScreen({
               filter: `drop-shadow(0 ${16 * ease}px ${30 * ease}px rgba(0,0,0,${0.26 * ease}))`,
             }}
           >
-            <ReceiptStrip frames={frames} scent={scent} serial={serial} />
+            {isCover ? (
+              <MagazineCover frames={frames} scent={scent} serial={serial} />
+            ) : (
+              <ReceiptStrip frames={frames} scent={scent} serial={serial} />
+            )}
           </div>
 
           {!done && (

@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Stage from "@/app/components/Stage";
 import LangToggle from "@/app/components/LangToggle";
+import StyleToggle from "@/app/components/StyleToggle";
 import { LangProvider } from "@/app/lib/i18n";
+import { PrintStyleProvider } from "@/app/lib/printStyle";
 import { scentById, serialNo, TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
 import IdleScreen from "./screens/IdleScreen";
 import ScentScreen from "./screens/ScentScreen";
@@ -64,8 +66,10 @@ export default function KioskApp() {
 
   return (
     <LangProvider>
+      <PrintStyleProvider>
       <Stage>
         <LangToggle />
+        <StyleToggle />
         <div key={phase} className="screen-swap">
         {phase === "idle" && <IdleScreen onStart={startSession} />}
         {phase === "scent" && <ScentScreen onSelect={chooseScent} />}
@@ -93,6 +97,7 @@ export default function KioskApp() {
         )}
         </div>
       </Stage>
+      </PrintStyleProvider>
     </LangProvider>
   );
 }
