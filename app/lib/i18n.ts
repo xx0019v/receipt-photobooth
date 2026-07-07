@@ -117,11 +117,11 @@ const jp: Dict = {
   scent: {
     step: "STEP I · 気分",
     title: ["どんな香りで", "記憶されたい？"],
-    sub: "香りを、ひとつ。",
+    sub: "タップして、香りをひとつ。",
   },
   pose: {
     step: "STEP II · 構え",
-    title: "姿勢を、整えて。",
+    title: "画面に合わせてください",
     cues: ["顎を上げて", "肩は水平に", "視線はレンズへ"],
     viewfinder: "ファインダー",
     yourScent: "選んだ香り",
@@ -142,13 +142,13 @@ const jp: Dict = {
   },
   print: {
     step: "STEP V · 搭乗手続き",
-    title: ["記憶を", "搭乗手続き中…"],
+    title: ["チケットを", "発券しています"],
     progress: "搭乗券",
   },
   done: {
     kickerTail: "",
     title: ["記憶は", "搭乗しました。"],
-    body: "スロット下の点線で切り取ってください。コードから、この瞬間のデジタル控えを。",
+    body: "下からお受け取りください",
     closing: "この瞬間を印字しました。",
     next: "次の方はタップ",
     countdown: (n: number) => `あと ${n} 秒で次へ`,

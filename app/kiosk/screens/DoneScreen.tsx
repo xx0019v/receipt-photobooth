@@ -57,6 +57,11 @@ export default function DoneScreen({
           <p className="anim-fade-up delay-2 mt-[38px] max-w-[720px] text-[28px] leading-[1.42] text-ink-soft">
             {t.done.body}
           </p>
+          {sub && (
+            <p className="jp-sub anim-fade-up delay-2 mt-[12px] text-[20px] text-silver-dim">
+              {sub.done.body}
+            </p>
+          )}
 
           <div className="anim-fade-up delay-3 mt-[60px] flex flex-col items-center">
             <div className="anim-ambient border border-[color:var(--color-ink)] p-[22px]">
@@ -80,7 +85,14 @@ export default function DoneScreen({
         <div className="px-[80px] pb-[86px]">
           <div className="rule-hair" />
           <div className="mt-[28px] flex items-center justify-between font-mono text-[18px] uppercase tracking-[0.3em]">
-            <span className="text-silver-dim">{t.done.next}</span>
+            <span className="text-silver-dim">
+              {t.done.next}
+              {sub && (
+                <span className="jp-sub ml-[14px] normal-case text-[15px]">
+                  {sub.done.next}
+                </span>
+              )}
+            </span>
             <span>{t.done.countdown(left)}</span>
           </div>
         </div>

@@ -23,6 +23,11 @@ export default function PoseScreen({
         <h2 className="anim-fade-up delay-1 mt-[22px] font-display text-[92px] font-semibold leading-[0.86] tracking-[-0.025em]">
           {t.pose.title}
         </h2>
+        {sub && (
+          <p className="jp-sub anim-fade-up delay-2 mt-[16px] text-[22px] text-silver-dim">
+            {sub.pose.title}
+          </p>
+        )}
       </div>
 
       {/* viewfinder */}
@@ -72,7 +77,7 @@ export default function PoseScreen({
         </div>
         <button
           onClick={onBegin}
-          className="press flex w-full items-center justify-between bg-ink px-[56px] py-[42px] text-paper"
+          className="card press flex w-full items-center justify-between bg-ink px-[56px] py-[42px] text-paper"
           style={{ cursor: "pointer" }}
         >
           <span className="flex flex-col gap-[6px]">

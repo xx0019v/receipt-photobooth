@@ -71,7 +71,11 @@ export default function ScentScreen({
                 <p className="font-display text-[24px] italic leading-none">
                   {s.name}
                 </p>
-                <span className="font-display text-[38px] leading-none">
+                <span
+                  key={isSel ? "sel" : "arrow"}
+                  className="font-display text-[38px] leading-none"
+                  style={isSel ? { animation: "wordIn 0.35s ease both" } : undefined}
+                >
                   {isSel ? "✓" : "→"}
                 </span>
               </div>

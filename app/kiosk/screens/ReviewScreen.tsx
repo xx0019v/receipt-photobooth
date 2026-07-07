@@ -48,16 +48,21 @@ export default function ReviewScreen({
       <div className="grid grid-cols-[1fr_1.5fr] gap-[24px] px-[80px] pb-[86px] pt-[34px]">
         <button
           onClick={onRetake}
-          className="press flex items-center justify-center border border-[color:var(--color-ink)] py-[44px]"
+          className="press flex flex-col items-center justify-center gap-[5px] border border-[color:var(--color-ink)] py-[38px]"
           style={{ cursor: "pointer" }}
         >
           <span className="font-mono text-[23px] uppercase tracking-[0.3em]">
             {t.review.retake}
           </span>
+          {sub && (
+            <span className="jp-sub text-[15px] text-silver-dim">
+              {sub.review.retake}
+            </span>
+          )}
         </button>
         <button
           onClick={onPrint}
-          className="press flex items-center justify-center gap-[22px] bg-ink py-[44px] text-paper"
+          className="card press flex items-center justify-center gap-[22px] bg-ink py-[38px] text-paper"
           style={{ cursor: "pointer" }}
         >
           <span className="flex flex-col items-start gap-[5px]">

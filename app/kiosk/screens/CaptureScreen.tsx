@@ -14,7 +14,7 @@ export default function CaptureScreen({
   scent: Scent;
   onComplete: (frames: number[]) => void;
 }) {
-  const { t } = useLang();
+  const { t, sub } = useLang();
   const [shot, setShot] = useState(0);
   const [count, setCount] = useState(3);
   const [flash, setFlash] = useState(false);
@@ -65,6 +65,11 @@ export default function CaptureScreen({
           <span className="font-mono text-[20px] uppercase tracking-[0.4em]">
             {t.capture.recording} · {scent.mood.en}
           </span>
+          {sub && (
+            <span className="jp-sub text-[16px] text-silver-dim">
+              {sub.capture.recording}
+            </span>
+          )}
         </div>
         <span className="font-mono text-[20px] uppercase tracking-[0.4em] text-silver-dim">
           {t.capture.frameLabel(
@@ -120,8 +125,15 @@ export default function CaptureScreen({
 
           {count === 0 && !flash && (
             <div className="pointer-events-none absolute inset-x-0 bottom-[40px] text-center">
-              <span className="anim-fade-in font-mono text-[24px] uppercase tracking-[0.5em] text-paper">
-                {t.capture.hold}
+              <span className="anim-fade-in flex flex-col items-center gap-[8px]">
+                <span className="font-mono text-[24px] uppercase tracking-[0.5em] text-paper">
+                  {t.capture.hold}
+                </span>
+                {sub && (
+                  <span className="jp-sub text-[17px] text-paper/70">
+                    {sub.capture.hold}
+                  </span>
+                )}
               </span>
             </div>
           )}
