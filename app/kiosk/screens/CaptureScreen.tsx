@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Portrait from "@/app/components/Portrait";
-import type { Scent } from "@/app/lib/edition";
+import { loc, type Scent } from "@/app/lib/edition";
+import { useLang } from "@/app/lib/i18n";
 
 export default function CaptureScreen({
   total,
@@ -13,6 +14,7 @@ export default function CaptureScreen({
   scent: Scent;
   onComplete: (frames: number[]) => void;
 }) {
+  const { t, lang } = useLang();
   const [shot, setShot] = useState(0);
   const [count, setCount] = useState(3);
   const [flash, setFlash] = useState(false);
@@ -61,11 +63,11 @@ export default function CaptureScreen({
             style={{ animation: "blink 1s step-end infinite" }}
           />
           <span className="font-mono text-[20px] uppercase tracking-[0.4em]">
-            Recording · {scent.mood}
+            {t.capture.recording} · {loc(scent.mood, lang)}
           </span>
         </div>
         <span className="font-mono text-[20px] uppercase tracking-[0.4em] text-silver-dim">
-          Frame {String(shot + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+          {t.capture.frame} {String(shot + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
         </span>
       </div>
 
@@ -116,7 +118,7 @@ export default function CaptureScreen({
           {count === 0 && !flash && (
             <div className="pointer-events-none absolute inset-x-0 bottom-[40px] text-center">
               <span className="anim-fade-in font-mono text-[24px] uppercase tracking-[0.5em] text-paper">
-                Hold
+                {t.capture.hold}
               </span>
             </div>
           )}

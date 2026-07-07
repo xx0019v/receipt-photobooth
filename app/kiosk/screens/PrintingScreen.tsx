@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import ReceiptStrip from "@/app/components/ReceiptStrip";
-import type { Scent } from "@/app/lib/edition";
+import { loc, type Scent } from "@/app/lib/edition";
+import { useLang } from "@/app/lib/i18n";
 
 const DURATION = 5200;
 
@@ -17,6 +18,7 @@ export default function PrintingScreen({
   serial: string;
   onDone: () => void;
 }) {
+  const { t, lang } = useLang();
   const [pct, setPct] = useState(0);
 
   useEffect(() => {
@@ -45,13 +47,13 @@ export default function PrintingScreen({
   return (
     <div className="flex h-full flex-col">
       <div className="px-[80px] pt-[64px]">
-        <p className="kicker">Step V — The Print</p>
-        <h2 className="mt-[18px] font-display text-[92px] font-semibold leading-[0.9] tracking-[-0.02em]">
-          Fixing the <span className="italic">memory…</span>
+        <p className="kicker">{t.print.step}</p>
+        <h2 className="mt-[18px] font-display text-[88px] font-semibold leading-[0.9] tracking-[-0.02em]">
+          {t.print.title[0]} <span className="italic">{t.print.title[1]}</span>
         </h2>
       </div>
 
-      {/* printer slot + emerging receipt */}
+      {/* printer slot + emerging pass */}
       <div className="relative flex flex-1 flex-col items-center px-[80px] pt-[40px]">
         <div className="relative z-[20] w-[560px]">
           <div className="h-[26px] w-full rounded-t-[6px] bg-ink" />
@@ -59,7 +61,7 @@ export default function PrintingScreen({
         </div>
 
         <div
-          className="relative w-[470px] overflow-hidden"
+          className="relative w-[472px] overflow-hidden"
           style={{ height: 1180 }}
         >
           <div
@@ -71,7 +73,6 @@ export default function PrintingScreen({
             <ReceiptStrip frames={frames} scent={scent} serial={serial} />
           </div>
 
-          {/* thermal scan line + fine noise while printing */}
           {pct < 1 && (
             <>
               <div
@@ -93,7 +94,9 @@ export default function PrintingScreen({
       {/* progress */}
       <div className="px-[80px] pb-[86px] pt-[20px]">
         <div className="flex items-center justify-between font-mono text-[18px] uppercase tracking-[0.3em] text-silver-dim">
-          <span>{scent.mood} · thermal print</span>
+          <span>
+            {loc(scent.mood, lang)} · {t.print.progress}
+          </span>
           <span>{Math.round(pct * 100)}%</span>
         </div>
         <div className="mt-[18px] h-[3px] w-full bg-[color:var(--color-line)]">

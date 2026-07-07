@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Stage from "@/app/components/Stage";
+import LangToggle from "@/app/components/LangToggle";
+import { LangProvider } from "@/app/lib/i18n";
 import { scentById, serialNo, TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
 import IdleScreen from "./screens/IdleScreen";
 import ScentScreen from "./screens/ScentScreen";
@@ -69,8 +71,10 @@ export default function KioskApp() {
   }, [phase, reset]);
 
   return (
-    <Stage>
-      <div key={phase} className="screen-swap">
+    <LangProvider>
+      <Stage>
+        <LangToggle />
+        <div key={phase} className="screen-swap">
         {phase === "idle" && <IdleScreen onStart={startSession} />}
         {phase === "scent" && <ScentScreen onSelect={chooseScent} />}
         {phase === "pose" && (
@@ -103,7 +107,8 @@ export default function KioskApp() {
         {phase === "done" && (
           <DoneScreen scent={scent} serial={serial} onReset={reset} />
         )}
-      </div>
-    </Stage>
+        </div>
+      </Stage>
+    </LangProvider>
   );
 }
