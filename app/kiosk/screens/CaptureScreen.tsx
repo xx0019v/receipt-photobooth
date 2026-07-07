@@ -76,6 +76,14 @@ export default function CaptureScreen({
         <div className="relative h-[1040px] w-[920px] overflow-hidden bg-ink">
           <Portrait seed={shot} className="opacity-95" />
 
+          {/* rule-of-thirds grid */}
+          <div className="pointer-events-none absolute inset-0">
+            <span className="absolute left-1/3 top-0 h-full w-px bg-paper/10" />
+            <span className="absolute left-2/3 top-0 h-full w-px bg-paper/10" />
+            <span className="absolute left-0 top-1/3 h-px w-full bg-paper/10" />
+            <span className="absolute left-0 top-2/3 h-px w-full bg-paper/10" />
+          </div>
+
           {/* crop marks */}
           <Corner className="left-[24px] top-[24px]" />
           <Corner className="right-[24px] top-[24px] rotate-90" />
@@ -86,10 +94,15 @@ export default function CaptureScreen({
           {count > 0 && (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <span
+                key={`ring-${shot}-${count}`}
+                className="absolute h-[440px] w-[440px] rounded-full border border-paper/25"
+                style={{ animation: "countPop 0.95s ease-out both" }}
+              />
+              <span
                 key={`${shot}-${count}`}
                 className="font-display font-semibold text-paper"
                 style={{
-                  fontSize: 420,
+                  fontSize: 400,
                   lineHeight: 1,
                   animation: "countPop 0.95s ease-out both",
                   textShadow: "0 20px 80px rgba(0,0,0,0.5)",

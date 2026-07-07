@@ -70,38 +70,40 @@ export default function KioskApp() {
 
   return (
     <Stage>
-      {phase === "idle" && <IdleScreen onStart={startSession} />}
-      {phase === "scent" && <ScentScreen onSelect={chooseScent} />}
-      {phase === "pose" && (
-        <PoseScreen scent={scent} onBegin={() => go("capture")} />
-      )}
-      {phase === "capture" && (
-        <CaptureScreen
-          total={TOTAL_SHOTS}
-          scent={scent}
-          onComplete={finishCapture}
-        />
-      )}
-      {phase === "review" && (
-        <ReviewScreen
-          frames={frames}
-          scent={scent}
-          serial={serial}
-          onPrint={() => go("printing")}
-          onRetake={retake}
-        />
-      )}
-      {phase === "printing" && (
-        <PrintingScreen
-          frames={frames}
-          scent={scent}
-          serial={serial}
-          onDone={() => go("done")}
-        />
-      )}
-      {phase === "done" && (
-        <DoneScreen scent={scent} serial={serial} onReset={reset} />
-      )}
+      <div key={phase} className="screen-swap">
+        {phase === "idle" && <IdleScreen onStart={startSession} />}
+        {phase === "scent" && <ScentScreen onSelect={chooseScent} />}
+        {phase === "pose" && (
+          <PoseScreen scent={scent} onBegin={() => go("capture")} />
+        )}
+        {phase === "capture" && (
+          <CaptureScreen
+            total={TOTAL_SHOTS}
+            scent={scent}
+            onComplete={finishCapture}
+          />
+        )}
+        {phase === "review" && (
+          <ReviewScreen
+            frames={frames}
+            scent={scent}
+            serial={serial}
+            onPrint={() => go("printing")}
+            onRetake={retake}
+          />
+        )}
+        {phase === "printing" && (
+          <PrintingScreen
+            frames={frames}
+            scent={scent}
+            serial={serial}
+            onDone={() => go("done")}
+          />
+        )}
+        {phase === "done" && (
+          <DoneScreen scent={scent} serial={serial} onReset={reset} />
+        )}
+      </div>
     </Stage>
   );
 }

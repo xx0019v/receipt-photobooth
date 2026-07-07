@@ -58,22 +58,31 @@ export default function ReceiptStrip({
           <span className="text-right">{serial}</span>
         </div>
 
-        <Dashed className="my-[24px]" />
+        <div className="sillage my-[22px]" />
 
-        {/* scent block */}
+        {/* scent block — note pyramid */}
         <div className="text-center">
           <p className="font-mono text-[14px] uppercase tracking-[0.4em] text-silver-dim">
             The Scent — {scent.index}
           </p>
-          <p className="mt-[10px] font-display text-[38px] leading-none">
+          <p className="mt-[10px] font-display text-[40px] leading-none">
             {scent.mood} <span className="italic">/ {scent.name}</span>
           </p>
-          <p className="mt-[12px] font-mono text-[16px] uppercase tracking-[0.2em]">
-            {scent.notes.join("  ·  ")}
-          </p>
+          <div className="mt-[20px] grid grid-cols-3 gap-[8px]">
+            {(["Top", "Heart", "Base"] as const).map((tier, i) => (
+              <div key={tier}>
+                <p className="font-mono text-[12px] uppercase tracking-[0.28em] text-silver-dim">
+                  {tier}
+                </p>
+                <p className="mt-[6px] font-display text-[22px] italic leading-tight">
+                  {scent.notes[i]}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <Dashed className="my-[24px]" />
+        <div className="sillage my-[22px]" />
 
         {/* frames */}
         <div className="flex flex-col gap-[10px]">
