@@ -1,7 +1,7 @@
 "use client";
 
 import ReceiptStrip from "@/app/components/ReceiptStrip";
-import { loc, type Scent } from "@/app/lib/edition";
+import { type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
 
 export default function ReviewScreen({
@@ -17,7 +17,7 @@ export default function ReviewScreen({
   onPrint: () => void;
   onRetake: () => void;
 }) {
-  const { t, lang } = useLang();
+  const { t, sub } = useLang();
 
   return (
     <div className="flex h-full flex-col">
@@ -29,11 +29,10 @@ export default function ReviewScreen({
           </p>
         </div>
         <h2 className="mt-[16px] font-display text-[84px] font-semibold leading-[0.9] tracking-[-0.02em]">
-          {t.review.title[0]}{" "}
-          <span className={lang === "en" ? "italic" : ""}>{t.review.title[1]}</span>
+          {t.review.title[0]} <span className="italic">{t.review.title[1]}</span>
         </h2>
         <p className="mt-[14px] text-[25px] text-ink-soft">
-          {loc(scent.mood, lang)} — {scent.name}. {t.review.subTail}
+          {scent.mood.en} — {scent.name}. {t.review.subTail}
         </p>
       </div>
 
@@ -61,8 +60,13 @@ export default function ReviewScreen({
           className="press flex items-center justify-center gap-[22px] bg-ink py-[44px] text-paper"
           style={{ cursor: "pointer" }}
         >
-          <span className="font-mono text-[23px] uppercase tracking-[0.3em]">
-            {t.review.print}
+          <span className="flex flex-col items-start gap-[5px]">
+            <span className="font-mono text-[23px] uppercase tracking-[0.3em]">
+              {t.review.print}
+            </span>
+            {sub && (
+              <span className="jp-sub text-[16px] text-paper/55">{sub.review.print}</span>
+            )}
           </span>
           <span className="font-display text-[40px]">→</span>
         </button>

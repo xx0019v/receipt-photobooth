@@ -120,6 +120,14 @@ body {
   font-family: var(--font-mono), ui-monospace, monospace;
 }
 
+/* Japanese support line — thin, light, secondary; never the hero */
+.jp-sub {
+  font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP",
+    "Yu Gothic", sans-serif;
+  font-weight: 300;
+  letter-spacing: 0.16em;
+}
+
 .kicker {
   font-family: var(--font-mono), monospace;
   text-transform: uppercase;

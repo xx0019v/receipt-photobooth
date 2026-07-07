@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Masthead from "@/app/components/Masthead";
-import { SCENTS, loc, type Scent } from "@/app/lib/edition";
+import { SCENTS, type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
 
 export default function ScentScreen({
@@ -10,7 +10,7 @@ export default function ScentScreen({
 }: {
   onSelect: (s: Scent) => void;
 }) {
-  const { t, lang } = useLang();
+  const { t, sub } = useLang();
   const [picked, setPicked] = useState<string | null>(null);
 
   const choose = (s: Scent) => {
@@ -28,10 +28,11 @@ export default function ScentScreen({
         <h2 className="anim-fade-up delay-1 mt-[22px] font-display text-[92px] font-semibold leading-[0.86] tracking-[-0.025em]">
           {t.scent.title[0]}
           <br />
-          <span className={lang === "en" ? "italic" : ""}>{t.scent.title[1]}</span>
+          <span className="italic">{t.scent.title[1]}</span>
         </h2>
         <p className="anim-fade-up delay-2 mt-[22px] text-[25px] leading-[1.4] text-silver-dim">
           {t.scent.sub}
+          {sub && <span className="jp-sub ml-[16px] text-[19px]">{sub.scent.sub}</span>}
         </p>
       </div>
 
@@ -60,10 +61,10 @@ export default function ScentScreen({
               />
               <div className="relative z-[1] flex-1">
                 <h3 className="font-display text-[58px] leading-[0.94]">
-                  {loc(s.mood, lang)}
+                  {s.mood.en}
                 </h3>
                 <p className="card-notes mt-[12px] font-mono text-[17px] uppercase tracking-[0.22em] text-silver-dim">
-                  {s.notes.map((n) => loc(n, lang)).join("  ·  ")}
+                  {s.notes.map((n) => n.en).join("  ·  ")}
                 </p>
               </div>
               <div className="relative z-[1] flex flex-col items-end gap-[16px]">

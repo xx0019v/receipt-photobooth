@@ -117,7 +117,7 @@ const jp: Dict = {
   scent: {
     step: "STEP I · 気分",
     title: ["どんな香りで", "記憶されたい？"],
-    sub: "香りをひとつ。面影とともに搭乗します。",
+    sub: "香りを、ひとつ。",
   },
   pose: {
     step: "STEP II · 構え",
@@ -177,10 +177,19 @@ const jp: Dict = {
   },
 };
 
-const DICT: Record<Lang, Dict> = { en, jp };
 export type Copy = Dict;
 
-type Ctx = { lang: Lang; setLang: (l: Lang) => void; t: Copy };
+/**
+ * Bilingual luxury mode: English is always the primary voice. In JP mode a
+ * short Japanese support line (`sub`) is offered under selected English copy —
+ * never a full translation. Components choose which `sub` lines to show.
+ */
+type Ctx = {
+  lang: Lang;
+  setLang: (l: Lang) => void;
+  t: Copy;
+  sub: Copy | null;
+};
 const LangContext = createContext<Ctx | null>(null);
 
 export function LangProvider({ children }: { children: ReactNode }) {
@@ -200,7 +209,7 @@ export function LangProvider({ children }: { children: ReactNode }) {
 
   return createElement(
     LangContext.Provider,
-    { value: { lang, setLang, t: DICT[lang] } },
+    { value: { lang, setLang, t: en, sub: lang === "jp" ? jp : null } },
     children,
   );
 }

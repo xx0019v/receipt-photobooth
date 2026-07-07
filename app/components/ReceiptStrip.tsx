@@ -2,14 +2,7 @@
 
 import Portrait from "./Portrait";
 import Qr from "./Qr";
-import {
-  BRAND,
-  DOMAIN,
-  editionDate,
-  editionTime,
-  loc,
-  type Scent,
-} from "@/app/lib/edition";
+import { BRAND, DOMAIN, editionDate, editionTime, type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
 
 /**
@@ -28,7 +21,7 @@ export default function ReceiptStrip({
   serial: string;
   time?: string;
 }) {
-  const { t, lang } = useLang();
+  const { t, sub } = useLang();
   const stamp = time ?? editionTime();
   const seat = String(frames.length).padStart(2, "0");
 
@@ -53,6 +46,7 @@ export default function ReceiptStrip({
             <p className="mt-[8px] font-display text-[30px] leading-none">
               {BRAND}
             </p>
+            {sub && <p className="jp-sub mt-[6px] text-[14px] text-silver-dim">{sub.pass.title}</p>}
           </div>
           <span className="flex h-[52px] w-[52px] items-center justify-center border border-[color:var(--color-ink)] font-display text-[24px]">
             TR
@@ -88,8 +82,13 @@ export default function ReceiptStrip({
               {t.pass.to}
             </p>
             <p className="mt-[6px] font-display text-[42px] leading-none">
-              {loc(scent.destination, lang)}
+              {scent.destination.en}
             </p>
+            {sub && (
+              <p className="jp-sub mt-[4px] text-[15px] text-silver-dim">
+                {scent.destination.jp}
+              </p>
+            )}
           </div>
         </div>
 
@@ -112,7 +111,7 @@ export default function ReceiptStrip({
           {t.pass.fragrance}
         </p>
         <p className="mt-[8px] font-display text-[36px] leading-none">
-          {loc(scent.mood, lang)} <span className="italic">/ {scent.name}</span>
+          {scent.mood.en} <span className="italic">/ {scent.name}</span>
         </p>
         <div className="mt-[18px] grid grid-cols-3 gap-[8px]">
           {t.pass.notes.map((tier, i) => (
@@ -121,7 +120,7 @@ export default function ReceiptStrip({
                 {tier}
               </p>
               <p className="mt-[6px] font-display text-[21px] italic leading-tight">
-                {loc(scent.notes[i], lang)}
+                {scent.notes[i].en}
               </p>
             </div>
           ))}
@@ -146,7 +145,7 @@ export default function ReceiptStrip({
         </div>
 
         <p className="mt-[18px] text-center font-display text-[26px] italic leading-[1.25]">
-          “{loc(scent.phrase, lang)}”
+          “{scent.phrase.en}”
         </p>
       </div>
 
@@ -186,6 +185,11 @@ export default function ReceiptStrip({
         <p className="mt-[24px] text-center font-mono text-[14px] uppercase tracking-[0.34em]">
           {t.pass.closing}
         </p>
+        {sub && (
+          <p className="jp-sub mt-[6px] text-center text-[14px] text-silver-dim">
+            {sub.pass.closing}
+          </p>
+        )}
         <p className="mb-[6px] mt-[10px] text-center font-mono text-[12px] uppercase tracking-[0.3em] text-silver-dim">
           {DOMAIN}
         </p>

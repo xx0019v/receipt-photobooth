@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Masthead from "@/app/components/Masthead";
 import Qr from "@/app/components/Qr";
-import { loc, type Scent } from "@/app/lib/edition";
+import { type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
 
 const AUTO_RETURN = 12_000;
@@ -17,7 +17,7 @@ export default function DoneScreen({
   serial: string;
   onReset: () => void;
 }) {
-  const { t, lang } = useLang();
+  const { t, sub } = useLang();
   const [left, setLeft] = useState(Math.round(AUTO_RETURN / 1000));
 
   useEffect(() => {
@@ -40,15 +40,19 @@ export default function DoneScreen({
 
         <div className="flex flex-1 flex-col items-center justify-center px-[80px] text-center">
           <p className="kicker anim-fade-up">
-            {loc(scent.mood, lang)} — {scent.name} · {scent.code}
+            {scent.mood.en} — {scent.name} · {scent.code}
           </p>
 
           <h2 className="anim-fade-up delay-1 mt-[28px] font-display font-semibold leading-[0.86] tracking-[-0.02em]">
             <span className="block text-[110px]">{t.done.title[0]}</span>
-            <span className={`block text-[110px] ${lang === "en" ? "italic" : ""}`}>
-              {t.done.title[1]}
-            </span>
+            <span className="block text-[110px] italic">{t.done.title[1]}</span>
           </h2>
+          {sub && (
+            <p className="jp-sub anim-fade-up delay-1 mt-[18px] text-[24px] text-silver-dim">
+              {sub.done.title[0]}
+              {sub.done.title[1]}
+            </p>
+          )}
 
           <p className="anim-fade-up delay-2 mt-[38px] max-w-[720px] text-[28px] leading-[1.42] text-ink-soft">
             {t.done.body}
@@ -66,6 +70,11 @@ export default function DoneScreen({
           <p className="anim-fade-up delay-4 mt-[44px] font-display text-[30px] italic text-ink">
             {t.done.closing}
           </p>
+          {sub && (
+            <p className="jp-sub anim-fade-up delay-4 mt-[10px] text-[19px] text-silver-dim">
+              {sub.done.closing}
+            </p>
+          )}
         </div>
 
         <div className="px-[80px] pb-[86px]">

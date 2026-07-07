@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ReceiptStrip from "@/app/components/ReceiptStrip";
-import { loc, type Scent } from "@/app/lib/edition";
+import { type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
 
 const DURATION = 5200;
@@ -18,7 +18,7 @@ export default function PrintingScreen({
   serial: string;
   onDone: () => void;
 }) {
-  const { t, lang } = useLang();
+  const { t, sub } = useLang();
   const [pct, setPct] = useState(0);
 
   useEffect(() => {
@@ -49,9 +49,11 @@ export default function PrintingScreen({
       <div className="px-[80px] pt-[64px]">
         <p className="kicker">{t.print.step}</p>
         <h2 className="mt-[18px] font-display text-[88px] font-semibold leading-[0.9] tracking-[-0.02em]">
-          {t.print.title[0]}{" "}
-          <span className={lang === "en" ? "italic" : ""}>{t.print.title[1]}</span>
+          {t.print.title[0]} <span className="italic">{t.print.title[1]}</span>
         </h2>
+        {sub && (
+          <p className="jp-sub mt-[14px] text-[22px] text-silver-dim">{sub.print.title}</p>
+        )}
       </div>
 
       {/* printer slot + emerging pass */}
@@ -97,7 +99,7 @@ export default function PrintingScreen({
       <div className="px-[80px] pb-[86px] pt-[20px]">
         <div className="flex items-center justify-between font-mono text-[18px] uppercase tracking-[0.3em] text-silver-dim">
           <span>
-            {loc(scent.mood, lang)} · {t.print.progress}
+            {scent.mood.en} · {t.print.progress}
           </span>
           <span>{Math.round(pct * 100)}%</span>
         </div>

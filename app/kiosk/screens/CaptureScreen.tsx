@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Portrait from "@/app/components/Portrait";
-import { loc, type Scent } from "@/app/lib/edition";
+import { type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
 
 export default function CaptureScreen({
@@ -14,7 +14,7 @@ export default function CaptureScreen({
   scent: Scent;
   onComplete: (frames: number[]) => void;
 }) {
-  const { t, lang } = useLang();
+  const { t } = useLang();
   const [shot, setShot] = useState(0);
   const [count, setCount] = useState(3);
   const [flash, setFlash] = useState(false);
@@ -63,7 +63,7 @@ export default function CaptureScreen({
             style={{ animation: "blink 1s step-end infinite" }}
           />
           <span className="font-mono text-[20px] uppercase tracking-[0.4em]">
-            {t.capture.recording} · {loc(scent.mood, lang)}
+            {t.capture.recording} · {scent.mood.en}
           </span>
         </div>
         <span className="font-mono text-[20px] uppercase tracking-[0.4em] text-silver-dim">

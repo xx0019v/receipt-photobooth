@@ -2,7 +2,7 @@
 
 import Masthead from "@/app/components/Masthead";
 import Portrait from "@/app/components/Portrait";
-import { TOTAL_SHOTS, loc, type Scent } from "@/app/lib/edition";
+import { TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
 
 export default function PoseScreen({
@@ -12,7 +12,7 @@ export default function PoseScreen({
   scent: Scent;
   onBegin: () => void;
 }) {
-  const { t, lang } = useLang();
+  const { t, sub } = useLang();
 
   return (
     <div className="flex h-full flex-col">
@@ -48,7 +48,7 @@ export default function PoseScreen({
 
           <div className="absolute inset-x-[34px] top-[30px] flex items-center justify-between font-mono text-[17px] uppercase tracking-[0.34em] text-paper/80">
             <span>{t.pose.viewfinder}</span>
-            <span>{loc(scent.mood, lang)}</span>
+            <span>{scent.mood.en}</span>
           </div>
 
           <div className="absolute inset-x-0 bottom-[42px] flex items-center justify-center gap-[26px] font-mono text-[18px] uppercase tracking-[0.22em] text-paper/85">
@@ -67,16 +67,21 @@ export default function PoseScreen({
         <div className="mb-[24px] flex items-center justify-between border-t border-[color:var(--color-line)] pt-[24px] font-mono text-[18px] uppercase tracking-[0.22em]">
           <span className="text-silver-dim">{t.pose.yourScent}</span>
           <span>
-            {scent.index} · {loc(scent.mood, lang)} — {scent.name}
+            {scent.index} · {scent.mood.en} — {scent.name}
           </span>
         </div>
         <button
           onClick={onBegin}
-          className="press flex w-full items-center justify-between bg-ink px-[56px] py-[46px] text-paper"
+          className="press flex w-full items-center justify-between bg-ink px-[56px] py-[42px] text-paper"
           style={{ cursor: "pointer" }}
         >
-          <span className="font-mono text-[26px] uppercase tracking-[0.4em]">
-            {t.pose.start}
+          <span className="flex flex-col gap-[6px]">
+            <span className="font-mono text-[26px] uppercase tracking-[0.4em]">
+              {t.pose.start}
+            </span>
+            {sub && (
+              <span className="jp-sub text-[17px] text-paper/55">{sub.pose.start}</span>
+            )}
           </span>
           <span className="font-mono text-[19px] uppercase tracking-[0.28em] text-paper/60">
             {TOTAL_SHOTS} {t.pose.frames} →

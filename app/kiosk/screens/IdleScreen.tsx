@@ -6,7 +6,7 @@ import { editionDate } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
 
 export default function IdleScreen({ onStart }: { onStart: () => void }) {
-  const { t } = useLang();
+  const { t, sub } = useLang();
   const cycle = t.idle.cycle;
   const [word, setWord] = useState(0);
   useEffect(() => {
@@ -68,11 +68,18 @@ export default function IdleScreen({ onStart }: { onStart: () => void }) {
 
         {/* Call to action */}
         <div className="px-[80px] pb-[86px] pt-[70px]">
-          <div className="anim-breathe flex items-center justify-center gap-[24px] border border-[color:var(--color-ink)] py-[42px]">
-            <span className="h-[16px] w-[16px] rounded-full bg-ink" />
-            <span className="font-mono text-[28px] uppercase tracking-[0.4em]">
-              {t.idle.cta}
-            </span>
+          <div className="anim-breathe flex flex-col items-center justify-center gap-[12px] border border-[color:var(--color-ink)] py-[36px]">
+            <div className="flex items-center gap-[24px]">
+              <span className="h-[16px] w-[16px] rounded-full bg-ink" />
+              <span className="font-mono text-[28px] uppercase tracking-[0.4em]">
+                {t.idle.cta}
+              </span>
+            </div>
+            {sub && (
+              <span className="jp-sub text-[19px] tracking-[0.24em] text-silver-dim">
+                {sub.idle.cta}
+              </span>
+            )}
           </div>
           <div className="mt-[30px] flex justify-between font-mono text-[13px] uppercase tracking-[0.28em] text-silver-dim">
             <span>{t.idle.location}</span>
