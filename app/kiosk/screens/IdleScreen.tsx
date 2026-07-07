@@ -1,18 +1,19 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Masthead from "@/app/components/Masthead";
-import { LOCATION, TAGLINE, editionDate } from "@/app/lib/edition";
+import { CTA_LINE, LOCATION, TAGLINE, editionDate } from "@/app/lib/edition";
 
-const MARQUEE = [
-  "POSE",
-  "PRINT",
-  "POCKET",
-  "SMILE",
-  "STRIKE",
-  "COLLECT",
-];
+const MARQUEE = ["POSE", "CHOOSE", "BREATHE", "PRINT", "KEEP", "REMEMBER"];
+const CYCLE = ["a scent", "a portrait", "a moment", "a memory"];
 
 export default function IdleScreen({ onStart }: { onStart: () => void }) {
+  const [word, setWord] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setWord((w) => (w + 1) % CYCLE.length), 2600);
+    return () => clearInterval(t);
+  }, []);
+
   return (
     <button
       onClick={onStart}
@@ -22,7 +23,6 @@ export default function IdleScreen({ onStart }: { onStart: () => void }) {
       <div className="flex h-full flex-col">
         <Masthead variant="cover" />
 
-        {/* Cover title */}
         <div className="flex flex-1 flex-col justify-center px-[80px]">
           <p className="kicker anim-fade-up">{TAGLINE}</p>
 
@@ -31,19 +31,27 @@ export default function IdleScreen({ onStart }: { onStart: () => void }) {
             <span className="block text-[168px] italic">Receipt</span>
           </h1>
 
-          <div className="anim-fade-up delay-2 mt-[54px] flex items-center gap-[28px]">
+          <div className="anim-fade-up delay-2 mt-[52px] flex items-center gap-[28px]">
             <span className="rule w-[120px]" />
             <p className="font-display text-[34px] italic leading-[1.25] text-ink-soft">
-              Your portrait,
+              Take home{" "}
+              <span
+                key={word}
+                className="not-italic"
+                style={{ animation: "wordIn 0.7s ease both" }}
+              >
+                {CYCLE[word]}
+              </span>
+              .
               <br />
-              printed on a receipt.
+              Printed in time.
             </p>
           </div>
 
-          <div className="anim-fade-up delay-3 mt-[60px] grid grid-cols-3 gap-[2px] font-mono text-[15px] uppercase tracking-[0.18em] text-silver-dim">
-            <span>01 — Pose</span>
-            <span className="text-center">02 — Snap</span>
-            <span className="text-right">03 — Print</span>
+          <div className="anim-fade-up delay-3 mt-[58px] grid grid-cols-3 gap-[2px] font-mono text-[15px] uppercase tracking-[0.18em] text-silver-dim">
+            <span>01 — Choose</span>
+            <span className="text-center">02 — Pose</span>
+            <span className="text-right">03 — Keep</span>
           </div>
         </div>
 
@@ -51,10 +59,7 @@ export default function IdleScreen({ onStart }: { onStart: () => void }) {
         <div className="overflow-hidden border-y border-[color:var(--color-ink)] py-[26px]">
           <div className="marquee-track">
             {[...MARQUEE, ...MARQUEE, ...MARQUEE, ...MARQUEE].map((w, i) => (
-              <span
-                key={i}
-                className="mx-[38px] font-display text-[52px] italic"
-              >
+              <span key={i} className="mx-[38px] font-display text-[52px] italic">
                 {w}
                 <span className="mx-[38px] not-italic text-silver">✦</span>
               </span>
@@ -66,8 +71,8 @@ export default function IdleScreen({ onStart }: { onStart: () => void }) {
         <div className="px-[80px] pb-[86px] pt-[70px]">
           <div className="anim-breathe flex items-center justify-center gap-[24px] border border-[color:var(--color-ink)] py-[42px]">
             <span className="h-[16px] w-[16px] rounded-full bg-ink" />
-            <span className="font-mono text-[30px] uppercase tracking-[0.5em]">
-              Tap to begin
+            <span className="font-mono text-[28px] uppercase tracking-[0.44em]">
+              {CTA_LINE}
             </span>
           </div>
           <div className="mt-[30px] flex justify-between font-mono text-[13px] uppercase tracking-[0.28em] text-silver-dim">

@@ -1,14 +1,17 @@
 "use client";
 
 import ReceiptStrip from "@/app/components/ReceiptStrip";
+import type { Scent } from "@/app/lib/edition";
 
 export default function ReviewScreen({
   frames,
+  scent,
   serial,
   onPrint,
   onRetake,
 }: {
   frames: number[];
+  scent: Scent;
   serial: string;
   onPrint: () => void;
   onRetake: () => void;
@@ -17,25 +20,24 @@ export default function ReviewScreen({
     <div className="flex h-full flex-col">
       <div className="px-[80px] pt-[64px]">
         <div className="flex items-baseline justify-between">
-          <p className="kicker">The Proof</p>
+          <p className="kicker">Step IV — The Proof</p>
           <p className="font-mono text-[18px] uppercase tracking-[0.3em] text-silver-dim">
             {serial}
           </p>
         </div>
         <h2 className="mt-[18px] font-display text-[88px] font-semibold leading-[0.9] tracking-[-0.02em]">
-          Looking <span className="italic">sharp.</span>
+          Your scent <span className="italic">memory.</span>
         </h2>
         <p className="mt-[16px] text-[26px] text-ink-soft">
-          Print it, or take the shots again.
+          {scent.mood} — {scent.name}. Print it, or shoot again.
         </p>
       </div>
 
       {/* receipt preview */}
-      <div className="relative flex flex-1 items-start justify-center overflow-hidden px-[80px] pt-[46px]">
+      <div className="relative flex flex-1 items-start justify-center overflow-hidden px-[80px] pt-[44px]">
         <div className="w-[470px] anim-fade-up">
-          <ReceiptStrip frames={frames} serial={serial} />
+          <ReceiptStrip frames={frames} scent={scent} serial={serial} />
         </div>
-        {/* soft fade if the strip runs long */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[120px] bg-gradient-to-t from-[color:var(--color-paper)] to-transparent" />
       </div>
 

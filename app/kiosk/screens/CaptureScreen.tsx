@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Portrait from "@/app/components/Portrait";
+import type { Scent } from "@/app/lib/edition";
 
 export default function CaptureScreen({
   total,
+  scent,
   onComplete,
 }: {
   total: number;
+  scent: Scent;
   onComplete: (frames: number[]) => void;
 }) {
   const [shot, setShot] = useState(0);
@@ -58,7 +61,7 @@ export default function CaptureScreen({
             style={{ animation: "blink 1s step-end infinite" }}
           />
           <span className="font-mono text-[20px] uppercase tracking-[0.4em]">
-            Recording
+            Recording · {scent.mood}
           </span>
         </div>
         <span className="font-mono text-[20px] uppercase tracking-[0.4em] text-silver-dim">

@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Stage from "@/app/components/Stage";
-import { serialNo, TOTAL_SHOTS } from "@/app/lib/edition";
+import { scentById, serialNo, TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
 import IdleScreen from "./screens/IdleScreen";
-import IntroScreen from "./screens/IntroScreen";
+import ScentScreen from "./screens/ScentScreen";
+import PoseScreen from "./screens/PoseScreen";
 import CaptureScreen from "./screens/CaptureScreen";
 import ReviewScreen from "./screens/ReviewScreen";
 import PrintingScreen from "./screens/PrintingScreen";
@@ -12,7 +13,8 @@ import DoneScreen from "./screens/DoneScreen";
 
 export type Phase =
   | "idle"
-  | "intro"
+  | "scent"
+  | "pose"
   | "capture"
   | "review"
   | "printing"
@@ -22,8 +24,8 @@ export { TOTAL_SHOTS };
 
 export default function KioskApp() {
   const [phase, setPhase] = useState<Phase>("idle");
-  /** captured frame ids (mock — real camera comes later) */
   const [frames, setFrames] = useState<number[]>([]);
+  const [scent, setScent] = useState<Scent>(() => scentById("nocturne"));
   const [serial, setSerial] = useState("0000-0000");
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -31,12 +33,17 @@ export default function KioskApp() {
 
   const startSession = useCallback(() => {
     setFrames([]);
-    setPhase("intro");
+    setPhase("scent");
+  }, []);
+
+  const chooseScent = useCallback((s: Scent) => {
+    setScent(s);
+    setPhase("pose");
   }, []);
 
   const retake = useCallback(() => {
     setFrames([]);
-    setPhase("capture");
+    setPhase("pose");
   }, []);
 
   const finishCapture = useCallback((captured: number[]) => {
@@ -50,11 +57,11 @@ export default function KioskApp() {
     setPhase("idle");
   }, []);
 
-  // Auto-return to idle if the user walks away mid-session.
+  // Auto-return to idle if the guest walks away mid-session.
   useEffect(() => {
     if (idleTimer.current) clearTimeout(idleTimer.current);
-    if (phase === "intro" || phase === "review") {
-      idleTimer.current = setTimeout(reset, 45_000);
+    if (phase === "scent" || phase === "pose" || phase === "review") {
+      idleTimer.current = setTimeout(reset, 60_000);
     }
     return () => {
       if (idleTimer.current) clearTimeout(idleTimer.current);
@@ -64,13 +71,21 @@ export default function KioskApp() {
   return (
     <Stage>
       {phase === "idle" && <IdleScreen onStart={startSession} />}
-      {phase === "intro" && <IntroScreen onBegin={() => go("capture")} />}
+      {phase === "scent" && <ScentScreen onSelect={chooseScent} />}
+      {phase === "pose" && (
+        <PoseScreen scent={scent} onBegin={() => go("capture")} />
+      )}
       {phase === "capture" && (
-        <CaptureScreen total={TOTAL_SHOTS} onComplete={finishCapture} />
+        <CaptureScreen
+          total={TOTAL_SHOTS}
+          scent={scent}
+          onComplete={finishCapture}
+        />
       )}
       {phase === "review" && (
         <ReviewScreen
           frames={frames}
+          scent={scent}
           serial={serial}
           onPrint={() => go("printing")}
           onRetake={retake}
@@ -79,11 +94,14 @@ export default function KioskApp() {
       {phase === "printing" && (
         <PrintingScreen
           frames={frames}
+          scent={scent}
           serial={serial}
           onDone={() => go("done")}
         />
       )}
-      {phase === "done" && <DoneScreen serial={serial} onReset={reset} />}
+      {phase === "done" && (
+        <DoneScreen scent={scent} serial={serial} onReset={reset} />
+      )}
     </Stage>
   );
 }

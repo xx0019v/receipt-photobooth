@@ -1,11 +1,70 @@
-/** Shared "edition" metadata used across the kiosk, receipt-magazine style. */
+/** Shared "edition" metadata + scent system for THE RECEIPT. */
 
 /** Number of frames captured per session. */
 export const TOTAL_SHOTS = 3;
 
 export const BRAND = "THE RECEIPT";
-export const TAGLINE = "AN EDITORIAL PHOTOBOOTH";
-export const LOCATION = "NEXT TO THE SCENT MACHINE";
+export const SUB_BRAND = "SCENT MEMORY";
+export const TAGLINE = "A SCENT YOU CAN KEEP";
+export const CTA_LINE = "CLAIM YOUR SCENT MEMORY";
+export const LOCATION = "BESIDE THE SCENT MACHINE";
+export const DOMAIN = "the-receipt.studio";
+export const CLOSING = "This moment was printed.";
+
+export type Scent = {
+  /** stable id */
+  id: string;
+  /** editorial index, e.g. 01 */
+  index: string;
+  /** the mood word the guest chooses */
+  mood: string;
+  /** the fragrance name */
+  name: string;
+  /** three olfactory notes */
+  notes: [string, string, string];
+  /** one short editorial line printed on the receipt */
+  phrase: string;
+};
+
+/** The scent wardrobe — quiet, Byredo / Le Labo / Aesop register. */
+export const SCENTS: Scent[] = [
+  {
+    id: "nocturne",
+    index: "01",
+    mood: "Nocturne",
+    name: "AFTER HOURS",
+    notes: ["Iris", "Black Amber", "Smoke"],
+    phrase: "For the hour that belongs to no one.",
+  },
+  {
+    id: "linen",
+    index: "02",
+    mood: "Clean",
+    name: "MADE BED",
+    notes: ["White Musk", "Cotton", "Bergamot"],
+    phrase: "The calm of something freshly folded.",
+  },
+  {
+    id: "ember",
+    index: "03",
+    mood: "Warm",
+    name: "SLOW BURN",
+    notes: ["Tobacco", "Vanilla", "Cedar"],
+    phrase: "Warmth that keeps its secrets.",
+  },
+  {
+    id: "margin",
+    index: "04",
+    mood: "Cold",
+    name: "SEA MARGIN",
+    notes: ["Vetiver", "Mineral", "Green Fig"],
+    phrase: "Air at the edge of the water.",
+  },
+];
+
+export function scentById(id: string): Scent {
+  return SCENTS.find((s) => s.id === id) ?? SCENTS[0];
+}
 
 export function editionDate(d = new Date()): string {
   return d

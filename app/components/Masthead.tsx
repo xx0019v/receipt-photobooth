@@ -1,4 +1,4 @@
-import { BRAND, editionDate, issueNo } from "@/app/lib/edition";
+import { BRAND, SUB_BRAND, editionDate, issueNo } from "@/app/lib/edition";
 
 /**
  * The magazine masthead. Compact variant for in-flow screens,
@@ -14,7 +14,7 @@ export default function Masthead({
       <header className="px-[80px] pt-[70px]">
         <div className="flex items-center justify-between kicker">
           <span>{issueNo()}</span>
-          <span>PORTRAIT EDITION</span>
+          <span>{SUB_BRAND} EDITION</span>
           <span>{editionDate()}</span>
         </div>
         <div className="rule mt-[26px]" />

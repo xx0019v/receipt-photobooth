@@ -1,16 +1,29 @@
 import Portrait from "./Portrait";
-import { BRAND, editionDate, editionTime, issueNo } from "@/app/lib/edition";
+import Qr from "./Qr";
+import {
+  BRAND,
+  CLOSING,
+  DOMAIN,
+  SUB_BRAND,
+  editionDate,
+  editionTime,
+  issueNo,
+  type Scent,
+} from "@/app/lib/edition";
 
 /**
- * The printed artefact — how the strip looks coming out of the thermal
- * receipt printer. Reused in Review, Printing and Done screens.
+ * The printed artefact — how the strip looks coming off the thermal printer.
+ * Reused across Review, Printing and Done. Keep this layout print-accurate;
+ * it doubles as the reference for the real receipt render later.
  */
 export default function ReceiptStrip({
   frames,
+  scent,
   serial,
   time,
 }: {
   frames: number[];
+  scent: Scent;
   serial: string;
   time?: string;
 }) {
@@ -18,7 +31,6 @@ export default function ReceiptStrip({
 
   return (
     <div className="relative bg-paper-bright text-ink shadow-[0_30px_80px_-40px_rgba(0,0,0,0.6)]">
-      {/* perforated top */}
       <Perf />
 
       <div className="px-[46px] pb-[8px] pt-[44px]">
@@ -28,23 +40,40 @@ export default function ReceiptStrip({
             {BRAND}
           </p>
           <p className="mt-[14px] font-mono text-[15px] uppercase tracking-[0.42em] text-silver-dim">
-            Portrait Edition
+            {SUB_BRAND}
           </p>
         </div>
 
-        <Dashed className="my-[26px]" />
+        <Dashed className="my-[24px]" />
 
         {/* meta */}
-        <div className="grid grid-cols-2 gap-y-[10px] font-mono text-[17px] uppercase tracking-[0.12em]">
+        <div className="grid grid-cols-2 gap-y-[9px] font-mono text-[17px] uppercase tracking-[0.12em]">
           <span className="text-silver-dim">Date</span>
           <span className="text-right">{editionDate()}</span>
           <span className="text-silver-dim">Time</span>
           <span className="text-right">{stamp}</span>
           <span className="text-silver-dim">Issue</span>
           <span className="text-right">{issueNo()}</span>
+          <span className="text-silver-dim">Serial</span>
+          <span className="text-right">{serial}</span>
         </div>
 
-        <Dashed className="my-[26px]" />
+        <Dashed className="my-[24px]" />
+
+        {/* scent block */}
+        <div className="text-center">
+          <p className="font-mono text-[14px] uppercase tracking-[0.4em] text-silver-dim">
+            The Scent — {scent.index}
+          </p>
+          <p className="mt-[10px] font-display text-[38px] leading-none">
+            {scent.mood} <span className="italic">/ {scent.name}</span>
+          </p>
+          <p className="mt-[12px] font-mono text-[16px] uppercase tracking-[0.2em]">
+            {scent.notes.join("  ·  ")}
+          </p>
+        </div>
+
+        <Dashed className="my-[24px]" />
 
         {/* frames */}
         <div className="flex flex-col gap-[10px]">
@@ -55,42 +84,61 @@ export default function ReceiptStrip({
           ))}
         </div>
 
-        <Dashed className="my-[26px]" />
+        <Dashed className="my-[24px]" />
+
+        {/* editorial phrase */}
+        <p className="text-center font-display text-[30px] italic leading-[1.25]">
+          “{scent.phrase}”
+        </p>
+
+        <Dashed className="my-[24px]" />
 
         {/* receipt line items */}
-        <div className="flex flex-col gap-[12px] font-mono text-[18px] uppercase tracking-[0.06em]">
-          <Line label={`${frames.length}× Portrait strip`} value="0.00" />
-          <Line label="Confidence" value="MAX" />
-          <Line label="Service" value="Complimentary" />
+        <div className="flex flex-col gap-[11px] font-mono text-[18px] uppercase tracking-[0.06em]">
+          <Line label="1× Scent memory" value="0.00" />
+          <Line label="Mood" value={scent.mood} />
+          <Line label="Frames" value={`${frames.length} captured`} />
           <div className="mt-[6px] border-t border-dashed border-[color:var(--color-ink)] pt-[16px]">
             <div className="flex items-end justify-between">
               <span className="font-display text-[30px]">Total</span>
-              <span className="font-display text-[30px] italic">One smile</span>
+              <span className="font-display text-[30px] italic">One moment</span>
             </div>
           </div>
         </div>
 
-        <Dashed className="my-[26px]" />
+        <Dashed className="my-[24px]" />
 
-        {/* barcode + serial */}
+        {/* barcode + qr */}
         <Barcode />
-        <p className="mt-[12px] text-center font-mono text-[16px] tracking-[0.3em]">
-          {serial}
-        </p>
+        <div className="mt-[22px] flex items-center gap-[26px]">
+          <div className="border border-[color:var(--color-ink)] p-[10px]">
+            <Qr cell={6} seed={hashSeed(serial)} />
+          </div>
+          <div className="flex-1 font-mono text-[15px] uppercase leading-[1.6] tracking-[0.16em] text-silver-dim">
+            <p>Scan to keep</p>
+            <p>a digital copy.</p>
+            <p className="mt-[8px] text-ink">{serial}</p>
+          </div>
+        </div>
 
-        {/* footer */}
+        {/* closing */}
         <p className="mt-[26px] text-center font-display text-[26px] italic leading-tight">
-          Thank you — keep this moment.
+          {CLOSING}
         </p>
         <p className="mb-[6px] mt-[14px] text-center font-mono text-[13px] uppercase tracking-[0.3em] text-silver-dim">
-          the-receipt.studio
+          {DOMAIN}
         </p>
       </div>
 
-      {/* cut line */}
       <CutLine />
     </div>
   );
+}
+
+function hashSeed(s: string): number {
+  let h = 7;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0x7fffffff;
+  return h || 7;
 }
 
 function Line({ label, value }: { label: string; value: string }) {
@@ -133,16 +181,11 @@ function CutLine() {
 }
 
 function Barcode() {
-  // deterministic bar pattern
   const bars = "413132214231341221432312143132".split("");
   return (
     <div className="flex h-[70px] items-stretch justify-center gap-[3px]">
       {bars.map((w, i) => (
-        <span
-          key={i}
-          className="bg-ink"
-          style={{ width: Number(w) * 2.4 }}
-        />
+        <span key={i} className="bg-ink" style={{ width: Number(w) * 2.4 }} />
       ))}
     </div>
   );
