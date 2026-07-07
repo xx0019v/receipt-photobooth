@@ -28,7 +28,7 @@ export default function ScentScreen({
         <h2 className="anim-fade-up delay-1 mt-[22px] font-display text-[92px] font-semibold leading-[0.86] tracking-[-0.025em]">
           {t.scent.title[0]}
           <br />
-          <span className="italic">{t.scent.title[1]}</span>
+          <span className={lang === "en" ? "italic" : ""}>{t.scent.title[1]}</span>
         </h2>
         <p className="anim-fade-up delay-2 mt-[22px] text-[25px] leading-[1.4] text-silver-dim">
           {t.scent.sub}

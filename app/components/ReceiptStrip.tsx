@@ -33,7 +33,7 @@ export default function ReceiptStrip({
   const seat = String(frames.length).padStart(2, "0");
 
   return (
-    <div className="relative bg-paper-bright text-ink shadow-[0_30px_80px_-40px_rgba(0,0,0,0.6)]">
+    <div className="paper-tex relative text-ink shadow-[0_30px_80px_-40px_rgba(0,0,0,0.6)]">
       {/* airport-style boarding stamp */}
       <div className="stamp pointer-events-none absolute right-[30px] top-[300px] z-[2] px-[16px] py-[7px] text-center font-mono uppercase leading-tight">
         <span className="block text-[24px] font-bold tracking-[0.18em]">Boarded</span>
@@ -41,6 +41,7 @@ export default function ReceiptStrip({
       </div>
 
       <Perf />
+      <div className="h-[7px] w-full bg-ink" />
 
       <div className="px-[44px] pb-[8px] pt-[42px]">
         {/* header */}

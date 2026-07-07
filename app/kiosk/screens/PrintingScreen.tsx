@@ -49,7 +49,8 @@ export default function PrintingScreen({
       <div className="px-[80px] pt-[64px]">
         <p className="kicker">{t.print.step}</p>
         <h2 className="mt-[18px] font-display text-[88px] font-semibold leading-[0.9] tracking-[-0.02em]">
-          {t.print.title[0]} <span className="italic">{t.print.title[1]}</span>
+          {t.print.title[0]}{" "}
+          <span className={lang === "en" ? "italic" : ""}>{t.print.title[1]}</span>
         </h2>
       </div>
 

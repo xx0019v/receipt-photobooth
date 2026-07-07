@@ -29,7 +29,8 @@ export default function ReviewScreen({
           </p>
         </div>
         <h2 className="mt-[16px] font-display text-[84px] font-semibold leading-[0.9] tracking-[-0.02em]">
-          {t.review.title[0]} <span className="italic">{t.review.title[1]}</span>
+          {t.review.title[0]}{" "}
+          <span className={lang === "en" ? "italic" : ""}>{t.review.title[1]}</span>
         </h2>
         <p className="mt-[14px] text-[25px] text-ink-soft">
           {loc(scent.mood, lang)} — {scent.name}. {t.review.subTail}
@@ -38,7 +39,7 @@ export default function ReviewScreen({
 
       {/* boarding pass preview */}
       <div className="relative flex flex-1 items-start justify-center overflow-hidden px-[80px] pt-[40px]">
-        <div className="w-[472px] pass-reveal">
+        <div className="w-[472px] pass-reveal drop-shadow-[0_40px_70px_rgba(0,0,0,0.28)]">
           <ReceiptStrip frames={frames} scent={scent} serial={serial} />
         </div>
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[120px] bg-gradient-to-t from-[color:var(--color-paper)] to-transparent" />

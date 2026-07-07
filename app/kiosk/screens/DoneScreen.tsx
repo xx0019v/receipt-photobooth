@@ -45,7 +45,9 @@ export default function DoneScreen({
 
           <h2 className="anim-fade-up delay-1 mt-[28px] font-display font-semibold leading-[0.86] tracking-[-0.02em]">
             <span className="block text-[110px]">{t.done.title[0]}</span>
-            <span className="block text-[110px] italic">{t.done.title[1]}</span>
+            <span className={`block text-[110px] ${lang === "en" ? "italic" : ""}`}>
+              {t.done.title[1]}
+            </span>
           </h2>
 
           <p className="anim-fade-up delay-2 mt-[38px] max-w-[720px] text-[28px] leading-[1.42] text-ink-soft">
