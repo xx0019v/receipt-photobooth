@@ -57,15 +57,15 @@ export default function PrintingScreen({
       </div>
 
       {/* printer slot + emerging pass */}
-      <div className="relative flex flex-1 flex-col items-center px-[80px] pt-[40px]">
-        <div className="relative z-[20] w-[560px]">
+      <div className="relative flex flex-1 flex-col items-center justify-center px-[60px] pb-[60px]">
+        <div className="relative z-[20] w-[980px]">
           <div className="h-[26px] w-full rounded-t-[6px] bg-ink" />
           <div className="h-[10px] w-full bg-ink-soft shadow-[inset_0_-6px_10px_rgba(0,0,0,0.6)]" />
         </div>
 
         <div
-          className="relative w-[472px] overflow-hidden"
-          style={{ height: 1180 }}
+          className="relative w-[920px] overflow-hidden"
+          style={{ height: 680 }}
         >
           <div
             style={{

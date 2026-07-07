@@ -36,16 +36,15 @@ export default function ReviewScreen({
         </p>
       </div>
 
-      {/* boarding pass preview */}
-      <div className="relative flex flex-1 items-start justify-center overflow-hidden px-[80px] pt-[40px]">
-        <div className="w-[472px] pass-reveal drop-shadow-[0_40px_70px_rgba(0,0,0,0.28)]">
+      {/* boarding pass preview — landscape */}
+      <div className="relative flex flex-1 items-center justify-center overflow-hidden px-[60px]">
+        <div className="pass-reveal drop-shadow-[0_40px_70px_rgba(0,0,0,0.28)]">
           <ReceiptStrip frames={frames} scent={scent} serial={serial} />
         </div>
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[120px] bg-gradient-to-t from-[color:var(--color-paper)] to-transparent" />
       </div>
 
-      {/* actions */}
-      <div className="grid grid-cols-[1fr_1.5fr] gap-[24px] px-[80px] pb-[86px] pt-[34px]">
+      {/* actions — appear after the pass has been admired */}
+      <div className="anim-fade-up delay-6 grid grid-cols-[1fr_1.5fr] gap-[24px] px-[80px] pb-[86px] pt-[10px]">
         <button
           onClick={onRetake}
           className="press flex flex-col items-center justify-center gap-[5px] border border-[color:var(--color-ink)] py-[38px]"
