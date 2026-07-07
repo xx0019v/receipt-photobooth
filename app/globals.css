@@ -42,6 +42,21 @@ body {
   cursor: none; /* kiosk / touch — hide cursor */
 }
 
+/* On a real mouse (PC preview / desktop), show the cursor so it's usable.
+   On a touchscreen kiosk (coarse pointer) this query doesn't match, so the
+   cursor stays hidden. Overrides the inline cursor:none set on buttons. */
+@media (hover: hover) and (pointer: fine) {
+  * {
+    cursor: auto !important;
+  }
+  button,
+  a,
+  .card,
+  [role="button"] {
+    cursor: pointer !important;
+  }
+}
+
 /* ------------------------------------------------------------
    Kiosk canvas — a fixed 1080×1920 stage, scaled to the screen.
    Guarantees a pixel-consistent design on the Pi touchscreen
