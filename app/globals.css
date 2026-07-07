@@ -314,6 +314,41 @@ body {
   user-select: none;
 }
 
+/* When a scent is chosen, quiet the siblings so the pick reads as focus */
+.cards-picked .card:not(.is-selected) {
+  opacity: 0.32;
+  filter: grayscale(0.4);
+  transform: scale(0.985);
+}
+.card.is-selected {
+  transform: scale(1.012);
+}
+
+/* Boarding pass "prints in" — a top-down reveal */
+@keyframes passReveal {
+  from { clip-path: inset(0 0 100% 0); opacity: 0.4; }
+  to { clip-path: inset(0 0 0 0); opacity: 1; }
+}
+.pass-reveal {
+  animation: passReveal 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Slow ambient breathing for the Done afterglow */
+@keyframes ambient {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.015); }
+}
+.anim-ambient { animation: ambient 4.5s ease-in-out infinite; }
+
+/* A faint rotated "BOARDED" stamp on the pass */
+.stamp {
+  transform: rotate(-8deg);
+  border: 3px double var(--color-ink);
+  color: var(--color-ink);
+  opacity: 0.16;
+  mix-blend-mode: multiply;
+}
+
 /* A hairline "sillage" divider used on the receipt */
 .sillage {
   height: 22px;

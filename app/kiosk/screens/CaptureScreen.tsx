@@ -67,7 +67,10 @@ export default function CaptureScreen({
           </span>
         </div>
         <span className="font-mono text-[20px] uppercase tracking-[0.4em] text-silver-dim">
-          {t.capture.frame} {String(shot + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+          {t.capture.frameLabel(
+            String(shot + 1).padStart(2, "0"),
+            String(total).padStart(2, "0"),
+          )}
         </span>
       </div>
 

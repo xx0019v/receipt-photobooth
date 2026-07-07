@@ -50,7 +50,7 @@ const en = {
   },
   capture: {
     recording: "Recording",
-    frame: "Frame",
+    frameLabel: (a: string, b: string) => `Frame ${a} / ${b}`,
     hold: "Hold",
   },
   review: {
@@ -130,7 +130,7 @@ const jp: Dict = {
   },
   capture: {
     recording: "撮影中",
-    frame: "枚目",
+    frameLabel: (a: string, b: string) => `${a} / ${b} 枚目`,
     hold: "そのまま",
   },
   review: {

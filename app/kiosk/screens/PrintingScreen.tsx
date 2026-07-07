@@ -68,6 +68,7 @@ export default function PrintingScreen({
             style={{
               transform: `translateY(${(pct - 1) * 100}%)`,
               transition: "transform 40ms linear",
+              filter: `drop-shadow(0 ${18 * pct}px ${34 * pct}px rgba(0,0,0,${0.28 * pct}))`,
             }}
           >
             <ReceiptStrip frames={frames} scent={scent} serial={serial} />

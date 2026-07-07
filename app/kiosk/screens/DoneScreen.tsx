@@ -53,7 +53,7 @@ export default function DoneScreen({
           </p>
 
           <div className="anim-fade-up delay-3 mt-[60px] flex flex-col items-center">
-            <div className="border border-[color:var(--color-ink)] p-[22px]">
+            <div className="anim-ambient border border-[color:var(--color-ink)] p-[22px]">
               <Qr seed={hashSeed(serial)} />
             </div>
             <p className="mt-[20px] font-mono text-[18px] uppercase tracking-[0.3em] text-silver-dim">

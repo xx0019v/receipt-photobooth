@@ -34,6 +34,12 @@ export default function ReceiptStrip({
 
   return (
     <div className="relative bg-paper-bright text-ink shadow-[0_30px_80px_-40px_rgba(0,0,0,0.6)]">
+      {/* airport-style boarding stamp */}
+      <div className="stamp pointer-events-none absolute right-[30px] top-[300px] z-[2] px-[16px] py-[7px] text-center font-mono uppercase leading-tight">
+        <span className="block text-[24px] font-bold tracking-[0.18em]">Boarded</span>
+        <span className="block text-[12px] tracking-[0.24em]">{editionDate()}</span>
+      </div>
+
       <Perf />
 
       <div className="px-[44px] pb-[8px] pt-[42px]">
@@ -125,8 +131,15 @@ export default function ReceiptStrip({
         {/* scent stamps (the photobooth frames) */}
         <div className="grid grid-cols-3 gap-[8px]">
           {frames.map((f) => (
-            <div key={f} className="aspect-square w-full overflow-hidden bg-ink">
+            <div key={f} className="relative aspect-square w-full overflow-hidden bg-ink">
               <Portrait seed={f - 1} print />
+              <Tick className="left-[6px] top-[6px] border-l border-t" />
+              <Tick className="right-[6px] top-[6px] rotate-90 border-l border-t" />
+              <Tick className="bottom-[6px] right-[6px] rotate-180 border-l border-t" />
+              <Tick className="bottom-[6px] left-[6px] -rotate-90 border-l border-t" />
+              <span className="absolute bottom-[6px] left-[8px] font-mono text-[11px] tracking-[0.1em] text-paper/80">
+                {String(f).padStart(2, "0")}
+              </span>
             </div>
           ))}
         </div>
@@ -215,6 +228,14 @@ function StubCell({ label, value }: { label: string; value: string }) {
       <p className="text-[11px] tracking-[0.2em] text-silver-dim">{label}</p>
       <p className="mt-[4px] text-[18px]">{value}</p>
     </div>
+  );
+}
+
+function Tick({ className = "" }: { className?: string }) {
+  return (
+    <span
+      className={`pointer-events-none absolute h-[12px] w-[12px] border-paper/70 ${className}`}
+    />
   );
 }
 

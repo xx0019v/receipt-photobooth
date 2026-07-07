@@ -35,7 +35,11 @@ export default function ScentScreen({
         </p>
       </div>
 
-      <div className="flex flex-1 flex-col justify-center gap-[18px] px-[80px] py-[36px]">
+      <div
+        className={`flex flex-1 flex-col justify-center gap-[18px] px-[80px] py-[36px] ${
+          picked ? "cards-picked" : ""
+        }`}
+      >
         {SCENTS.map((s, i) => {
           const isSel = picked === s.id;
           return (

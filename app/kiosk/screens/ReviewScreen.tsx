@@ -38,7 +38,7 @@ export default function ReviewScreen({
 
       {/* boarding pass preview */}
       <div className="relative flex flex-1 items-start justify-center overflow-hidden px-[80px] pt-[40px]">
-        <div className="w-[472px] anim-fade-up">
+        <div className="w-[472px] pass-reveal">
           <ReceiptStrip frames={frames} scent={scent} serial={serial} />
         </div>
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[120px] bg-gradient-to-t from-[color:var(--color-paper)] to-transparent" />
