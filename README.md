@@ -21,11 +21,18 @@
 ⑦ DONE      お礼画面 + QR
 ```
 
-## 開発
+## PC でプレビュー（いつでも確認）
+
+**いちばん簡単**: プロジェクト内の **`Preview.command` をダブルクリック**。
+開発サーバーが起動し、数秒でブラウザが `http://localhost:3080` を開きます。
+- 縦型キオスク表示: ブラウザで **F11（全画面）**＋ウィンドウを縦長に。画面は自動で 1080×1920 にスケールします。
+- 止めるとき: 開いたターミナルを閉じるか `Ctrl+C`。
+
+**コマンドで起動する場合**:
 
 ```bash
-npm install
-npm run dev      # http://localhost:3000
+npm install      # 初回のみ
+npm run dev      # http://localhost:3080
 ```
 
 ### Raspberry Pi キオスク運用（後日）
