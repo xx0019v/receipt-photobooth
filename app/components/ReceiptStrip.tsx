@@ -28,7 +28,7 @@ export default function ReceiptStrip({
   const seat = String(frames.length).padStart(2, "0");
 
   return (
-    <div className="paper-tex relative flex h-[352px] w-[1000px] text-ink shadow-[0_30px_80px_-38px_rgba(0,0,0,0.7)]">
+    <div className="paper-tex relative flex h-[440px] w-[1000px] text-ink shadow-[0_30px_80px_-38px_rgba(0,0,0,0.7)]">
       <div className="absolute inset-x-0 top-0 z-[5] h-[6px] bg-ink" />
 
       {/* ============ LEFT — identity + fragrance + stamps ============ */}
@@ -64,14 +64,14 @@ export default function ReceiptStrip({
         </div>
 
         <div className="sillage mt-auto" />
-        <div className="mt-[8px] flex gap-[6px]">
+        <div className="mt-[12px] flex gap-[8px]">
           {frames.map((f) => (
             <div
               key={f}
-              className="relative h-[76px] w-[76px] overflow-hidden bg-ink outline outline-1 outline-offset-[2px] outline-[color:var(--color-line)]"
+              className="relative aspect-[3/4] flex-1 overflow-hidden bg-ink outline outline-1 outline-offset-[2px] outline-[color:var(--color-line)]"
             >
               <Portrait seed={f - 1} print />
-              <span className="absolute bottom-[3px] left-[5px] font-mono text-[9px] tracking-[0.08em] text-paper">
+              <span className="absolute bottom-[4px] left-[6px] font-mono text-[10px] tracking-[0.08em] text-paper">
                 {String(f).padStart(2, "0")}
               </span>
             </div>

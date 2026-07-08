@@ -30,7 +30,7 @@ export default function PrintingScreen({
   const isCover = style === "cover";
   const slitW = isCover ? 680 : 1040;
   const winW = isCover ? 640 : 1000;
-  const winH = isCover ? 924 : 372;
+  const winH = isCover ? 924 : 460;
 
   useEffect(() => {
     const start = performance.now();
