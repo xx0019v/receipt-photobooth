@@ -2,14 +2,21 @@
 
 ## Always-on design discipline (apply without being asked)
 Before finishing ANY UI / design / frontend / animation work in this repo,
-automatically apply every installed design skill — do not wait to be told:
+automatically apply the installed design skills — do not wait to be told.
 
-- `ui-ux-pro-max` — design thinking, visual hierarchy, interaction patterns
-- `design-system` / `frontend-design` — tokens, structure, production-ready UI
-- `web-design-guidelines` — always-on quality check (spacing, type, hierarchy)
-- `taste` — aesthetic opinion, anti-"AI-looking" output (when installed)
-- Emil Kowalski `motion` — motion / animation feel (when installed)
-- `impeccable` / `/polish` — tighten every loose detail before shipping (when installed)
+**Priority (quality-raising, auto-apply on this luxury monochrome kiosk):**
+- `design-taste-frontend` — anti-slop taste; infers direction, tunes
+  VARIANCE / MOTION / DENSITY dials, hard em-dash ban, pre-flight check
+- `high-end-visual-design` — polished, calm, expensive UI: softer contrast,
+  whitespace, premium type, spring motion (matches our aesthetic best)
+- `minimalist-ui` — editorial restraint (Notion / Linear register)
+- `web-design-guidelines` — always-on review (spacing, type, hierarchy, a11y)
+- `ui-ux-pro-max` / `frontend-design` — hierarchy, interaction, structure
+
+Also available when the direction calls for it: `redesign-existing-projects`
+(audit-first refactors), `full-output-enforcement` (no truncated output),
+`industrial-brutalist-ui`, `image-to-code`, `gpt-taste`. Image-gen skills
+(`imagegen-frontend-web/-mobile`, `brandkit`) output reference images only.
 
 Use them as the standard pass on every change: plan with them, build, then run
 the review/polish skills before calling the work done. Verify in the browser

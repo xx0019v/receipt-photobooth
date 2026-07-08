@@ -37,7 +37,7 @@ export default function ReceiptStrip({
           {t.pass.title}
         </p>
         {sub && <p className="jp-sub text-[12px] text-silver-dim">{sub.pass.title}</p>}
-        <p className="mt-[5px] font-display text-[27px] leading-none">{BRAND}</p>
+        <p className="mt-[6px] font-display text-[29px] leading-none tracking-tight">{BRAND}</p>
         <p className="mt-[6px] font-mono text-[10px] uppercase tracking-[0.24em] text-silver-dim">
           {t.pass.airline}
         </p>
@@ -49,13 +49,13 @@ export default function ReceiptStrip({
           <p className="mt-[5px] font-display text-[23px] leading-[1.0]">
             {scent.mood.en} <span className="italic">/ {scent.name}</span>
           </p>
-          <div className="mt-[10px] grid grid-cols-3 gap-[6px]">
+          <div className="mt-[12px] grid grid-cols-3 divide-x divide-[color:var(--color-line)] border-t border-[color:var(--color-line)] pt-[8px]">
             {t.pass.notes.map((tier, i) => (
-              <div key={tier}>
+              <div key={tier} className="pl-[10px] first:pl-0">
                 <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-silver-dim">
                   {tier}
                 </p>
-                <p className="mt-[2px] font-display text-[14px] italic leading-tight">
+                <p className="mt-[3px] font-display text-[14px] italic leading-tight">
                   {scent.notes[i].en}
                 </p>
               </div>
@@ -63,11 +63,15 @@ export default function ReceiptStrip({
           </div>
         </div>
 
-        <div className="mt-auto flex gap-[6px]">
+        <div className="sillage mt-auto" />
+        <div className="mt-[8px] flex gap-[6px]">
           {frames.map((f) => (
-            <div key={f} className="relative h-[76px] w-[76px] overflow-hidden bg-ink">
+            <div
+              key={f}
+              className="relative h-[76px] w-[76px] overflow-hidden bg-ink outline outline-1 outline-offset-[2px] outline-[color:var(--color-line)]"
+            >
               <Portrait seed={f - 1} print />
-              <span className="absolute bottom-[3px] left-[5px] font-mono text-[9px] text-paper">
+              <span className="absolute bottom-[3px] left-[5px] font-mono text-[9px] tracking-[0.08em] text-paper">
                 {String(f).padStart(2, "0")}
               </span>
             </div>
@@ -115,19 +119,23 @@ export default function ReceiptStrip({
         <div className="my-[14px] border-t border-dashed border-[color:var(--color-ink)]" />
 
         {/* passenger grid */}
-        <div className="grid grid-cols-3 gap-x-[18px] gap-y-[12px]">
+        <div className="grid grid-cols-3 gap-x-[18px] gap-y-[10px]">
           <Field label={t.pass.passenger} value={t.pass.passengerValue} />
           <Field label={t.pass.flight} value={scent.code} />
           <Field label={t.pass.gate} value={t.pass.gateValue} />
+        </div>
+        <div className="rule-hair my-[12px]" />
+        <div className="grid grid-cols-3 gap-x-[18px] gap-y-[10px]">
           <Field label={t.pass.seat} value={seat} />
           <Field label={t.pass.boarding} value={stamp} />
           <Field label={t.pass.date} value={editionDate()} />
         </div>
 
-        <p className="mt-auto font-display text-[18px] italic leading-tight">
+        <div className="rule-hair mt-auto" />
+        <p className="mt-[10px] font-display text-[19px] italic leading-tight">
           “{scent.phrase.en}”
         </p>
-        <p className="mt-[6px] font-mono text-[10px] uppercase tracking-[0.28em]">
+        <p className="mt-[7px] font-mono text-[10px] uppercase tracking-[0.28em]">
           {t.pass.closing}
           {sub && <span className="jp-sub ml-[10px] text-[10px] normal-case">{sub.pass.closing}</span>}
         </p>
@@ -158,9 +166,10 @@ export default function ReceiptStrip({
         </div>
 
         <Barcode />
-        <p className="mt-[6px] text-center font-mono text-[12px] tracking-[0.22em]">{serial}</p>
+        <p className="mt-[7px] text-center font-mono text-[12px] tracking-[0.26em]">{serial}</p>
 
-        <p className="mt-auto pt-[8px] text-center font-display text-[15px] italic leading-tight">
+        <div className="rule-hair mt-auto" />
+        <p className="mt-[10px] text-center font-display text-[15px] italic leading-tight">
           {t.pass.keep}
         </p>
         <p className="mt-[3px] text-center font-mono text-[8px] uppercase tracking-[0.22em] text-silver-dim">

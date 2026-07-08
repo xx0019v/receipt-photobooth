@@ -49,47 +49,58 @@ export default function MagazineCover({
       <div className="relative mx-[40px] mt-[18px] flex-1 overflow-hidden border border-[color:var(--color-ink)] bg-ink">
         <Portrait seed={hero - 1} print />
 
-        {/* headline — top-left knockout */}
-        <div className="pointer-events-none absolute left-[18px] top-[18px] bg-paper-bright/95 px-[16px] py-[12px]">
-          <p className="font-mono text-[12px] uppercase tracking-[0.3em]">
+        {/* kicker — top-left knockout, kept to a single line so it never fights the frame */}
+        <div className="pointer-events-none absolute left-[16px] top-[16px] max-w-[180px] bg-paper-bright/95 px-[13px] py-[9px]">
+          <p className="font-mono text-[11px] uppercase leading-[1.3] tracking-[0.26em]">
             {scent.code} · {t.pass.gateValue}
           </p>
-          <p className="mt-[3px] font-display text-[52px] font-semibold uppercase leading-[0.84]">
-            {scent.mood.en}
-          </p>
-          <p className="font-display text-[26px] italic leading-none">/ {scent.name}</p>
         </div>
 
-        {/* destination — top-right knockout */}
-        <div className="pointer-events-none absolute right-[18px] top-[18px] bg-paper-bright/95 px-[16px] py-[12px] text-right">
-          <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-silver-dim">
+        {/* destination — top-right knockout, slim and width-capped so the corners stay clear */}
+        <div className="pointer-events-none absolute right-[16px] top-[16px] max-w-[200px] bg-paper-bright/95 px-[13px] py-[9px] text-right">
+          <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-silver-dim">
             {t.pass.to}
           </p>
-          <p className="font-display text-[34px] italic leading-[0.9]">
+          <p className="mt-[2px] font-display text-[24px] italic leading-[0.95]">
             {scent.destination.en}
           </p>
         </div>
 
-        {/* coverlines — bottom-left knockout */}
-        <div className="pointer-events-none absolute bottom-[18px] left-[18px] max-w-[420px] bg-paper-bright/95 px-[16px] py-[12px]">
-          <p className="font-display text-[24px] italic leading-[1.12]">
+        {/* dominant coverline — single knockout anchoring the bottom of the frame */}
+        <div className="pointer-events-none absolute inset-x-[16px] bottom-[16px] bg-paper-bright/95 px-[22px] pb-[18px] pt-[20px]">
+          <p className="font-display text-[58px] font-semibold uppercase leading-[0.82] tracking-[-0.01em]">
+            {scent.mood.en}
+          </p>
+          <p className="mt-[3px] font-display text-[24px] italic leading-none text-silver-dim">
+            / {scent.name}
+          </p>
+
+          <p className="mt-[16px] max-w-[440px] font-display text-[20px] italic leading-[1.2]">
             “{scent.phrase.en}”
           </p>
-          <p className="mt-[8px] font-mono text-[12px] uppercase tracking-[0.22em]">
-            {scent.notes.map((n) => n.en).join(" · ")}
-          </p>
-          <p className="mt-[2px] font-mono text-[11px] uppercase tracking-[0.22em] text-silver-dim">
-            {stamp} · {editionDate()}
-          </p>
+
+          <span className="mt-[14px] block h-px bg-[color:var(--color-ink)]/25" />
+
+          <div className="mt-[10px] flex items-center justify-between gap-[16px]">
+            <p className="font-mono text-[11px] uppercase leading-[1.3] tracking-[0.22em]">
+              {scent.notes.map((n) => n.en).join(" · ")}
+            </p>
+            <p className="shrink-0 font-mono text-[10px] uppercase tracking-[0.22em] text-silver-dim">
+              {stamp} · {editionDate()}
+            </p>
+          </div>
         </div>
       </div>
 
       {/* bottom bar — barcode + meta */}
-      <div className="flex items-end justify-between px-[40px] pb-[30px] pt-[18px]">
+      <div className="flex items-end px-[40px] pb-[30px] pt-[18px]">
         <div>
           <Barcode />
           <p className="mt-[6px] font-mono text-[12px] tracking-[0.24em]">{serial}</p>
         </div>
+
+        <span className="mx-auto h-[44px] w-px self-end bg-[color:var(--color-ink)]/20" />
+
         <div className="text-right">
           <p className="font-mono text-[13px] uppercase tracking-[0.28em]">
             {t.pass.closing}
