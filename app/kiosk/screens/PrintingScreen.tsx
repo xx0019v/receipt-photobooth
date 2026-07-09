@@ -9,6 +9,40 @@ import { usePrintStyle } from "@/app/lib/printStyle";
 
 const DURATION = 3400;
 
+// Stepper-motor feed curve: progress (0-1) -> eject fraction (0-1).
+// Mirrors the `receiptOut` keyframe in globals.css — brief catches (holds)
+// between eased pulls, so the paper reads as mechanically fed rather than
+// gliding out in one continuous motion. Each pulse is still eased (never
+// linear/jerky), and the final pulls shorten so the artefact settles calmly.
+const FEED_STOPS: [progress: number, eject: number][] = [
+  [0, 0],
+  [0.18, 0.17],
+  [0.2, 0.17],
+  [0.4, 0.42],
+  [0.42, 0.42],
+  [0.64, 0.7],
+  [0.66, 0.7],
+  [0.86, 0.96],
+  [1, 1],
+];
+
+function smoothstep(t: number) {
+  return t * t * (3 - 2 * t);
+}
+
+function mechanicalFeed(progress: number) {
+  const p = Math.min(1, Math.max(0, progress));
+  for (let i = 0; i < FEED_STOPS.length - 1; i++) {
+    const [t0, e0] = FEED_STOPS[i];
+    const [t1, e1] = FEED_STOPS[i + 1];
+    if (p > t1 && i < FEED_STOPS.length - 2) continue;
+    if (t1 === t0) return e0;
+    const local = (p - t0) / (t1 - t0);
+    return e0 + (e1 - e0) * smoothstep(Math.min(1, Math.max(0, local)));
+  }
+  return 1;
+}
+
 export default function PrintingScreen({
   frames,
   scent,
@@ -30,7 +64,7 @@ export default function PrintingScreen({
   const isCover = style === "cover";
   const slitW = isCover ? 680 : 1040;
   const winW = isCover ? 640 : 1000;
-  const winH = isCover ? 924 : 580;
+  const winH = isCover ? 924 : 680;
 
   useEffect(() => {
     const start = performance.now();
@@ -56,7 +90,7 @@ export default function PrintingScreen({
     };
   }, []);
 
-  const ease = 1 - Math.pow(1 - pct, 3);
+  const ease = mechanicalFeed(pct);
 
   return (
     <div className="flex h-full flex-col">
@@ -94,6 +128,7 @@ export default function PrintingScreen({
           style={{ width: winW, height: winH }}
         >
           <div
+            className={done ? "anim-quiet-confirm" : undefined}
             style={{
               transform: `translateY(${(ease - 1) * 100}%)`,
               filter: `drop-shadow(0 ${16 * ease}px ${30 * ease}px rgba(0,0,0,${0.26 * ease}))`,
@@ -109,16 +144,10 @@ export default function PrintingScreen({
           {!done && (
             <>
               <div
-                className="pointer-events-none absolute inset-x-0 top-0 h-[3px] bg-ink/70"
-                style={{ animation: "scan 1s linear infinite" }}
+                className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-ink/55"
+                style={{ animation: "scan 1.1s cubic-bezier(0.4,0,0.2,1) infinite" }}
               />
-              <div
-                className="pointer-events-none absolute inset-0 opacity-[0.05] mix-blend-multiply"
-                style={{
-                  backgroundImage:
-                    "repeating-linear-gradient(0deg, #000 0 1px, transparent 1px 3px)",
-                }}
-              />
+              <div className="print-noise pointer-events-none absolute inset-0 opacity-[0.05] mix-blend-multiply" />
             </>
           )}
         </div>
@@ -139,7 +168,7 @@ export default function PrintingScreen({
             </div>
           </>
         ) : (
-          <div className="anim-fade-up grid grid-cols-[1fr_1.6fr] gap-[24px]">
+          <div className="anim-fade-up delay-2 grid grid-cols-[1fr_1.6fr] gap-[24px]">
             <button
               onClick={onRetake}
               className="press flex flex-col items-center justify-center gap-[5px] border border-[color:var(--color-ink)] py-[36px]"

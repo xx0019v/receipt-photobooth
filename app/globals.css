@@ -189,9 +189,20 @@ body {
   8% { opacity: 0.92; }
   100% { opacity: 0; }
 }
+/* Paper feed — mechanical stepped travel (stepper-motor catches) that eases
+   into a soft settle as the artefact clears the slit. Each hold below is a
+   momentary catch; the gaps between are individually eased for a premium,
+   non-jittery pull rather than a raw glide. */
 @keyframes receiptOut {
-  from { transform: translateY(-100%); }
-  to { transform: translateY(0); }
+  0% { transform: translateY(-100%); }
+  18% { transform: translateY(-83%); }
+  20% { transform: translateY(-83%); }
+  40% { transform: translateY(-58%); }
+  42% { transform: translateY(-58%); }
+  64% { transform: translateY(-30%); }
+  66% { transform: translateY(-30%); }
+  86% { transform: translateY(-4%); }
+  100% { transform: translateY(0); }
 }
 @keyframes spinSlow {
   to { transform: rotate(360deg); }
@@ -281,10 +292,12 @@ body {
   75% { transform: translate(-1%, 2%); }
   100% { transform: translate(0, 0); }
 }
+/* Print-head scan beam — a crisp, constant-velocity sweep (mechanical, not a
+   soft flashlight) with a tight on/off blip at the ends like a sensor pass. */
 @keyframes scan {
   0% { transform: translateY(-100%); opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
+  6% { opacity: 0.85; }
+  92% { opacity: 0.85; }
   100% { transform: translateY(2400px); opacity: 0; }
 }
 @keyframes reveal {
@@ -362,10 +375,11 @@ body {
 }
 .anim-ambient { animation: ambient 5.2s cubic-bezier(0.37, 0, 0.63, 1) infinite; }
 
-/* A faint rotated "BOARDED" stamp on the pass — thumps in after the reveal */
+/* A faint rotated "BOARDED" stamp on the pass — a mechanical press-thump
+   (tight compress, no rubbery overshoot) rather than a bouncy pop-in */
 @keyframes stampIn {
-  0% { opacity: 0; transform: rotate(-8deg) scale(1.7); }
-  60% { opacity: 0.22; transform: rotate(-8deg) scale(0.96); }
+  0% { opacity: 0; transform: rotate(-8deg) scale(1.4); }
+  60% { opacity: 0.22; transform: rotate(-8deg) scale(0.985); }
   100% { opacity: 0.16; transform: rotate(-8deg) scale(1); }
 }
 .stamp {
@@ -381,6 +395,23 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
   background-size: 180px 180px;
   background-blend-mode: multiply;
+}
+
+/* Quiet confirm — a soft, barely-there settle accent played once a choice or
+   state is committed (e.g. the artefact has fully cleared the printer).
+   Deliberately restrained: no bounce, just a whisper of weight settling. */
+@keyframes quietConfirm {
+  0% { transform: scale(0.988); opacity: 0.85; }
+  55% { transform: scale(1.006); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.anim-quiet-confirm { animation: quietConfirm 0.6s var(--ease-spring-soft) both; }
+
+/* Fine thermal-head noise overlay for an ejecting artefact — subtle, quietly
+   alive rather than static, reusing the existing grain-shift motion. */
+.print-noise {
+  background-image: repeating-linear-gradient(0deg, #000 0 1px, transparent 1px 3px);
+  animation: grainShift 0.6s steps(4) infinite;
 }
 
 /* A hairline "sillage" divider used on the receipt */

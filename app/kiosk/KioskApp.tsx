@@ -3,18 +3,25 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Stage from "@/app/components/Stage";
 import LangToggle from "@/app/components/LangToggle";
-import StyleToggle from "@/app/components/StyleToggle";
 import { LangProvider } from "@/app/lib/i18n";
 import { PrintStyleProvider } from "@/app/lib/printStyle";
 import { scentById, serialNo, TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
 import IdleScreen from "./screens/IdleScreen";
 import ScentScreen from "./screens/ScentScreen";
+import FormatSelectScreen from "./screens/FormatSelectScreen";
 import PoseScreen from "./screens/PoseScreen";
 import CaptureScreen from "./screens/CaptureScreen";
 import PrintingScreen from "./screens/PrintingScreen";
 import DoneScreen from "./screens/DoneScreen";
 
-export type Phase = "idle" | "scent" | "pose" | "capture" | "printing" | "done";
+export type Phase =
+  | "idle"
+  | "scent"
+  | "format"
+  | "pose"
+  | "capture"
+  | "printing"
+  | "done";
 
 export { TOTAL_SHOTS };
 
@@ -34,7 +41,7 @@ export default function KioskApp() {
 
   const chooseScent = useCallback((s: Scent) => {
     setScent(s);
-    setPhase("pose");
+    setPhase("format");
   }, []);
 
   const retake = useCallback(() => {
@@ -56,7 +63,7 @@ export default function KioskApp() {
   // Auto-return to idle if the guest walks away mid-session.
   useEffect(() => {
     if (idleTimer.current) clearTimeout(idleTimer.current);
-    if (phase === "scent" || phase === "pose") {
+    if (phase === "scent" || phase === "format" || phase === "pose") {
       idleTimer.current = setTimeout(reset, 60_000);
     }
     return () => {
@@ -69,10 +76,12 @@ export default function KioskApp() {
       <PrintStyleProvider>
       <Stage>
         <LangToggle />
-        <StyleToggle />
         <div key={phase} className="screen-swap">
         {phase === "idle" && <IdleScreen onStart={startSession} />}
         {phase === "scent" && <ScentScreen onSelect={chooseScent} />}
+        {phase === "format" && (
+          <FormatSelectScreen onContinue={() => go("pose")} />
+        )}
         {phase === "pose" && (
           <PoseScreen scent={scent} onBegin={() => go("capture")} />
         )}
