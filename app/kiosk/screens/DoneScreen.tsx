@@ -4,20 +4,26 @@ import { useEffect, useState } from "react";
 import Masthead from "@/app/components/Masthead";
 import Qr from "@/app/components/Qr";
 import { type Scent } from "@/app/lib/edition";
+import { type Quote } from "@/app/lib/quotes";
 import { useLang } from "@/app/lib/i18n";
+import { usePrintStyle } from "@/app/lib/printStyle";
 
 const AUTO_RETURN = 12_000;
 
 export default function DoneScreen({
   scent,
   serial,
+  quote,
   onReset,
 }: {
   scent: Scent;
   serial: string;
+  quote: Quote;
   onReset: () => void;
 }) {
   const { t, sub } = useLang();
+  const { style } = usePrintStyle();
+  const isCover = style === "cover";
   const totalSeconds = Math.round(AUTO_RETURN / 1000);
   const [left, setLeft] = useState(totalSeconds);
 
@@ -95,7 +101,13 @@ export default function DoneScreen({
             </p>
           </div>
 
-          <p className="anim-fade-up delay-5 mt-[46px] font-display text-[30px] italic text-ink">
+          {isCover && (
+            <p className="anim-fade-up delay-5 mt-[44px] font-display text-[40px] italic leading-tight text-ink">
+              “{quote.text}”
+            </p>
+          )}
+
+          <p className="anim-fade-up delay-5 mt-[24px] font-display text-[30px] italic text-ink">
             {t.done.closing}
           </p>
           {sub && (

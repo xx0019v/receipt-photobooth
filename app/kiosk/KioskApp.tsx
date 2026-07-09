@@ -6,6 +6,7 @@ import LangToggle from "@/app/components/LangToggle";
 import { LangProvider } from "@/app/lib/i18n";
 import { PrintStyleProvider } from "@/app/lib/printStyle";
 import { scentById, serialNo, TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
+import { pickQuote, type Quote } from "@/app/lib/quotes";
 import IdleScreen from "./screens/IdleScreen";
 import ScentScreen from "./screens/ScentScreen";
 import FormatSelectScreen from "./screens/FormatSelectScreen";
@@ -30,6 +31,7 @@ export default function KioskApp() {
   const [frames, setFrames] = useState<number[]>([]);
   const [scent, setScent] = useState<Scent>(() => scentById("nocturne"));
   const [serial, setSerial] = useState("0000-0000");
+  const [quote, setQuote] = useState<Quote>(() => pickQuote());
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const go = useCallback((p: Phase) => setPhase(p), []);
@@ -52,6 +54,7 @@ export default function KioskApp() {
   const finishCapture = useCallback((captured: number[]) => {
     setFrames(captured);
     setSerial(serialNo());
+    setQuote(pickQuote()); // decided once; held through print + done
     setPhase("printing");
   }, []);
 
@@ -97,12 +100,13 @@ export default function KioskApp() {
             frames={frames}
             scent={scent}
             serial={serial}
+            quote={quote}
             onRetake={retake}
             onClaim={() => go("done")}
           />
         )}
         {phase === "done" && (
-          <DoneScreen scent={scent} serial={serial} onReset={reset} />
+          <DoneScreen scent={scent} serial={serial} quote={quote} onReset={reset} />
         )}
         </div>
       </Stage>

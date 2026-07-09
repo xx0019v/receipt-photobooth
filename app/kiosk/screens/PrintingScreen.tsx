@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import ReceiptStrip from "@/app/components/ReceiptStrip";
 import MagazineCover from "@/app/components/MagazineCover";
 import { type Scent } from "@/app/lib/edition";
+import { type Quote } from "@/app/lib/quotes";
 import { useLang } from "@/app/lib/i18n";
 import { usePrintStyle } from "@/app/lib/printStyle";
 
@@ -47,12 +48,14 @@ export default function PrintingScreen({
   frames,
   scent,
   serial,
+  quote,
   onRetake,
   onClaim,
 }: {
   frames: number[];
   scent: Scent;
   serial: string;
+  quote: Quote;
   onRetake: () => void;
   onClaim: () => void;
 }) {
@@ -64,7 +67,7 @@ export default function PrintingScreen({
   const isCover = style === "cover";
   const slitW = isCover ? 680 : 1040;
   const winW = isCover ? 640 : 1000;
-  const winH = isCover ? 924 : 680;
+  const winH = isCover ? 800 : 680;
 
   useEffect(() => {
     const start = performance.now();
@@ -135,7 +138,7 @@ export default function PrintingScreen({
             }}
           >
             {isCover ? (
-              <MagazineCover frames={frames} scent={scent} serial={serial} />
+              <MagazineCover frames={frames} scent={scent} quote={quote} serial={serial} />
             ) : (
               <ReceiptStrip frames={frames} scent={scent} serial={serial} />
             )}
