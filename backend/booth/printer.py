@@ -53,14 +53,25 @@ class MockPrinter(PrinterDriver):
 
 
 class EscposPrinter(PrinterDriver):
-    """ESC/POS over USB via python-escpos (raster mode, banded)."""
+    """ESC/POS printer via python-escpos (raster mode, banded).
+
+    Talks through the usblp device node (e.g. /dev/usb/lp0) when the kernel
+    has claimed the printer — the robust path for GD32-style micro printers —
+    or falls back to raw pyusb when no node is configured.
+    """
 
     def __init__(self, settings: Settings):
-        from escpos.printer import Usb  # lazy: needs pyusb + udev on the Pi
-
         self.settings = settings
-        self._Usb = Usb
-        self._printer = Usb(settings.printer_usb_vendor, settings.printer_usb_product)
+        if settings.printer_device:
+            from escpos.printer import File
+
+            self._printer = File(settings.printer_device, auto_flush=True)
+        else:
+            from escpos.printer import Usb  # needs pyusb + udev
+
+            self._printer = Usb(
+                settings.printer_usb_vendor, settings.printer_usb_product
+            )
 
     def print_image(self, image: Image.Image, on_progress: ProgressFn) -> None:
         p = self._printer

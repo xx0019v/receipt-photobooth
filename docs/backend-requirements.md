@@ -27,7 +27,7 @@
 |---|---|---|
 | SBC | Raspberry Pi 5 (4GB+) | Bookworm 64bit |
 | カメラ | Raspberry Pi Camera Module 3 | libcamera / Picamera2 経由。USB UVC カメラも Driver 差し替えで対応可 |
-| プリンター | ESC/POS 互換 USB サーマルプリンター | 58mm(384dot) / 80mm(576dot) 両対応。`PRINTER_WIDTH_DOTS` で設定 |
+| プリンター | GDMicroelectronics micro-printer（USB `28e9:0289`・確定） | 58mm/384dot・カッター無し。usblp (`/dev/usb/lp0`) 経由で制御。**別電源必須**（§8.5） |
 | モニター | 縦 1080×1920 タッチ | UI 側で対応済み |
 
 ハード固有部は **Driver インターフェースで抽象化**し、実機がなくても開発できるよう **Mock ドライバー**を必ず用意する（macOS 開発環境向け）。
@@ -111,9 +111,15 @@ Base: `http://127.0.0.1:8000`
 4. 全フロー通し（UI → capture ×3 → print → 排紙）を 10 回連続
 5. 異常系: プリンター電源断 / 用紙切れ / カメラケーブル抜けで UI にエラーが返り、復旧後に再開できること
 
+## 8.5 電源要件（実機検証で確定）
+
+- **Pi 5 とサーマルプリンターの電源系統は分離必須**。プリンターは専用 AC アダプタで駆動し、USB はデータ通信のみに使う。
+- 実測 2026-07-13: プリンター電源投入と同時に Pi がダウンする事象を確認（USB バスパワー吸い込みによるブラウンアウトの疑い）。印字ヘッドは瞬間 2〜3A 級で Pi の USB 供給能力（合計 1.6A）を超えるため、バスパワー駆動は不可。
+- Pi 5 は公式 27W (5V/5A) USB-C 電源を使用する。
+
 ## 9. 未決事項（要ハード確定）
 
-- [ ] プリンターの型番・印字幅（58mm / 80mm）と VID/PID
-- [ ] カメラの最終確定（Camera Module 3 想定）
+- [x] プリンター確定: GDMicroelectronics micro-printer（`28e9:0289` / 58mm / 384dot / カッター無し / usblp 経由）— 2026-07-13 実機で印字確認
+- [x] カメラ確定: Raspberry Pi Camera Module 3（imx708）— 2026-07-13 実機で撮影確認（capture 157ms）
 - [ ] QR の遷移先 URL（画像配布ページを作るか、固定 URL か）
 - [ ] 撮影データの保持期間・持ち帰り方法

@@ -33,9 +33,12 @@ class Settings:
     # Thermal printer geometry. 384 dots = 58 mm paper, 576 dots = 80 mm.
     printer_width_dots: int = 384
     printer_cut: bool = True
+    # Preferred path: the usblp device node the kernel creates for the
+    # printer. Empty string -> talk raw USB via pyusb with the IDs below.
+    printer_device: str = "/dev/usb/lp0"
     # USB IDs for the ESC/POS printer (see `lsusb` on the Pi).
-    printer_usb_vendor: int = 0x0416
-    printer_usb_product: int = 0x5011
+    printer_usb_vendor: int = 0x28E9   # GDMicroelectronics micro-printer
+    printer_usb_product: int = 0x0289
 
     # Capture geometry (portrait 3:4).
     still_size: tuple[int, int] = (1536, 2048)
@@ -64,8 +67,9 @@ def settings_from_env() -> Settings:
         printer_driver=printer,
         printer_width_dots=_env_int("PRINTER_WIDTH_DOTS", 384),
         printer_cut=_env_flag("PRINTER_CUT", True),
-        printer_usb_vendor=_env_int("PRINTER_USB_VENDOR", 0x0416),
-        printer_usb_product=_env_int("PRINTER_USB_PRODUCT", 0x5011),
+        printer_device=os.environ.get("PRINTER_DEVICE", "/dev/usb/lp0"),
+        printer_usb_vendor=_env_int("PRINTER_USB_VENDOR", 0x28E9),
+        printer_usb_product=_env_int("PRINTER_USB_PRODUCT", 0x0289),
         data_dir=Path(os.environ.get("BOOTH_DATA_DIR", "data")),
         qr_base_url=os.environ.get("QR_BASE_URL", "https://the-receipt.studio/p"),
         host=os.environ.get("BOOTH_HOST", "127.0.0.1"),
