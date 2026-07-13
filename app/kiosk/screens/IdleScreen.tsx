@@ -81,7 +81,7 @@ export default function IdleScreen({ onStart }: { onStart: () => void }) {
           <span className="idle-ritual__lip-shine" aria-hidden="true" />
         </span>
         <span className="idle-ritual__instruction">
-          <em>{sub ? "はじめる" : "BEGIN"}</em>
+          <em>はじめる</em>
         </span>
       </button>
 

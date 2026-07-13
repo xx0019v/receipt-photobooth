@@ -6,8 +6,8 @@ import LangToggle from "@/app/components/LangToggle";
 import { LangProvider } from "@/app/lib/i18n";
 import { PrintStyleProvider } from "@/app/lib/printStyle";
 import { scentById, serialNo, TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
-import { pickQuote, type Quote } from "@/app/lib/quotes";
-import { pickChromeMotif, type ChromeAsset } from "@/app/lib/chromeAssets";
+import { pickQuote, QUOTES, type Quote } from "@/app/lib/quotes";
+import { COVER_MOTIF_ASSETS, pickChromeMotif, type ChromeAsset } from "@/app/lib/chromeAssets";
 import { ChromeArtworkProvider } from "@/app/lib/chromeArtwork";
 import IdleScreen from "./screens/IdleScreen";
 import ScentScreen from "./screens/ScentScreen";
@@ -33,8 +33,8 @@ export default function KioskApp() {
   const [frames, setFrames] = useState<number[]>([]);
   const [scent, setScent] = useState<Scent>(() => scentById("nocturne"));
   const [serial, setSerial] = useState("0000-0000");
-  const [quote, setQuote] = useState<Quote>(() => pickQuote());
-  const [chromeMotif, setChromeMotif] = useState<ChromeAsset>(() => pickChromeMotif());
+  const [quote, setQuote] = useState<Quote>(QUOTES[0]);
+  const [chromeMotif, setChromeMotif] = useState<ChromeAsset>(COVER_MOTIF_ASSETS[0]);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const go = useCallback((p: Phase) => setPhase(p), []);

@@ -36,9 +36,9 @@ export default function MagazineCover({
       </div>
 
       {/* the 1:1 square art card */}
-      <div className="mx-[40px] mt-[18px] flex aspect-square flex-col bg-[#ece9e3] p-[34px]">
+      <div className="mx-[40px] mt-[18px] flex aspect-square flex-col bg-[#ece9e3] p-[36px]">
         {/* small contact strip */}
-        <div className="flex h-[150px] w-full gap-[6px]">
+        <div className="mb-[18px] flex h-[144px] w-full gap-[7px]">
           {frames.map((f) => (
             <div key={f} className="relative min-w-0 flex-1 overflow-hidden bg-ink">
               <Portrait seed={f - 1} print />
@@ -50,16 +50,16 @@ export default function MagazineCover({
         </div>
 
         {/* One fixed session motif beside the quote; never regenerated here. */}
-        <div className="grid flex-1 grid-cols-[1fr_138px] items-center gap-[18px]">
+        <div className="grid flex-1 grid-cols-[1fr_112px] items-center gap-[24px]">
           <QuoteBlock quote={quote} />
-          <figure className="flex h-[180px] items-center justify-center border-l border-[color:var(--color-line)] pl-[16px]">
+          <figure className="flex h-[156px] items-center justify-center border-l border-[color:var(--color-line)] pl-[18px]">
             <img
               src={motif.path}
-              width={120}
-              height={150}
+              width={92}
+              height={126}
               alt=""
               aria-hidden="true"
-              className="h-[150px] w-[120px] object-contain opacity-75 grayscale contrast-125 mix-blend-multiply"
+              className="h-[126px] w-[92px] object-contain opacity-60 grayscale contrast-125 mix-blend-multiply"
             />
           </figure>
         </div>
@@ -83,7 +83,7 @@ export default function MagazineCover({
 function QuoteBlock({ quote }: { quote: Quote }) {
   const alignment = quote.alignment === "left" ? "text-left" : quote.alignment === "right" ? "text-right" : "text-center";
   const scale = quote.scale === "large" ? 1.08 : quote.scale === "compact" ? 0.84 : 1;
-  const base = `${alignment} leading-[0.98]`;
+  const base = `${alignment} leading-[1.04]`;
   const content = quote.lineBreak ?? [quote.text];
   const lines = content.map((line, index) => <span key={index} className="block">{line}</span>);
   if (quote.variant === "sans-caps") {

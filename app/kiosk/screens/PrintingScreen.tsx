@@ -160,10 +160,10 @@ export default function PrintingScreen({
           {printStarted && !done && (
             <>
               <div
-                className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-ink/55"
+                className="pointer-events-none absolute inset-x-0 top-0 h-px bg-ink/35"
                 style={{ animation: "scan 1.1s cubic-bezier(0.4,0,0.2,1) infinite" }}
               />
-              <div className="print-noise pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-multiply" />
+              <div className="print-noise pointer-events-none absolute inset-0 opacity-[0.035] mix-blend-multiply" />
             </>
           )}
         </div>

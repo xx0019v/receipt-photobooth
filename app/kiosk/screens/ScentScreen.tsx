@@ -54,7 +54,7 @@ export default function ScentScreen({
             <button
               key={s.id}
               onClick={() => choose(s)}
-              className={`card anim-fade-up delay-${i + 2} relative flex items-center gap-[36px] border border-[color:var(--color-ink)] px-[44px] py-[34px] text-left ${
+              className={`scent-choice card anim-fade-up delay-${i + 2} relative flex items-center gap-[36px] border border-[color:var(--color-ink)] px-[44px] py-[34px] text-left ${
                 isSel ? "is-selected" : "bg-paper-bright"
               }`}
               style={{ cursor: "pointer" }}

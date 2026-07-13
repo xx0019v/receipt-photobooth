@@ -44,7 +44,7 @@ export default function ReceiptStrip({
       </header>
 
       {/* Route is the document's visual signature. */}
-      <section className="relative h-[178px] shrink-0 overflow-hidden px-[34px] py-[22px]">
+      <section className="relative h-[188px] shrink-0 overflow-hidden px-[34px] py-[22px]">
         <img
           src={securitySeal.path}
           width={104}
@@ -73,7 +73,7 @@ export default function ReceiptStrip({
       </section>
 
       {/* Equal portrait frames — no captions or text overlays. */}
-      <section className="mx-[34px] flex h-[258px] shrink-0 gap-[6px] border-y border-[color:var(--color-ink)] py-[10px]">
+      <section className="mx-[34px] flex h-[278px] shrink-0 gap-[6px] border-y border-[color:var(--color-ink)] py-[10px]">
         {frames.slice(0, 3).map((frame) => (
           <div key={frame} className="min-w-0 flex-1 overflow-hidden bg-ink">
             <Portrait seed={frame - 1} print />
@@ -111,7 +111,7 @@ export default function ReceiptStrip({
       </section>
 
       {/* Detachable vertical-pass stub */}
-      <footer className="relative mt-auto h-[250px] shrink-0 border-t-2 border-dashed border-[color:var(--color-ink)] px-[34px] py-[18px]">
+      <footer className="relative mt-auto h-[220px] shrink-0 border-t border-dashed border-[color:var(--color-ink)] px-[34px] py-[14px]">
         <span className="absolute -left-[9px] -top-[10px] h-[18px] w-[18px] rounded-full bg-[color:var(--color-paper)]" />
         <span className="absolute -right-[9px] -top-[10px] h-[18px] w-[18px] rounded-full bg-[color:var(--color-paper)]" />
         <div className="flex h-full items-stretch gap-[24px]">
@@ -120,7 +120,7 @@ export default function ReceiptStrip({
               <span className="text-[10px] tracking-[0.28em]">{t.pass.stub}</span>
               <span className="text-[9px] tracking-[0.2em] text-silver-dim">{scent.code} / {serial}</span>
             </div>
-            <div className="mt-[14px] grid grid-cols-3 divide-x divide-[color:var(--color-line)]">
+            <div className="mt-[10px] grid grid-cols-3 divide-x divide-[color:var(--color-line)]">
               <StubValue label={t.pass.gate} value={t.pass.gateValue} />
               <StubValue label={t.pass.seat} value={seat} />
               <StubValue label={t.pass.boarding} value={stamp} />
@@ -133,9 +133,9 @@ export default function ReceiptStrip({
               </div>
             </div>
           </div>
-          <div className="flex w-[106px] shrink-0 flex-col items-center justify-center border-l border-[color:var(--color-line)] pl-[18px]">
+          <div className="flex w-[88px] shrink-0 flex-col items-center justify-center border-l border-[color:var(--color-line)] pl-[14px]">
             <div className="border border-[color:var(--color-ink)] p-[5px]">
-              <Qr cell={4} seed={hashSeed(serial)} />
+              <Qr cell={3} seed={hashSeed(serial)} />
             </div>
             <p className="mt-[8px] text-center font-mono text-[7px] uppercase leading-[1.4] tracking-[0.12em] text-silver-dim">
               {t.pass.scan[0]}<br />{t.pass.scan[1]}
@@ -156,7 +156,7 @@ function BoardingCell({ label, value }: { label: string; value: string }) {
 }
 
 function StubValue({ label, value }: { label: string; value: string }) {
-  return <div className="px-[13px] first:pl-0"><p className="font-mono text-[7px] uppercase tracking-[0.17em] text-silver-dim">{label}</p><p className="mt-[4px] font-display text-[22px] leading-none">{value}</p></div>;
+  return <div className="px-[13px] first:pl-0"><p className="font-mono text-[7px] uppercase tracking-[0.17em] text-silver-dim">{label}</p><p className="mt-[4px] font-display text-[20px] leading-none">{value}</p></div>;
 }
 
 function hashSeed(s: string): number {
@@ -167,5 +167,5 @@ function hashSeed(s: string): number {
 
 function Barcode() {
   const bars = "413132214231341221432312143132421334".split("");
-  return <div className="flex h-[46px] items-stretch gap-[2px] overflow-hidden">{bars.map((width, index) => <span key={index} className="shrink-0 bg-ink" style={{ width: Number(width) * 1.2 }} />)}</div>;
+  return <div className="flex h-[36px] items-stretch gap-[2px] overflow-hidden">{bars.map((width, index) => <span key={index} className="shrink-0 bg-ink" style={{ width: Number(width) * 1.1 }} />)}</div>;
 }

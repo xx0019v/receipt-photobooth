@@ -133,7 +133,7 @@ body {
   background-repeat: no-repeat;
   filter: invert(1) grayscale(1) contrast(1.25);
   mix-blend-mode: screen;
-  opacity: 0.085;
+  opacity: 0.065;
   transform: rotate(-8deg);
   -webkit-mask-image: linear-gradient(120deg, #000 5%, rgba(0,0,0,.75) 44%, transparent 75%);
   mask-image: linear-gradient(120deg, #000 5%, rgba(0,0,0,.75) 44%, transparent 75%);
@@ -313,6 +313,7 @@ body {
   font-style: normal;
   font-weight: 300;
   letter-spacing: .28em;
+  opacity: .72;
 }
 
 .idle-ritual__footer {
@@ -665,34 +666,16 @@ body {
 .card.is-selected {
   background: var(--color-ink);
   color: var(--color-paper);
-}
-.card.is-selected .card-index,
-.card.is-selected .card-notes {
-  color: rgba(244, 241, 233, 0.6);
-}
-.card-ghost {
-  position: absolute;
-  right: 32px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-family: var(--font-display), serif;
-  font-size: 220px;
-  line-height: 1;
-  color: var(--color-ink);
-  opacity: 0.04;
-  pointer-events: none;
-  user-select: none;
+  transform: scale(1.012);
 }
 
 /* When a scent is chosen, quiet the siblings so the pick reads as focus */
 .cards-picked .card:not(.is-selected) {
-  opacity: 0.32;
+  opacity: 0.48;
   filter: grayscale(0.4);
-  transform: scale(0.985);
+  transform: scale(0.99);
 }
-.card.is-selected {
-  transform: scale(1.012);
-}
+.scent-choice.is-selected { background: #171717; transform: none; }
 
 /* Boarding pass "prints in" — a top-down reveal */
 @keyframes passReveal {
