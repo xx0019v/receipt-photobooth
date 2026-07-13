@@ -1,0 +1,16 @@
+# systemd *user* unit: serve the static kiosk UI (next build with output:export).
+# Install:
+#   mkdir -p ~/.config/systemd/user && cp deploy/booth-ui.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now booth-ui
+#   loginctl enable-linger chuo   # keep user units alive without login
+[Unit]
+Description=THE RECEIPT kiosk UI (static server)
+
+[Service]
+WorkingDirectory=%h/receipt-photobooth
+ExecStart=/usr/bin/python3 -m http.server 3000 --directory ui-dist --bind 127.0.0.1
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target

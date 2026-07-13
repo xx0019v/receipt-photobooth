@@ -37,3 +37,10 @@ next-env.d.ts
 
 # preview daemon runtime stamp (which commit the running preview was built from)
 .preview-head
+
+# backend (python)
+backend/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+backend/data/
