@@ -1,9 +1,12 @@
 "use client";
 
 import Portrait from "./Portrait";
-import { BRAND, editionDate, issueNo, type Scent } from "@/app/lib/edition";
+import { BRAND } from "@/app/lib/edition";
+import {
+  getQuoteLayoutVariant,
+  type FilmArtifactProps,
+} from "@/app/lib/film";
 import type { Quote } from "@/app/lib/quotes";
-import { useChromeArtwork } from "@/app/lib/chromeArtwork";
 
 /**
  * PHOTO FILM artefact — restored from the original vertical film design:
@@ -12,23 +15,27 @@ import { useChromeArtwork } from "@/app/lib/chromeArtwork";
  */
 export default function MagazineCover({
   frames,
-  scent,
-  quote,
+  selectedQuote,
+  selectedChromeMotif,
+  selectedScent,
+  scentNotes,
+  scentMood,
+  scentDestination,
   serial,
-}: {
-  frames: number[];
-  scent: Scent;
-  quote: Quote;
-  serial: string;
-}) {
-  const motif = useChromeArtwork();
+  issueDate,
+  edition,
+}: FilmArtifactProps) {
+  const quoteLayout = getQuoteLayoutVariant(selectedQuote);
 
   return (
-    <div className="paper-tex relative flex h-[1280px] w-[640px] flex-col text-ink shadow-[0_30px_80px_-38px_rgba(0,0,0,0.42)]">
+    <div
+      className="paper-tex relative flex h-[1280px] w-[640px] flex-col text-ink shadow-[0_30px_80px_-38px_rgba(0,0,0,0.42)]"
+      data-scent-notes={scentNotes.join(" | ")}
+    >
       <div className="flex items-center justify-between border-b border-[color:var(--color-line)] px-[36px] pb-[16px] pt-[28px] font-mono text-[10px] uppercase tracking-[0.32em] text-silver-dim">
-        <span>{issueNo()}</span>
-        <span>Photo Film · {scent.code}</span>
-        <span>{editionDate()}</span>
+        <span>{edition}</span>
+        <span>Photo Film · {selectedScent.code}</span>
+        <span>{issueDate}</span>
       </div>
 
       <div className="mx-[36px] mt-[18px] flex h-[974px] flex-col items-center gap-[7px]">
@@ -56,16 +63,19 @@ export default function MagazineCover({
       </div>
 
       <div className="flex flex-1 flex-col px-[40px] pb-[28px] pt-[24px]">
-        <div className="flex items-start justify-between gap-[28px] border-b border-[color:var(--color-line)] pb-[18px]">
+        <div
+          className="flex items-start justify-between gap-[28px] border-b border-[color:var(--color-line)] pb-[18px]"
+          data-quote-layout={quoteLayout}
+        >
           <div className="min-w-0 flex-1">
             <p className="font-mono text-[9px] uppercase tracking-[0.34em] text-silver-dim">
-              Editorial statement · {quote.mood}
+              Editorial statement · {selectedQuote.mood}
             </p>
-            <QuoteBlock quote={quote} />
+            <QuoteBlock quote={selectedQuote} />
           </div>
           <figure className="flex h-[84px] w-[76px] shrink-0 items-center justify-center border-l border-[color:var(--color-line)] pl-[14px]">
             <img
-              src={motif.path}
+              src={selectedChromeMotif.path}
               width={62}
               height={72}
               alt=""
@@ -81,7 +91,7 @@ export default function MagazineCover({
               {BRAND}
             </h1>
             <p className="mt-[7px] font-mono text-[9px] uppercase tracking-[0.25em] text-silver-dim">
-              {scent.mood.en} / {scent.name} · {scent.destination.en}
+              {scentMood} / {selectedScent.name} · {scentDestination}
             </p>
           </div>
           <div className="text-right">

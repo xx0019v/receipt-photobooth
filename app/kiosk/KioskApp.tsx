@@ -1,14 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Stage from "@/app/components/Stage";
 import LangToggle from "@/app/components/LangToggle";
 import { LangProvider } from "@/app/lib/i18n";
 import { PrintStyleProvider } from "@/app/lib/printStyle";
-import { editionDate, editionTime, scentById, serialNo, TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
-import { pickQuote, QUOTES, type Quote } from "@/app/lib/quotes";
-import { COVER_MOTIF_ASSETS, pickChromeMotif, type ChromeAsset } from "@/app/lib/chromeAssets";
+import { editionDate, editionTime, issueNo, scentById, serialNo, TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
+import { QUOTES, type Quote } from "@/app/lib/quotes";
+import { COVER_MOTIF_ASSETS, type ChromeAsset } from "@/app/lib/chromeAssets";
 import { ChromeArtworkProvider } from "@/app/lib/chromeArtwork";
+import { createFilmArtifactProps } from "@/app/lib/film";
+import {
+  initializeSession,
+  type SelectedScentInput,
+} from "@/app/lib/session";
 import IdleScreen from "./screens/IdleScreen";
 import ScentScreen from "./screens/ScentScreen";
 import FormatSelectScreen from "./screens/FormatSelectScreen";
@@ -28,34 +33,37 @@ export type Phase =
 
 export { TOTAL_SHOTS };
 
-export default function KioskApp() {
+export default function KioskApp({
+  selectedScent: externalSelectedScent,
+}: {
+  selectedScent?: SelectedScentInput;
+} = {}) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [frames, setFrames] = useState<number[]>([]);
-  const [scent, setScent] = useState<Scent>(() => scentById("nocturne"));
+  const [selectedScent, setSelectedScent] = useState<Scent>(() => scentById("nocturne"));
   const [serial, setSerial] = useState("0000-0000");
   const [issuedDate, setIssuedDate] = useState("");
   const [issuedTime, setIssuedTime] = useState("");
-  const [quote, setQuote] = useState<Quote>(QUOTES[0]);
-  const [chromeMotif, setChromeMotif] = useState<ChromeAsset>(COVER_MOTIF_ASSETS[0]);
+  const [edition, setEdition] = useState("");
+  const [selectedQuote, setSelectedQuote] = useState<Quote>(QUOTES[0]);
+  const [selectedChromeMotif, setSelectedChromeMotif] = useState<ChromeAsset>(COVER_MOTIF_ASSETS[0]);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const go = useCallback((p: Phase) => setPhase(p), []);
+  const completeScentReveal = useCallback(() => setPhase("format"), []);
 
   const startSession = useCallback(() => {
-    setFrames([]);
-    setSerial("0000-0000");
-    setIssuedDate("");
-    setIssuedTime("");
-    setScent(scentById("nocturne"));
-    setQuote(pickQuote());
-    setChromeMotif(pickChromeMotif());
+    const session = initializeSession(externalSelectedScent);
+    setFrames(session.frames);
+    setSerial(session.serial);
+    setIssuedDate(session.issueDate);
+    setIssuedTime(session.issueTime);
+    setEdition(session.edition);
+    setSelectedScent(session.identity.selectedScent);
+    setSelectedQuote(session.identity.selectedQuote);
+    setSelectedChromeMotif(session.identity.selectedChromeMotif);
     setPhase("scent");
-  }, []);
-
-  const chooseScent = useCallback((s: Scent) => {
-    setScent(s);
-    setPhase("format");
-  }, []);
+  }, [externalSelectedScent]);
 
   const retake = useCallback(() => {
     setFrames([]);
@@ -69,20 +77,44 @@ export default function KioskApp() {
       setSerial(serialNo());
       setIssuedDate(editionDate(issuedAt));
       setIssuedTime(editionTime(issuedAt));
+      setEdition(issueNo(issuedAt));
     }
     setPhase("printing");
   }, [serial]);
 
   const reset = useCallback(() => {
     setFrames([]);
-    setScent(scentById("nocturne"));
+    setSelectedScent(scentById("nocturne"));
     setSerial("0000-0000");
     setIssuedDate("");
     setIssuedTime("");
-    setQuote(QUOTES[0]);
-    setChromeMotif(COVER_MOTIF_ASSETS[0]);
+    setEdition("");
+    setSelectedQuote(QUOTES[0]);
+    setSelectedChromeMotif(COVER_MOTIF_ASSETS[0]);
     setPhase("idle");
   }, []);
+
+  const filmProps = useMemo(
+    () =>
+      createFilmArtifactProps({
+        frames,
+        selectedQuote,
+        selectedChromeMotif,
+        selectedScent,
+        serial,
+        issueDate: issuedDate,
+        edition,
+      }),
+    [
+      edition,
+      frames,
+      issuedDate,
+      selectedChromeMotif,
+      selectedQuote,
+      selectedScent,
+      serial,
+    ],
+  );
 
   // Auto-return to idle if the guest walks away mid-session.
   useEffect(() => {
@@ -98,33 +130,38 @@ export default function KioskApp() {
   return (
     <LangProvider>
       <PrintStyleProvider resetKey={phase === "idle" ? "idle" : undefined}>
-      <ChromeArtworkProvider motif={chromeMotif}>
+      <ChromeArtworkProvider motif={selectedChromeMotif}>
       <Stage>
         <LangToggle />
         <div key={phase} className="screen-swap">
         {phase === "idle" && <IdleScreen onStart={startSession} />}
-        {phase === "scent" && <ScentScreen onSelect={chooseScent} />}
+        {phase === "scent" && (
+          <ScentScreen
+            selectedScent={selectedScent}
+            onComplete={completeScentReveal}
+          />
+        )}
         {phase === "format" && (
           <FormatSelectScreen onContinue={() => go("pose")} />
         )}
         {phase === "pose" && (
-          <PoseScreen scent={scent} onBegin={() => go("capture")} />
+          <PoseScreen scent={selectedScent} onBegin={() => go("capture")} />
         )}
         {phase === "capture" && (
           <CaptureScreen
             total={TOTAL_SHOTS}
-            scent={scent}
+            scent={selectedScent}
             onComplete={finishCapture}
           />
         )}
         {phase === "printing" && (
           <PrintingScreen
             frames={frames}
-            scent={scent}
+            scent={selectedScent}
             serial={serial}
             issuedDate={issuedDate}
             issuedTime={issuedTime}
-            quote={quote}
+            filmProps={filmProps}
             onRetake={retake}
             onClaim={() => go("done")}
           />
@@ -132,11 +169,11 @@ export default function KioskApp() {
         {phase === "done" && (
           <DoneScreen
             frames={frames}
-            scent={scent}
+            scent={selectedScent}
             serial={serial}
             issuedDate={issuedDate}
             issuedTime={issuedTime}
-            quote={quote}
+            filmProps={filmProps}
             onReset={reset}
           />
         )}

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import ReceiptStrip, { PASS_HEIGHT, PASS_WIDTH } from "@/app/components/ReceiptStrip";
 import MagazineCover from "@/app/components/MagazineCover";
 import { type Scent } from "@/app/lib/edition";
-import { type Quote } from "@/app/lib/quotes";
+import { type FilmArtifactProps } from "@/app/lib/film";
 import { useLang } from "@/app/lib/i18n";
 import { usePrintStyle } from "@/app/lib/printStyle";
 
@@ -59,7 +59,7 @@ export default function PrintingScreen({
   serial,
   issuedDate,
   issuedTime,
-  quote,
+  filmProps,
   onRetake,
   onClaim,
 }: {
@@ -68,7 +68,7 @@ export default function PrintingScreen({
   serial: string;
   issuedDate: string;
   issuedTime: string;
-  quote: Quote;
+  filmProps: FilmArtifactProps;
   onRetake: () => void;
   onClaim: () => void;
 }) {
@@ -197,7 +197,7 @@ export default function PrintingScreen({
               }}
             >
               {isCover ? (
-                <MagazineCover frames={frames} scent={scent} quote={quote} serial={serial} />
+                <MagazineCover {...filmProps} />
               ) : (
                 <ReceiptStrip
                   frames={frames}

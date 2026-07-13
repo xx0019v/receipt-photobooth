@@ -45,7 +45,7 @@ export const COVER_MOTIF_ASSETS = [
 ] as const;
 
 export function passSecurityAsset(scentId: string): ChromeAsset {
-  const index = ["nocturne", "linen", "ember", "margin"].indexOf(scentId);
+  const index = ["nocturne", "clean", "warm", "cold"].indexOf(scentId);
   return PASS_SECURITY_ASSETS[index < 0 ? 0 : index];
 }
 

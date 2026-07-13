@@ -5,7 +5,7 @@ import Masthead from "@/app/components/Masthead";
 import ReceiptStrip, { PASS_HEIGHT, PASS_WIDTH } from "@/app/components/ReceiptStrip";
 import MagazineCover from "@/app/components/MagazineCover";
 import { type Scent } from "@/app/lib/edition";
-import { type Quote } from "@/app/lib/quotes";
+import { type FilmArtifactProps } from "@/app/lib/film";
 import { useLang } from "@/app/lib/i18n";
 import { usePrintStyle } from "@/app/lib/printStyle";
 
@@ -17,7 +17,7 @@ export default function DoneScreen({
   serial,
   issuedDate,
   issuedTime,
-  quote,
+  filmProps,
   onReset,
 }: {
   frames: number[];
@@ -25,7 +25,7 @@ export default function DoneScreen({
   serial: string;
   issuedDate: string;
   issuedTime: string;
-  quote: Quote;
+  filmProps: FilmArtifactProps;
   onReset: () => void;
 }) {
   const { t, sub } = useLang();
@@ -145,12 +145,7 @@ export default function DoneScreen({
             <div className="h-[10px] w-[380px] rounded-t-[4px] bg-ink" />
             <div className="h-[614px] w-[307px] overflow-hidden shadow-[0_28px_54px_-34px_rgba(0,0,0,.48)]">
               <div className="origin-top-left scale-[.48]">
-                <MagazineCover
-                  frames={frames}
-                  scent={scent}
-                  quote={quote}
-                  serial={serial}
-                />
+                <MagazineCover {...filmProps} />
               </div>
             </div>
           </div>
