@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ReceiptStrip from "@/app/components/ReceiptStrip";
+import ReceiptStrip, { PASS_HEIGHT, PASS_WIDTH } from "@/app/components/ReceiptStrip";
 import MagazineCover from "@/app/components/MagazineCover";
 import { type Scent } from "@/app/lib/edition";
 import { type Quote } from "@/app/lib/quotes";
@@ -49,6 +49,8 @@ export default function PrintingScreen({
   frames,
   scent,
   serial,
+  issuedDate,
+  issuedTime,
   quote,
   onRetake,
   onClaim,
@@ -56,6 +58,8 @@ export default function PrintingScreen({
   frames: number[];
   scent: Scent;
   serial: string;
+  issuedDate: string;
+  issuedTime: string;
   quote: Quote;
   onRetake: () => void;
   onClaim: () => void;
@@ -68,9 +72,10 @@ export default function PrintingScreen({
 
   const isCover = style === "cover";
   const duration = isCover ? COVER_DURATION : PASS_DURATION;
-  const slitW = isCover ? 680 : 660;
-  const winW = isCover ? 640 : 620;
-  const winH = isCover ? 1280 : 1080;
+  const slitW = isCover ? 680 : 540;
+  const winW = isCover ? 640 : 500;
+  const winH = isCover ? 1280 : 1290;
+  const artefactScale = isCover ? 1 : 0.73;
 
   useEffect(() => {
     if (!printStarted) return;
@@ -144,7 +149,6 @@ export default function PrintingScreen({
           <div
             className={done ? "anim-quiet-confirm" : !printStarted ? "anim-fade-up" : undefined}
             style={{
-              transform: printStarted ? "translateY(0)" : "translateY(0) scale(1.01)",
               clipPath:
                 printStarted
                   ? `inset(0 0 ${(1 - ease) * 100}% 0)`
@@ -154,11 +158,27 @@ export default function PrintingScreen({
                 : "drop-shadow(0 20px 44px rgba(0,0,0,0.16))",
             }}
           >
-            {isCover ? (
-              <MagazineCover frames={frames} scent={scent} quote={quote} serial={serial} />
-            ) : (
-              <ReceiptStrip frames={frames} scent={scent} serial={serial} />
-            )}
+            <div
+              style={{
+                width: isCover ? 640 : PASS_WIDTH,
+                height: isCover ? undefined : PASS_HEIGHT,
+                marginLeft: isCover ? 0 : (winW - PASS_WIDTH) / 2,
+                transform: `scale(${artefactScale})`,
+                transformOrigin: "top center",
+              }}
+            >
+              {isCover ? (
+                <MagazineCover frames={frames} scent={scent} quote={quote} serial={serial} />
+              ) : (
+                <ReceiptStrip
+                  frames={frames}
+                  scent={scent}
+                  serial={serial}
+                  date={issuedDate}
+                  time={issuedTime}
+                />
+              )}
+            </div>
           </div>
 
           {!printStarted && !done && (

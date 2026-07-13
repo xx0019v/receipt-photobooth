@@ -35,9 +35,11 @@ const en = {
     location: "BESIDE THE SCENT MACHINE",
   },
   scent: {
-    step: "Step I · The Mood",
-    title: ["How do you want", "to be remembered?"],
-    sub: "Choose a scent. It boards with your portrait.",
+    step: "Step I · The Destination",
+    title: ["Choose where", "this memory goes."],
+    sub: "Your choice sets the destination, fragrance notes, and security mark printed with your portraits.",
+    destination: "Printed destination",
+    securityMark: "Security mark",
   },
   format: {
     step: "Step II · The Form",
@@ -125,9 +127,11 @@ const jp: Dict = {
     location: "香水自販機のとなりで",
   },
   scent: {
-    step: "STEP I · 気分",
-    title: ["どんな香りで", "記憶されたい？"],
-    sub: "タップして、香りをひとつ。",
+    step: "STEP I · 行き先",
+    title: ["記憶の行き先を", "選ぶ"],
+    sub: "選択した行き先・香調・セキュリティマークが、写真と一緒に印刷されます。",
+    destination: "印刷される行き先",
+    securityMark: "セキュリティマーク",
   },
   format: {
     step: "STEP II · 形式",

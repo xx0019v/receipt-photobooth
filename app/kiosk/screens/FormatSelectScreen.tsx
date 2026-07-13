@@ -184,12 +184,12 @@ function PassGlyph() {
     <div className="relative flex h-[164px] w-[104px] flex-col overflow-hidden border border-current p-[7px]">
       <img src={CHROME_ASSETS.stars.path} width={34} height={34} alt="" aria-hidden="true" className="absolute right-[4px] top-[4px] h-[34px] w-[34px] object-contain opacity-30 grayscale mix-blend-multiply" />
       <span className="h-[4px] w-[70%] bg-current" />
-      <div className="mt-[10px] flex h-[62px] gap-[3px] border-y border-current py-[5px]">
+      <div className="mx-auto mt-[7px] flex h-[76px] w-[24px] flex-col gap-[2px] border-y border-current py-[3px]">
         {[0, 1, 2].map((i) => (
-          <span key={i} className="h-full flex-1 bg-current" />
+          <span key={i} className="aspect-square w-full bg-current" />
         ))}
       </div>
-      <div className="mt-[9px] flex flex-col gap-[5px]">
+      <div className="mt-[6px] flex flex-col gap-[4px]">
         <span className="h-[3px] w-[92%] bg-current" />
         <span className="h-[3px] w-[68%] bg-current opacity-40" />
       </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Masthead from "@/app/components/Masthead";
-import ReceiptStrip from "@/app/components/ReceiptStrip";
+import ReceiptStrip, { PASS_HEIGHT, PASS_WIDTH } from "@/app/components/ReceiptStrip";
 import MagazineCover from "@/app/components/MagazineCover";
 import { type Scent } from "@/app/lib/edition";
 import { type Quote } from "@/app/lib/quotes";
@@ -15,12 +15,16 @@ export default function DoneScreen({
   frames,
   scent,
   serial,
+  issuedDate,
+  issuedTime,
   quote,
   onReset,
 }: {
   frames: number[];
   scent: Scent;
   serial: string;
+  issuedDate: string;
+  issuedTime: string;
   quote: Quote;
   onReset: () => void;
 }) {
@@ -64,9 +68,23 @@ export default function DoneScreen({
 
             <div className="anim-fade-up delay-2 mt-[40px]">
               <div className="mx-auto h-[12px] w-[420px] rounded-t-[4px] bg-ink" />
-              <div className="relative mx-auto h-[604px] w-[360px] overflow-hidden shadow-[0_30px_60px_-34px_rgba(0,0,0,.72)]">
-                <div className="origin-top-left scale-[.58]">
-                  <ReceiptStrip frames={frames} scent={scent} serial={serial} />
+              <div className="relative mx-auto h-[581px] w-[360px] overflow-hidden shadow-[0_30px_60px_-34px_rgba(0,0,0,.72)]">
+                <div
+                  className="origin-top-left"
+                  style={{
+                    width: PASS_WIDTH,
+                    height: PASS_HEIGHT,
+                    marginLeft: 78,
+                    transform: "scale(.33)",
+                  }}
+                >
+                  <ReceiptStrip
+                    frames={frames}
+                    scent={scent}
+                    serial={serial}
+                    date={issuedDate}
+                    time={issuedTime}
+                  />
                 </div>
               </div>
             </div>

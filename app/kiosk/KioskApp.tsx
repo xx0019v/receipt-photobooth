@@ -5,7 +5,7 @@ import Stage from "@/app/components/Stage";
 import LangToggle from "@/app/components/LangToggle";
 import { LangProvider } from "@/app/lib/i18n";
 import { PrintStyleProvider } from "@/app/lib/printStyle";
-import { scentById, serialNo, TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
+import { editionDate, editionTime, scentById, serialNo, TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
 import { pickQuote, QUOTES, type Quote } from "@/app/lib/quotes";
 import { COVER_MOTIF_ASSETS, pickChromeMotif, type ChromeAsset } from "@/app/lib/chromeAssets";
 import { ChromeArtworkProvider } from "@/app/lib/chromeArtwork";
@@ -33,6 +33,8 @@ export default function KioskApp() {
   const [frames, setFrames] = useState<number[]>([]);
   const [scent, setScent] = useState<Scent>(() => scentById("nocturne"));
   const [serial, setSerial] = useState("0000-0000");
+  const [issuedDate, setIssuedDate] = useState("");
+  const [issuedTime, setIssuedTime] = useState("");
   const [quote, setQuote] = useState<Quote>(QUOTES[0]);
   const [chromeMotif, setChromeMotif] = useState<ChromeAsset>(COVER_MOTIF_ASSETS[0]);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -42,6 +44,8 @@ export default function KioskApp() {
   const startSession = useCallback(() => {
     setFrames([]);
     setSerial("0000-0000");
+    setIssuedDate("");
+    setIssuedTime("");
     setScent(scentById("nocturne"));
     setQuote(pickQuote());
     setChromeMotif(pickChromeMotif());
@@ -60,14 +64,21 @@ export default function KioskApp() {
 
   const finishCapture = useCallback((captured: number[]) => {
     setFrames(captured);
-    setSerial((current) => current === "0000-0000" ? serialNo() : current);
+    if (serial === "0000-0000") {
+      const issuedAt = new Date();
+      setSerial(serialNo());
+      setIssuedDate(editionDate(issuedAt));
+      setIssuedTime(editionTime(issuedAt));
+    }
     setPhase("printing");
-  }, []);
+  }, [serial]);
 
   const reset = useCallback(() => {
     setFrames([]);
     setScent(scentById("nocturne"));
     setSerial("0000-0000");
+    setIssuedDate("");
+    setIssuedTime("");
     setQuote(QUOTES[0]);
     setChromeMotif(COVER_MOTIF_ASSETS[0]);
     setPhase("idle");
@@ -111,13 +122,23 @@ export default function KioskApp() {
             frames={frames}
             scent={scent}
             serial={serial}
+            issuedDate={issuedDate}
+            issuedTime={issuedTime}
             quote={quote}
             onRetake={retake}
             onClaim={() => go("done")}
           />
         )}
         {phase === "done" && (
-          <DoneScreen frames={frames} scent={scent} serial={serial} quote={quote} onReset={reset} />
+          <DoneScreen
+            frames={frames}
+            scent={scent}
+            serial={serial}
+            issuedDate={issuedDate}
+            issuedTime={issuedTime}
+            quote={quote}
+            onReset={reset}
+          />
         )}
         </div>
       </Stage>

@@ -31,7 +31,7 @@ export default function Stage({ children }: { children: React.ReactNode }) {
   return (
     <div className="kiosk-viewport">
       <div
-        className="kiosk-stage grain vignette"
+        className="kiosk-stage"
         style={{ transform: `translate(-50%, -50%) scale(${scale})` }}
       >
         {children}

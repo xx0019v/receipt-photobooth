@@ -16,7 +16,6 @@ const LIQUID_STRANDS = [
 export default function IdleScreen({ onStart }: { onStart: () => void }) {
   const { sub } = useLang();
   const [entering, setEntering] = useState(false);
-  const idleFace = CHROME_ASSETS.face.path;
   const idleLips = CHROME_ASSETS.lips.path;
   const idleVideo = CHROME_ASSETS.silverLipsMotion.path;
   const [videoFailed, setVideoFailed] = useState(false);
@@ -34,9 +33,6 @@ export default function IdleScreen({ onStart }: { onStart: () => void }) {
 
   return (
     <main className={`idle-ritual${entering ? " is-entering" : ""}`}>
-      <div className="idle-ritual__face" aria-hidden="true" style={{ backgroundImage: `url("${idleFace}")` }} />
-      <div className="idle-ritual__halo" aria-hidden="true" />
-
       <header className="idle-ritual__header" aria-hidden={entering}>
         <p>PARFUM RECEIPT STUDIO</p>
         <span>ACUSE / TOKYO</span>
@@ -78,7 +74,6 @@ export default function IdleScreen({ onStart }: { onStart: () => void }) {
             aria-hidden="true"
             onError={() => setVideoFailed(true)}
           />
-          <span className="idle-ritual__lip-shine" aria-hidden="true" />
         </span>
         <span className="idle-ritual__instruction">
           <em>はじめる</em>
