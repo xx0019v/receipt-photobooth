@@ -13,7 +13,7 @@ export default function LangToggle() {
 
   return (
     <div
-      className="absolute right-[40px] top-[38px] z-[80] flex items-center gap-[2px] border border-[color:var(--color-ink)] bg-paper/70 backdrop-blur-sm"
+      className="lang-toggle absolute right-[40px] top-[38px] z-[80] flex items-center gap-[2px] border border-[color:var(--color-ink)] bg-paper/70 backdrop-blur-sm"
       onClick={(e) => e.stopPropagation()}
     >
       {OPTIONS.map((o) => {

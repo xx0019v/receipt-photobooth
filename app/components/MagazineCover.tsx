@@ -4,6 +4,7 @@ import Portrait from "./Portrait";
 import { editionDate, issueNo, type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
 import type { Quote } from "@/app/lib/quotes";
+import { useChromeArtwork } from "@/app/lib/chromeArtwork";
 
 /**
  * COVER artefact — a 1:1 square art / quote card in the Korean-photobooth
@@ -24,6 +25,7 @@ export default function MagazineCover({
   serial: string;
 }) {
   const { t } = useLang();
+  const motif = useChromeArtwork();
 
   return (
     <div className="paper-tex relative flex h-[760px] w-[640px] flex-col text-ink shadow-[0_30px_80px_-38px_rgba(0,0,0,0.7)]">
@@ -47,9 +49,19 @@ export default function MagazineCover({
           ))}
         </div>
 
-        {/* the quote — the hero */}
-        <div className="flex flex-1 items-center justify-center">
+        {/* One fixed session motif beside the quote; never regenerated here. */}
+        <div className="grid flex-1 grid-cols-[1fr_138px] items-center gap-[18px]">
           <QuoteBlock quote={quote} />
+          <figure className="flex h-[180px] items-center justify-center border-l border-[color:var(--color-line)] pl-[16px]">
+            <img
+              src={motif.path}
+              width={120}
+              height={150}
+              alt=""
+              aria-hidden="true"
+              className="h-[150px] w-[120px] object-contain opacity-75 grayscale contrast-125 mix-blend-multiply"
+            />
+          </figure>
         </div>
 
         {/* quiet caption inside the card */}
@@ -69,28 +81,32 @@ export default function MagazineCover({
 }
 
 function QuoteBlock({ quote }: { quote: Quote }) {
-  const base = "text-center leading-[0.98]";
+  const alignment = quote.alignment === "left" ? "text-left" : quote.alignment === "right" ? "text-right" : "text-center";
+  const scale = quote.scale === "large" ? 1.08 : quote.scale === "compact" ? 0.84 : 1;
+  const base = `${alignment} leading-[0.98]`;
+  const content = quote.lineBreak ?? [quote.text];
+  const lines = content.map((line, index) => <span key={index} className="block">{line}</span>);
   if (quote.variant === "sans-caps") {
     return (
-      <p className={`${base} font-sans text-[78px] font-semibold uppercase tracking-[0.02em]`}>
-        {quote.text}
+      <p className={`${base} font-sans font-semibold uppercase tracking-[0.02em]`} style={{ fontSize: 66 * scale }}>
+        {lines}
       </p>
     );
   }
   if (quote.variant === "sans") {
     return (
-      <p className={`${base} font-sans text-[58px] font-semibold tracking-[-0.01em]`}>
-        {quote.text}
+      <p className={`${base} font-sans font-semibold tracking-[-0.01em]`} style={{ fontSize: 52 * scale }}>
+        {lines}
       </p>
     );
   }
   if (quote.variant === "serif-italic") {
     return (
-      <p className={`${base} font-display text-[64px] italic`}>{quote.text}</p>
+      <p className={`${base} font-display italic`} style={{ fontSize: 58 * scale }}>{lines}</p>
     );
   }
   // serif
   return (
-    <p className={`${base} font-display text-[56px] leading-[1.02]`}>{quote.text}</p>
+    <p className={`${base} font-display leading-[1.02]`} style={{ fontSize: 52 * scale }}>{lines}</p>
   );
 }

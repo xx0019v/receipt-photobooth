@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
 import Masthead from "@/app/components/Masthead";
 import { useLang } from "@/app/lib/i18n";
 import { usePrintStyle, type PrintStyle } from "@/app/lib/printStyle";
+import { CHROME_ASSETS } from "@/app/lib/chromeAssets";
 
 /**
  * The ritual of choosing HOW the memory is kept — a boarding pass or a cover.
@@ -16,6 +18,10 @@ export default function FormatSelectScreen({
 }) {
   const { t, sub } = useLang();
   const { style, setStyle } = usePrintStyle();
+
+  useEffect(() => {
+    setStyle("pass");
+  }, [setStyle]);
 
   const selectedName =
     style === "pass" ? t.format.passName : t.format.coverName;
@@ -172,24 +178,24 @@ function Choice({
   );
 }
 
-/** Landscape boarding-pass schematic. */
+/** Vertical 80mm boarding-pass schematic. */
 function PassGlyph() {
   return (
-    <div className="flex h-[128px] w-[224px] border border-current">
-      <div className="flex w-[92px] items-center gap-[4px] border-r border-dashed border-current p-[8px]">
+    <div className="relative flex h-[164px] w-[104px] flex-col overflow-hidden border border-current p-[7px]">
+      <img src={CHROME_ASSETS.stars.path} width={34} height={34} alt="" aria-hidden="true" className="absolute right-[4px] top-[4px] h-[34px] w-[34px] object-contain opacity-30 grayscale mix-blend-multiply" />
+      <span className="h-[4px] w-[70%] bg-current" />
+      <div className="mt-[10px] flex h-[62px] gap-[3px] border-y border-current py-[5px]">
         {[0, 1, 2].map((i) => (
-          <span key={i} className="h-[64px] flex-1 bg-current" />
+          <span key={i} className="h-full flex-1 bg-current" />
         ))}
       </div>
-      <div className="flex flex-1 flex-col justify-center gap-[7px] p-[10px]">
-        <span className="h-[3px] w-[70%] bg-current" />
-        <span className="h-[3px] w-[92%] bg-current opacity-40" />
-        <span className="h-[3px] w-[55%] bg-current opacity-40" />
+      <div className="mt-[9px] flex flex-col gap-[5px]">
+        <span className="h-[3px] w-[92%] bg-current" />
+        <span className="h-[3px] w-[68%] bg-current opacity-40" />
       </div>
-      <div className="flex w-[34px] flex-col justify-center gap-[4px] border-l border-dashed border-current p-[6px]">
-        <span className="h-[3px] w-full bg-current opacity-50" />
-        <span className="h-[3px] w-full bg-current opacity-50" />
-        <span className="mt-[3px] h-[16px] w-full bg-current" />
+      <div className="mt-auto flex items-end gap-[7px] border-t border-dashed border-current pt-[7px]">
+        <span className="h-[18px] flex-1 bg-current" />
+        <span className="h-[22px] w-[22px] border border-current" />
       </div>
     </div>
   );
@@ -198,7 +204,8 @@ function PassGlyph() {
 /** Portrait film-cover schematic. */
 function CoverGlyph() {
   return (
-    <div className="flex h-[164px] w-[116px] flex-col gap-[5px] border border-current p-[8px]">
+    <div className="relative flex h-[164px] w-[116px] flex-col gap-[5px] overflow-hidden border border-current p-[8px]">
+      <img src={CHROME_ASSETS.ribbon.path} width={60} height={66} alt="" aria-hidden="true" className="absolute bottom-[20px] right-[6px] h-[66px] w-[60px] object-contain opacity-45 grayscale mix-blend-multiply" />
       <span className="mx-auto mb-[2px] h-[4px] w-[64%] bg-current" />
       {[0, 1, 2].map((i) => (
         <span key={i} className="w-full flex-1 bg-current" />

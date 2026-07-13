@@ -8,7 +8,8 @@ import { type Quote } from "@/app/lib/quotes";
 import { useLang } from "@/app/lib/i18n";
 import { usePrintStyle } from "@/app/lib/printStyle";
 
-const DURATION = 3400;
+const COVER_DURATION = 3400;
+const PASS_DURATION = 4100;
 
 // Stepper-motor feed curve: progress (0-1) -> eject fraction (0-1).
 // Mirrors the `receiptOut` keyframe in globals.css — brief catches (holds)
@@ -63,13 +64,17 @@ export default function PrintingScreen({
   const { style } = usePrintStyle();
   const [pct, setPct] = useState(0);
   const [done, setDone] = useState(false);
+  const [printStarted, setPrintStarted] = useState(false);
 
   const isCover = style === "cover";
-  const slitW = isCover ? 680 : 1040;
-  const winW = isCover ? 640 : 1000;
-  const winH = isCover ? 800 : 680;
+  const duration = isCover ? COVER_DURATION : PASS_DURATION;
+  const slitW = isCover ? 680 : 660;
+  const winW = isCover ? 640 : 620;
+  const winH = isCover ? 800 : 1080;
 
   useEffect(() => {
+    if (!printStarted) return;
+
     const start = performance.now();
     let raf = 0;
     let finished = false;
@@ -80,61 +85,65 @@ export default function PrintingScreen({
       setDone(true);
     };
     const tick = (now: number) => {
-      const p = Math.min(1, (now - start) / DURATION);
+      const p = Math.min(1, (now - start) / duration);
       setPct(p);
       if (p < 1) raf = requestAnimationFrame(tick);
       else finish();
     };
     raf = requestAnimationFrame(tick);
-    const guard = setTimeout(finish, DURATION + 700);
+    const guard = setTimeout(finish, duration + 700);
     return () => {
       cancelAnimationFrame(raf);
       clearTimeout(guard);
     };
-  }, []);
+  }, [duration, printStarted]);
 
   const ease = mechanicalFeed(pct);
+  const title = isCover
+    ? !printStarted
+      ? ["Your print", "at a glance."]
+      : done
+        ? ["Your print", "is ready."]
+        : ["Printing your", "cover"]
+    : !printStarted
+      ? t.review.title
+      : done
+        ? t.done.title
+        : t.print.title;
+  const kicker = !printStarted ? t.review.step : t.print.step;
+  const subLine = !printStarted ? sub?.review.subTail : done ? sub?.done.body : sub?.print.title;
 
   return (
     <div className="flex h-full flex-col">
       <div className="px-[80px] pt-[64px]">
-        <p className="kicker">{done ? t.review.step : t.print.step}</p>
+        <p className="kicker">{kicker}</p>
         <h2 className="mt-[16px] font-display text-[82px] font-semibold leading-[0.9] tracking-[-0.02em]">
-          {done ? (
-            <>
-              {t.review.title[0]} <span className="italic">{t.review.title[1]}</span>
-            </>
-          ) : (
-            <>
-              {t.print.title[0]} <span className="italic">{t.print.title[1]}</span>
-            </>
-          )}
+          <span className="block">{title[0]}</span>
+          <span className="mt-[6px] block italic">{title[1]}</span>
         </h2>
-        {sub && (
-          <p className="jp-sub mt-[12px] text-[21px] text-silver-dim">
-            {done ? `${scent.mood.en} — ${scent.name}` : sub.print.title}
-          </p>
+        {subLine && (
+          <p className="jp-sub mt-[12px] text-[21px] text-silver-dim">{subLine}</p>
         )}
       </div>
 
-      {/* printer slit + ejecting ticket */}
       <div className="flex flex-1 flex-col items-center justify-center px-[40px]">
-        {/* the machine slit */}
         <div className="relative z-[20]" style={{ width: slitW }}>
           <div className="h-[22px] w-full rounded-t-[6px] bg-ink" />
           <div className="h-[9px] w-full bg-ink-soft shadow-[inset_0_-6px_10px_rgba(0,0,0,0.6)]" />
         </div>
 
-        {/* reveal window — the artefact slides down out of the slit */}
-        <div
-          className="relative overflow-hidden"
-          style={{ width: winW, height: winH }}
-        >
+        <div className="relative overflow-hidden rounded-[2px] border border-[color:var(--color-line)] bg-paper-bright" style={{ width: winW, height: winH }}>
           <div
-            className={done ? "anim-quiet-confirm" : undefined}
+            className={done ? "anim-quiet-confirm" : !printStarted ? "anim-fade-up" : undefined}
             style={{
-              transform: `translateY(${(ease - 1) * 100}%)`,
-              filter: `drop-shadow(0 ${16 * ease}px ${30 * ease}px rgba(0,0,0,${0.26 * ease}))`,
+              transform: printStarted ? "translateY(0)" : "translateY(0) scale(1.01)",
+              clipPath:
+                printStarted
+                  ? `inset(0 0 ${(1 - ease) * 100}% 0)`
+                  : undefined,
+              filter: printStarted
+                ? `drop-shadow(0 ${16 * ease}px ${30 * ease}px rgba(0,0,0,${0.2 * ease}))`
+                : "drop-shadow(0 20px 44px rgba(0,0,0,0.16))",
             }}
           >
             {isCover ? (
@@ -144,21 +153,57 @@ export default function PrintingScreen({
             )}
           </div>
 
-          {!done && (
+          {!printStarted && !done && (
+            <div className="pointer-events-none absolute inset-0 border border-[color:var(--color-line)] opacity-70" />
+          )}
+
+          {printStarted && !done && (
             <>
               <div
                 className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-ink/55"
                 style={{ animation: "scan 1.1s cubic-bezier(0.4,0,0.2,1) infinite" }}
               />
-              <div className="print-noise pointer-events-none absolute inset-0 opacity-[0.05] mix-blend-multiply" />
+              <div className="print-noise pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-multiply" />
             </>
           )}
         </div>
       </div>
 
-      {/* footer: progress while printing, actions once ejected */}
       <div className="px-[80px] pb-[80px] pt-[10px]">
-        {!done ? (
+        {!printStarted ? (
+          <div className="grid grid-cols-[1fr_1.45fr] gap-[24px]">
+            <button
+              onClick={onRetake}
+              className="press flex min-h-[90px] flex-col items-center justify-center gap-[4px] border border-[color:var(--color-ink)] bg-paper-bright px-[24px] py-[24px]"
+              style={{ cursor: "pointer" }}
+            >
+              <span className="font-mono text-[20px] uppercase tracking-[0.3em]">
+                {t.review.retake}
+              </span>
+              {sub && (
+                <span className="jp-sub text-[15px] text-silver-dim">{sub.review.retake}</span>
+              )}
+            </button>
+            <button
+              onClick={() => {
+                setPct(0);
+                setDone(false);
+                setPrintStarted(true);
+              }}
+              className="press flex min-h-[90px] items-center justify-center border border-[color:var(--color-ink)] bg-ink px-[24px] py-[24px] text-paper"
+              style={{ cursor: "pointer" }}
+            >
+              <span className="flex flex-col items-center gap-[4px]">
+                <span className="font-mono text-[20px] uppercase tracking-[0.3em]">
+                  {isCover ? "Print my cover" : t.review.print}
+                </span>
+                {sub && (
+                  <span className="jp-sub text-[15px] text-paper/55">{isCover ? "COVERを発券" : sub.review.print}</span>
+                )}
+              </span>
+            </button>
+          </div>
+        ) : !done ? (
           <>
             <div className="flex items-center justify-between font-mono text-[18px] uppercase tracking-[0.3em] text-silver-dim">
               <span>
@@ -174,10 +219,10 @@ export default function PrintingScreen({
           <div className="anim-fade-up delay-2 grid grid-cols-[1fr_1.6fr] gap-[24px]">
             <button
               onClick={onRetake}
-              className="press flex flex-col items-center justify-center gap-[5px] border border-[color:var(--color-ink)] py-[36px]"
+              className="press flex min-h-[90px] flex-col items-center justify-center gap-[4px] border border-[color:var(--color-ink)] bg-paper-bright px-[24px] py-[24px]"
               style={{ cursor: "pointer" }}
             >
-              <span className="font-mono text-[22px] uppercase tracking-[0.3em]">
+              <span className="font-mono text-[20px] uppercase tracking-[0.3em]">
                 {t.review.retake}
               </span>
               {sub && (
@@ -186,18 +231,17 @@ export default function PrintingScreen({
             </button>
             <button
               onClick={onClaim}
-              className="card press flex items-center justify-center gap-[22px] bg-ink py-[36px] text-paper"
+              className="press flex min-h-[90px] items-center justify-center border border-[color:var(--color-ink)] bg-ink px-[24px] py-[24px] text-paper"
               style={{ cursor: "pointer" }}
             >
-              <span className="flex flex-col items-center gap-[5px]">
-                <span className="font-mono text-[22px] uppercase tracking-[0.3em]">
+              <span className="flex flex-col items-center gap-[4px]">
+                <span className="font-mono text-[20px] uppercase tracking-[0.3em]">
                   {t.idle.cta}
                 </span>
                 {sub && (
                   <span className="jp-sub text-[15px] text-paper/55">{sub.idle.cta}</span>
                 )}
               </span>
-              <span className="font-display text-[38px]">→</span>
             </button>
           </div>
         )}

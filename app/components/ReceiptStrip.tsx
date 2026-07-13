@@ -4,17 +4,9 @@ import Portrait from "./Portrait";
 import Qr from "./Qr";
 import { BRAND, DOMAIN, editionDate, editionTime, type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
+import { passSecurityAsset } from "@/app/lib/chromeAssets";
 
-/**
- * The printed artefact — a wide airline boarding pass on thermal stock
- * (1000×636, unmistakably landscape). Two bands:
- *   TOP    a hero contact-sheet — three large frames, side by side
- *   BELOW  three quiet zones: LEFT identity + fragrance, CENTER route
- *          (NOW ✈ destination) + fragrance notes, RIGHT detachable stub —
- *          gate / seat / flight / barcode / serial / QR
- * Strict black-on-paper: hierarchy from size / weight / spacing only, so the
- * preview matches real thermal output.
- */
+/** Vertical 80mm-class boarding pass: 620×1040 (1:1.68). */
 export default function ReceiptStrip({
   frames,
   scent,
@@ -29,181 +21,142 @@ export default function ReceiptStrip({
   const { t, sub } = useLang();
   const stamp = time ?? editionTime();
   const seat = String(frames.length).padStart(2, "0");
+  const securitySeal = passSecurityAsset(scent.id);
 
   return (
-    <div className="paper-tex relative flex h-[636px] w-[1000px] flex-col text-ink shadow-[0_30px_80px_-38px_rgba(0,0,0,0.7)]">
-      <div className="absolute inset-x-0 top-0 z-[5] h-[6px] bg-ink" />
+    <article className="vertical-pass paper-tex relative flex h-[1040px] w-[620px] flex-col overflow-hidden text-ink shadow-[0_30px_80px_-38px_rgba(0,0,0,0.7)]">
+      <div className="h-[7px] shrink-0 bg-ink" />
 
-      {/* ============ TOP — hero contact-sheet, three frames side by side ============ */}
-      <div className="mt-[6px] flex h-[200px] w-full gap-[1px] bg-[color:var(--color-line)]">
-        {frames.map((f) => (
-          <div key={f} className="relative min-w-0 flex-1 overflow-hidden bg-ink">
-            <Portrait seed={f - 1} print />
-            <span className="absolute bottom-[8px] left-[10px] font-mono text-[11px] tracking-[0.12em] text-paper">
-              {String(f).padStart(2, "0")}
-            </span>
+      {/* Document identity / airport metadata */}
+      <header className="flex h-[92px] shrink-0 items-start justify-between border-b border-[color:var(--color-ink)] px-[34px] py-[20px]">
+        <div>
+          <p className="font-mono text-[12px] font-semibold uppercase tracking-[0.3em]">
+            {t.pass.title}
+          </p>
+          <p className="mt-[8px] font-display text-[24px] leading-none">{BRAND}</p>
+        </div>
+        <dl className="grid grid-cols-2 gap-x-[22px] gap-y-[6px] text-right font-mono uppercase">
+          <Meta label={t.pass.flight} value={scent.code} />
+          <Meta label="Serial" value={serial} />
+          <Meta label={t.pass.date} value={editionDate()} />
+          <Meta label={t.pass.boarding} value={stamp} />
+        </dl>
+      </header>
+
+      {/* Route is the document's visual signature. */}
+      <section className="relative h-[178px] shrink-0 overflow-hidden px-[34px] py-[22px]">
+        <img
+          src={securitySeal.path}
+          width={104}
+          height={104}
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute right-[26px] top-[18px] h-[104px] w-[104px] object-contain opacity-[.08] grayscale contrast-150 mix-blend-multiply"
+        />
+        <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.26em] text-silver-dim">
+          <span>PRS / TYO</span>
+          <span>ZONE 01 · BOARDING OPEN</span>
+        </div>
+        <div className="relative mt-[20px] grid grid-cols-[120px_1fr] items-end gap-[18px]">
+          <div>
+            <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-silver-dim">{t.pass.from}</p>
+            <p className="mt-[4px] font-display text-[40px] leading-none">{t.pass.fromValue}</p>
+          </div>
+          <div className="border-l border-[color:var(--color-ink)] pl-[20px]">
+            <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-silver-dim">{t.pass.to}</p>
+            <p className="mt-[2px] font-display text-[58px] font-semibold uppercase leading-[.82] tracking-[-0.035em]">
+              {scent.destination.en}
+            </p>
+            {sub && <p className="jp-sub mt-[7px] text-[10px] text-silver-dim">{scent.destination.jp}</p>}
+          </div>
+        </div>
+      </section>
+
+      {/* Equal portrait frames — no captions or text overlays. */}
+      <section className="mx-[34px] flex h-[258px] shrink-0 gap-[6px] border-y border-[color:var(--color-ink)] py-[10px]">
+        {frames.slice(0, 3).map((frame) => (
+          <div key={frame} className="min-w-0 flex-1 overflow-hidden bg-ink">
+            <Portrait seed={frame - 1} print />
           </div>
         ))}
-      </div>
+      </section>
 
-      {/* caption strip under the photo band */}
-      <div className="flex h-[26px] items-center justify-between border-b border-dashed border-[color:var(--color-ink)] px-[32px] font-mono text-[10px] uppercase tracking-[0.22em] text-silver-dim">
-        <span>
-          Frames 01–{seat} · {t.pass.airline}
-        </span>
-        <span>
-          {scent.code} · {editionDate()}
-        </span>
-      </div>
-
-      {/* ============ TICKET — identity / route / stub ============ */}
-      <div className="relative flex h-[338px] w-full">
-        {/* LEFT — identity + fragrance */}
-        <div className="flex w-[300px] flex-col justify-between border-r border-dashed border-[color:var(--color-ink)] px-[32px] py-[24px]">
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.26em]">
-              {t.pass.title}
-              {sub && (
-                <span className="jp-sub ml-[10px] text-[11px] normal-case text-silver-dim">
-                  {sub.pass.title}
-                </span>
-              )}
-            </p>
-            <p className="mt-[6px] font-display text-[32px] leading-none tracking-tight">
-              {BRAND}
-            </p>
-          </div>
-
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-silver-dim">
-              {t.pass.fragrance}
-            </p>
-            <p className="mt-[6px] font-display text-[26px] leading-[1.05]">
-              {scent.mood.en} <span className="italic">/ {scent.name}</span>
-            </p>
-          </div>
+      {/* Fragrance manifest */}
+      <section className="mx-[34px] grid h-[142px] shrink-0 grid-cols-[1.25fr_.75fr] gap-[24px] border-b border-[color:var(--color-line)] py-[18px]">
+        <div className="border-r border-[color:var(--color-line)] pr-[22px]">
+          <p className="font-mono text-[9px] uppercase tracking-[0.24em] text-silver-dim">{t.pass.fragrance} / {t.pass.mood}</p>
+          <p className="mt-[8px] font-display text-[26px] leading-[1.05]">
+            {scent.name} <span className="italic">/ {scent.mood.en}</span>
+          </p>
+          {sub && <p className="jp-sub mt-[7px] text-[10px] text-silver-dim">{scent.mood.jp}</p>}
         </div>
-
-        {/* CENTER — route + fragrance notes */}
-        <div className="relative flex flex-1 flex-col px-[36px] py-[24px]">
-          {/* boarding stamp */}
-          <div className="stamp pointer-events-none absolute right-[20px] top-[16px] z-[2] px-[10px] py-[4px] text-center font-mono uppercase leading-tight">
-            <span className="block text-[15px] font-bold tracking-[0.12em]">Boarded</span>
-            <span className="block text-[9px] tracking-[0.16em]">{editionDate()}</span>
-          </div>
-
-          <div className="mt-[52px] flex items-end justify-between">
-            <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.26em] text-silver-dim">
-                {t.pass.from}
-              </p>
-              <p className="mt-[4px] font-display text-[44px] leading-none">
-                {t.pass.fromValue}
-              </p>
+        <div className="grid grid-cols-3 gap-[10px]">
+          {t.pass.notes.map((tier, index) => (
+            <div key={tier}>
+              <p className="font-mono text-[8px] uppercase tracking-[0.16em] text-silver-dim">{tier}</p>
+              <p className="mt-[8px] font-display text-[14px] italic leading-[1.08]">{scent.notes[index].en}</p>
             </div>
-            <div className="mb-[8px] flex-1 px-[18px]">
-              <div className="relative h-[18px]">
-                <span className="absolute left-0 right-0 top-1/2 border-t border-dashed border-[color:var(--color-ink)]" />
-                <span className="paper-tex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-[7px] text-[18px]">
-                  ✈
-                </span>
+          ))}
+        </div>
+      </section>
+
+      {/* Boarding information grid */}
+      <section className="mx-[34px] grid h-[105px] shrink-0 grid-cols-3 border-b border-[color:var(--color-ink)] py-[14px]">
+        <BoardingCell label={t.pass.passenger} value={t.pass.passengerValue} />
+        <BoardingCell label={t.pass.gate} value={t.pass.gateValue} />
+        <BoardingCell label={t.pass.seat} value={seat} />
+        <BoardingCell label={t.pass.flight} value={scent.code} />
+        <BoardingCell label={t.pass.boarding} value={stamp} />
+        <BoardingCell label="Destination" value={scent.destination.en} />
+      </section>
+
+      {/* Detachable vertical-pass stub */}
+      <footer className="relative mt-auto h-[250px] shrink-0 border-t-2 border-dashed border-[color:var(--color-ink)] px-[34px] py-[18px]">
+        <span className="absolute -left-[9px] -top-[10px] h-[18px] w-[18px] rounded-full bg-[color:var(--color-paper)]" />
+        <span className="absolute -right-[9px] -top-[10px] h-[18px] w-[18px] rounded-full bg-[color:var(--color-paper)]" />
+        <div className="flex h-full items-stretch gap-[24px]">
+          <div className="flex flex-1 flex-col">
+            <div className="flex items-baseline justify-between font-mono uppercase">
+              <span className="text-[10px] tracking-[0.28em]">{t.pass.stub}</span>
+              <span className="text-[9px] tracking-[0.2em] text-silver-dim">{scent.code} / {serial}</span>
+            </div>
+            <div className="mt-[14px] grid grid-cols-3 divide-x divide-[color:var(--color-line)]">
+              <StubValue label={t.pass.gate} value={t.pass.gateValue} />
+              <StubValue label={t.pass.seat} value={seat} />
+              <StubValue label={t.pass.boarding} value={stamp} />
+            </div>
+            <div className="mt-auto">
+              <Barcode />
+              <div className="mt-[7px] flex justify-between font-mono text-[8px] uppercase tracking-[0.19em] text-silver-dim">
+                <span>{DOMAIN}</span>
+                <span>{t.pass.keep}</span>
               </div>
             </div>
-            <div className="text-right">
-              <p className="font-mono text-[11px] uppercase tracking-[0.26em] text-silver-dim">
-                {t.pass.to}
-              </p>
-              <p className="mt-[4px] font-display text-[44px] leading-none">
-                {scent.destination.en}
-              </p>
-              {sub && (
-                <p className="jp-sub mt-[2px] text-[11px] text-silver-dim">
-                  {scent.destination.jp}
-                </p>
-              )}
-            </div>
           </div>
-
-          <div className="mt-auto grid grid-cols-3 divide-x divide-[color:var(--color-line)] border-t border-[color:var(--color-line)] pt-[10px]">
-            {t.pass.notes.map((tier, i) => (
-              <div key={tier} className="pl-[14px] first:pl-0">
-                <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-silver-dim">
-                  {tier}
-                </p>
-                <p className="mt-[3px] font-display text-[17px] italic leading-tight">
-                  {scent.notes[i].en}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ============ PERFORATION ============ */}
-        <div className="relative w-0">
-          <span className="absolute left-1/2 top-[-11px] h-[22px] w-[22px] -translate-x-1/2 rounded-full bg-[color:var(--color-paper)]" />
-          <span className="absolute bottom-[-11px] left-1/2 h-[22px] w-[22px] -translate-x-1/2 rounded-full bg-[color:var(--color-paper)]" />
-          <span className="absolute bottom-[16px] left-1/2 top-[16px] border-l-2 border-dashed border-[color:var(--color-ink)] opacity-70" />
-        </div>
-
-        {/* RIGHT — detachable stub */}
-        <div className="flex w-[216px] flex-col px-[20px] py-[14px]">
-          <div className="flex items-baseline justify-between font-mono text-[10px] uppercase tracking-[0.2em]">
-            <span>{t.pass.stub}</span>
-            <span>{scent.code}</span>
-          </div>
-
-          <div className="mt-[10px] flex flex-col gap-[6px]">
-            <StubCell label={t.pass.gate} value={t.pass.gateValue} />
-            <StubCell label={t.pass.seat} value={seat} />
-            <StubCell label={t.pass.flight} value={scent.code} />
-          </div>
-
-          <div className="mt-[10px] flex items-center gap-[9px]">
+          <div className="flex w-[106px] shrink-0 flex-col items-center justify-center border-l border-[color:var(--color-line)] pl-[18px]">
             <div className="border border-[color:var(--color-ink)] p-[5px]">
-              <Qr cell={3} seed={hashSeed(serial)} />
+              <Qr cell={4} seed={hashSeed(serial)} />
             </div>
-            <div className="flex-1 font-mono text-[8px] uppercase leading-[1.5] tracking-[0.12em] text-silver-dim">
-              <p>{t.pass.scan[0]}</p>
-              <p>{t.pass.scan[1]}</p>
-            </div>
-          </div>
-
-          <div className="mt-auto">
-            <Barcode />
-            <p className="mt-[5px] text-center font-mono text-[11px] tracking-[0.24em]">
-              {serial}
-            </p>
-            <p className="mt-[6px] text-center font-display text-[13px] italic leading-tight">
-              {t.pass.keep}
-            </p>
-            <p className="mt-[3px] text-center font-mono text-[7px] uppercase tracking-[0.2em] text-silver-dim">
-              {DOMAIN}
+            <p className="mt-[8px] text-center font-mono text-[7px] uppercase leading-[1.4] tracking-[0.12em] text-silver-dim">
+              {t.pass.scan[0]}<br />{t.pass.scan[1]}
             </p>
           </div>
         </div>
-      </div>
-
-      {/* ============ FOOTER — passenger meta, phrase, closing ============ */}
-      <div className="flex h-[66px] items-center justify-between gap-[24px] border-t border-dashed border-[color:var(--color-ink)] px-[32px]">
-        <div className="flex-1">
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-silver-dim">
-            {t.pass.passenger} {t.pass.passengerValue} · {t.pass.boarding} {stamp} · {editionDate()}
-          </p>
-          <p className="mt-[5px] font-display text-[17px] italic leading-tight">
-            “{scent.phrase.en}”
-          </p>
-        </div>
-        <p className="whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.26em]">
-          {t.pass.closing}
-          {sub && (
-            <span className="jp-sub ml-[10px] text-[10px] normal-case">
-              {sub.pass.closing}
-            </span>
-          )}
-        </p>
-      </div>
-    </div>
+      </footer>
+    </article>
   );
+}
+
+function Meta({ label, value }: { label: string; value: string }) {
+  return <div><dt className="text-[7px] tracking-[0.16em] text-silver-dim">{label}</dt><dd className="mt-[1px] text-[9px] tracking-[0.1em]">{value}</dd></div>;
+}
+
+function BoardingCell({ label, value }: { label: string; value: string }) {
+  return <div className="px-[10px] first:pl-0"><p className="font-mono text-[7px] uppercase tracking-[0.17em] text-silver-dim">{label}</p><p className="mt-[3px] truncate font-mono text-[11px] font-semibold uppercase tracking-[0.08em]">{value}</p></div>;
+}
+
+function StubValue({ label, value }: { label: string; value: string }) {
+  return <div className="px-[13px] first:pl-0"><p className="font-mono text-[7px] uppercase tracking-[0.17em] text-silver-dim">{label}</p><p className="mt-[4px] font-display text-[22px] leading-none">{value}</p></div>;
 }
 
 function hashSeed(s: string): number {
@@ -212,22 +165,7 @@ function hashSeed(s: string): number {
   return h || 7;
 }
 
-function StubCell({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="border border-[color:var(--color-ink)] px-[9px] py-[5px] font-mono uppercase">
-      <p className="text-[7px] tracking-[0.14em] text-silver-dim">{label}</p>
-      <p className="mt-[1px] text-[13px] font-bold">{value}</p>
-    </div>
-  );
-}
-
 function Barcode() {
   const bars = "413132214231341221432312143132421334".split("");
-  return (
-    <div className="flex h-[32px] items-stretch justify-center gap-[2px]">
-      {bars.map((w, i) => (
-        <span key={i} className="bg-ink" style={{ width: Number(w) * 1.2 }} />
-      ))}
-    </div>
-  );
+  return <div className="flex h-[46px] items-stretch gap-[2px] overflow-hidden">{bars.map((width, index) => <span key={index} className="shrink-0 bg-ink" style={{ width: Number(width) * 1.2 }} />)}</div>;
 }

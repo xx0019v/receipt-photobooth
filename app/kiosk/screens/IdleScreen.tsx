@@ -1,92 +1,117 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Masthead from "@/app/components/Masthead";
-import { editionDate } from "@/app/lib/edition";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang } from "@/app/lib/i18n";
+import { CHROME_ASSETS } from "@/app/lib/chromeAssets";
+
+const LIQUID_STRANDS = [
+  { left: "0%", width: "18%", delay: "0ms", depth: "78%" },
+  { left: "17%", width: "17%", delay: "45ms", depth: "70%" },
+  { left: "33%", width: "18%", delay: "15ms", depth: "84%" },
+  { left: "50%", width: "17%", delay: "60ms", depth: "74%" },
+  { left: "66%", width: "18%", delay: "25ms", depth: "82%" },
+  { left: "83%", width: "17%", delay: "50ms", depth: "72%" },
+] as const;
 
 export default function IdleScreen({ onStart }: { onStart: () => void }) {
-  const { t, sub } = useLang();
-  const cycle = t.idle.cycle;
-  const [word, setWord] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setWord((w) => (w + 1) % cycle.length), 2600);
-    return () => clearInterval(id);
-  }, [cycle.length]);
+  const { sub } = useLang();
+  const [entering, setEntering] = useState(false);
+  const idleFace = CHROME_ASSETS.face.path;
+  const idleLips = CHROME_ASSETS.lips.path;
+  const idleVideo = CHROME_ASSETS.silverLipsMotion.path;
+  const [videoFailed, setVideoFailed] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (timer.current) clearTimeout(timer.current);
+  }, []);
+
+  const begin = useCallback(() => {
+    if (entering) return;
+    setEntering(true);
+    timer.current = setTimeout(onStart, 1050);
+  }, [entering, onStart]);
 
   return (
-    <button
-      onClick={onStart}
-      className="absolute inset-0 h-full w-full text-left"
-      style={{ cursor: "pointer" }}
-    >
-      <div className="flex h-full flex-col">
-        <Masthead variant="cover" />
+    <main className={`idle-ritual${entering ? " is-entering" : ""}`}>
+      <div className="idle-ritual__face" aria-hidden="true" style={{ backgroundImage: `url("${idleFace}")` }} />
+      <div className="idle-ritual__halo" aria-hidden="true" />
 
-        <div className="flex flex-1 flex-col justify-center px-[80px]">
-          <p className="kicker anim-fade-up">{t.idle.tagline}</p>
+      <header className="idle-ritual__header" aria-hidden={entering}>
+        <p>PARFUM RECEIPT STUDIO</p>
+        <span>ACUSE / TOKYO</span>
+      </header>
 
-          <h1 className="anim-fade-up delay-1 mt-[34px] font-display font-semibold leading-[0.82] tracking-[-0.02em]">
-            <span className="block text-[168px]">THE</span>
-            <span className="block text-[168px] italic">Receipt</span>
-          </h1>
-
-          <div className="anim-fade-up delay-2 mt-[52px] flex items-center gap-[28px]">
-            <span className="rule w-[120px]" />
-            <p className="font-display text-[34px] italic leading-[1.3] text-ink-soft">
-              <span
-                key={`${word}-${t.idle.cycleTail}`}
-                className="block"
-                style={{ animation: "wordIn 0.7s ease both" }}
-              >
-                {cycle[word]}
-              </span>
-              {t.idle.cycleTail}
-            </p>
-          </div>
-
-          <div className="anim-fade-up delay-3 mt-[58px] grid grid-cols-3 gap-[2px] font-mono text-[15px] uppercase tracking-[0.18em] text-silver-dim">
-            <span>{t.idle.steps[0]}</span>
-            <span className="text-center">{t.idle.steps[1]}</span>
-            <span className="text-right">{t.idle.steps[2]}</span>
-          </div>
-        </div>
-
-        {/* Marquee band */}
-        <div className="overflow-hidden border-y border-[color:var(--color-ink)] py-[26px]">
-          <div className="marquee-track">
-            {[...t.idle.marquee, ...t.idle.marquee, ...t.idle.marquee, ...t.idle.marquee].map(
-              (w, i) => (
-                <span key={i} className="mx-[38px] font-display text-[52px] italic">
-                  {w}
-                  <span className="mx-[38px] not-italic text-silver">✦</span>
-                </span>
-              ),
-            )}
-          </div>
-        </div>
-
-        {/* Call to action */}
-        <div className="px-[80px] pb-[86px] pt-[70px]">
-          <div className="anim-breathe flex flex-col items-center justify-center gap-[12px] border border-[color:var(--color-ink)] py-[36px]">
-            <div className="flex items-center gap-[24px]">
-              <span className="h-[16px] w-[16px] rounded-full bg-ink" />
-              <span className="font-mono text-[28px] uppercase tracking-[0.4em]">
-                {t.idle.cta}
-              </span>
-            </div>
-            {sub && (
-              <span className="jp-sub text-[19px] tracking-[0.24em] text-silver-dim">
-                {sub.idle.cta}
-              </span>
-            )}
-          </div>
-          <div className="mt-[30px] flex justify-between font-mono text-[13px] uppercase tracking-[0.28em] text-silver-dim">
-            <span>{t.idle.location}</span>
-            <span>{editionDate()}</span>
-          </div>
-        </div>
+      <div className="idle-ritual__index" aria-hidden="true">
+        <span>RITUAL No. 01</span>
+        <span>LIQUID / MEMORY / SILVER</span>
       </div>
-    </button>
+
+      <button
+        type="button"
+        className="idle-ritual__trigger"
+        onClick={begin}
+        disabled={entering}
+        aria-label={sub ? "はじめる — 銀の唇をタップ" : "Tap the silver lips to begin"}
+      >
+        <span className="idle-ritual__tap">TOUCH THE SILVER</span>
+        <span className="idle-ritual__lips">
+          <img
+            className="idle-ritual__fallback"
+            src={idleLips}
+            width={850}
+            height={600}
+            alt=""
+            aria-hidden="true"
+          />
+          <video
+            className={`idle-ritual__video${videoFailed ? " is-unavailable" : ""}`}
+            src={idleVideo}
+            poster={idleLips}
+            width={850}
+            height={600}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            aria-hidden="true"
+            onError={() => setVideoFailed(true)}
+          />
+          <span className="idle-ritual__lip-shine" aria-hidden="true" />
+        </span>
+        <span className="idle-ritual__instruction">
+          <em>{sub ? "はじめる" : "BEGIN"}</em>
+        </span>
+      </button>
+
+      <footer className="idle-ritual__footer" aria-hidden={entering}>
+        <p>SILVER<br />LIQUID<br />RITUAL</p>
+        <div>
+          <span>01</span>
+          <i />
+          <span>∞</span>
+        </div>
+        <p className="idle-ritual__footer-jp">
+          {sub ? "香りの記憶を起動する" : "SCENT BECOMES MEMORY"}
+        </p>
+      </footer>
+
+      <div className="liquid-transition" aria-hidden="true">
+        {LIQUID_STRANDS.map((strand, index) => (
+          <i
+            key={index}
+            style={{
+              left: strand.left,
+              width: strand.width,
+              animationDelay: strand.delay,
+              "--liquid-depth": strand.depth,
+            } as React.CSSProperties}
+          />
+        ))}
+        <span />
+      </div>
+      <div className="idle-ritual__blackout" aria-hidden="true" />
+    </main>
   );
 }

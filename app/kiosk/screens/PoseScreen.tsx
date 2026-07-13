@@ -4,6 +4,7 @@ import Masthead from "@/app/components/Masthead";
 import Portrait from "@/app/components/Portrait";
 import { TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
+import { passSecurityAsset } from "@/app/lib/chromeAssets";
 
 export default function PoseScreen({
   scent,
@@ -13,6 +14,7 @@ export default function PoseScreen({
   onBegin: () => void;
 }) {
   const { t, sub } = useLang();
+  const symbol = passSecurityAsset(scent.id);
 
   return (
     <div className="flex h-full flex-col">
@@ -54,6 +56,10 @@ export default function PoseScreen({
           <div className="absolute inset-x-[34px] top-[30px] flex items-center justify-between font-mono text-[17px] uppercase tracking-[0.34em] text-paper/80">
             <span>{t.pose.viewfinder}</span>
             <span>{scent.mood.en}</span>
+          </div>
+
+          <div className="absolute right-[28px] top-[92px] flex h-[58px] w-[58px] items-center justify-center border border-paper/25 bg-paper/10 backdrop-blur-[2px]">
+            <img src={symbol.path} width={36} height={36} alt="" aria-hidden="true" className="h-[36px] w-[36px] object-contain opacity-75 grayscale contrast-125" />
           </div>
 
           <div className="absolute inset-x-0 bottom-[42px] flex items-center justify-center gap-[26px] font-mono text-[18px] uppercase tracking-[0.22em] text-paper/85">

@@ -92,6 +92,341 @@ body {
     0 0 0 1px rgba(0, 0, 0, 0.5);
 }
 
+/* ------------------------------------------------------------
+   Idle / Start — SILVER LIQUID RITUAL
+   The video is inverted and screened so its pale source background vanishes
+   into the black stage while its chrome detail remains luminous.
+   ------------------------------------------------------------ */
+.idle-ritual {
+  --ritual-silver: #d9d9d5;
+  --ritual-dim: #8e8e8a;
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+  overflow: hidden;
+  color: #f1f1ed;
+  background:
+    radial-gradient(ellipse at 50% 48%, #202022 0%, #09090a 38%, #030304 72%),
+    #030304;
+}
+
+.idle-ritual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  opacity: 0.16;
+  background: repeating-linear-gradient(90deg, transparent 0 179px, rgba(255,255,255,.08) 180px);
+  mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
+}
+
+.idle-ritual__face {
+  position: absolute;
+  z-index: 0;
+  top: 130px;
+  left: -265px;
+  width: 920px;
+  height: 926px;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+  filter: invert(1) grayscale(1) contrast(1.25);
+  mix-blend-mode: screen;
+  opacity: 0.085;
+  transform: rotate(-8deg);
+  -webkit-mask-image: linear-gradient(120deg, #000 5%, rgba(0,0,0,.75) 44%, transparent 75%);
+  mask-image: linear-gradient(120deg, #000 5%, rgba(0,0,0,.75) 44%, transparent 75%);
+}
+
+.idle-ritual__halo {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  width: 790px;
+  height: 790px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 50%;
+  transform: translate(-50%, -45%);
+  box-shadow: inset 0 0 90px rgba(255,255,255,.035), 0 0 140px rgba(255,255,255,.03);
+}
+
+.idle-ritual__header {
+  position: absolute;
+  z-index: 12;
+  top: 84px;
+  left: 76px;
+  right: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid rgba(255,255,255,.42);
+  padding-top: 18px;
+  font-family: var(--font-mono), monospace;
+  font-size: 14px;
+  letter-spacing: .32em;
+  transition: opacity .3s ease;
+}
+
+.idle-ritual__header span { color: var(--ritual-dim); font-size: 12px; }
+
+/* Keep the shared language control, but let it belong to this dark campaign. */
+.kiosk-stage:has(.idle-ritual) .lang-toggle {
+  top: 55px;
+  right: 62px;
+  border-color: rgba(255,255,255,.22);
+  color: #aaa;
+  background: rgba(3,3,4,.72);
+  backdrop-filter: blur(8px);
+  transition: opacity .24s ease;
+}
+
+.kiosk-stage:has(.idle-ritual) .lang-toggle button {
+  color: #858582;
+  background: transparent;
+}
+
+.kiosk-stage:has(.idle-ritual) .lang-toggle button.bg-ink {
+  color: #f0f0ec;
+  background: rgba(255,255,255,.08);
+}
+
+.kiosk-stage:has(.idle-ritual.is-entering) .lang-toggle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.idle-ritual__index {
+  position: absolute;
+  z-index: 11;
+  top: 245px;
+  right: 70px;
+  display: flex;
+  gap: 22px;
+  color: #a8a8a4;
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: .24em;
+  writing-mode: vertical-rl;
+}
+
+.idle-ritual__trigger {
+  position: absolute;
+  z-index: 10;
+  inset: 270px 70px 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  appearance: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  touch-action: manipulation;
+}
+
+.idle-ritual__trigger:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -10px;
+}
+
+.idle-ritual__tap {
+  position: relative;
+  z-index: 4;
+  margin-bottom: 28px;
+  padding-left: .18em;
+  color: rgba(240,240,236,.94);
+  font-family: var(--font-mono), monospace;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: .3em;
+  opacity: .9;
+  animation: ritualPulse 4.2s ease-in-out infinite;
+}
+
+.idle-ritual__tap::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 40px;
+  width: 1px;
+  height: 42px;
+  background: linear-gradient(to bottom, rgba(255,255,255,.52), transparent);
+  opacity: .7;
+}
+
+.idle-ritual__lips {
+  position: relative;
+  display: block;
+  width: 850px;
+  height: 600px;
+  overflow: hidden;
+  border-radius: 46% 46% 44% 44%;
+  filter: drop-shadow(0 28px 44px rgba(255,255,255,.09));
+  transition: transform .18s ease-out, filter .18s ease-out;
+}
+
+.idle-ritual__trigger:active .idle-ritual__lips { transform: scale(.975); filter: brightness(1.2); }
+
+.idle-ritual__video,
+.idle-ritual__fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: invert(1) grayscale(1) contrast(1.42) brightness(1.35);
+  mix-blend-mode: screen;
+  transform: scale(1.05);
+}
+
+.idle-ritual__fallback { object-fit: contain; opacity: .88; }
+.idle-ritual__video { z-index: 1; }
+.idle-ritual__video.is-unavailable { opacity: 0; }
+
+.idle-ritual__lip-shine {
+  position: absolute;
+  z-index: 2;
+  inset: 14% 9%;
+  border-radius: 50%;
+  background: linear-gradient(112deg, transparent 20%, rgba(255,255,255,.18) 44%, rgba(255,255,255,.72) 49%, transparent 55%);
+  mix-blend-mode: screen;
+  transform: translateX(-120%);
+  animation: lipSheen 5.6s var(--ease-out-premium) infinite;
+}
+
+.idle-ritual__instruction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-top: 26px;
+  font-style: normal;
+}
+
+.idle-ritual__instruction em {
+  color: #92928f;
+  font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 300;
+  letter-spacing: .28em;
+}
+
+.idle-ritual__footer {
+  position: absolute;
+  z-index: 12;
+  left: 76px;
+  right: 76px;
+  bottom: 80px;
+  display: grid;
+  grid-template-columns: 1fr 190px 1fr;
+  align-items: end;
+  border-bottom: 1px solid rgba(255,255,255,.42);
+  padding-bottom: 18px;
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  line-height: 1.8;
+  letter-spacing: .25em;
+  transition: opacity .3s ease;
+}
+
+.idle-ritual__footer > div { display: flex; align-items: center; gap: 12px; color: #8e8e8a; }
+.idle-ritual__footer i { width: 100%; height: 1px; background: #777; }
+.idle-ritual__footer-jp { text-align: right; color: #aaa; }
+
+.liquid-transition {
+  position: absolute;
+  z-index: 40;
+  inset: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.liquid-transition i {
+  --liquid-depth: 60%;
+  position: absolute;
+  top: -15%;
+  height: var(--liquid-depth);
+  border-radius: 0 0 48% 52%;
+  background: linear-gradient(90deg, #1d1d1f 0%, #aaa8a2 28%, #555451 51%, #c9c8c3 72%, #303032 100%);
+  box-shadow: inset -8px 0 16px rgba(0,0,0,.18), inset 8px 0 12px rgba(255,255,255,.1);
+  opacity: .7;
+  transform: translateY(-115%);
+}
+
+.liquid-transition i:nth-child(3n) { border-radius: 0 0 44% 56%; }
+.liquid-transition i:nth-child(even) { filter: brightness(.86); }
+
+.liquid-transition > span {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: linear-gradient(110deg, rgba(4,4,5,.12), rgba(185,185,183,.22) 28%, rgba(44,44,46,.12) 49%, rgba(226,226,222,.2) 63%, rgba(8,8,9,.12) 84%);
+  filter: blur(.2px);
+}
+
+.idle-ritual__blackout {
+  position: absolute;
+  z-index: 50;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: #020203;
+}
+
+.is-entering .idle-ritual__header,
+.is-entering .idle-ritual__footer,
+.is-entering .idle-ritual__instruction,
+.is-entering .idle-ritual__tap { opacity: 0; }
+.is-entering .idle-ritual__lips { animation: ritualMelt .78s cubic-bezier(.4,0,.7,1) both; }
+.is-entering .liquid-transition { visibility: visible; }
+.is-entering .liquid-transition i { animation: liquidDrop .8s cubic-bezier(.3,.58,.3,1) forwards; }
+.is-entering .liquid-transition > span { animation: silverFlood .58s .4s ease-in forwards; }
+.is-entering .idle-ritual__blackout { animation: ritualBlackout .36s .72s ease-in forwards; }
+
+@keyframes ritualPulse { 0%,100% { opacity: .34; } 48% { opacity: .8; } }
+@keyframes motionSheen { 0% { transform: translateX(-120%); opacity: .2; } 100% { transform: translateX(120%); opacity: 0; } }
+.motion-sheen {
+  position: relative;
+  overflow: hidden;
+}
+.motion-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 0%, rgba(255,255,255,.18) 48%, transparent 100%);
+  transform: translateX(-120%);
+  animation: motionSheen 1.25s ease-in-out infinite;
+}
+@keyframes lipSheen { 0%, 58% { transform: translateX(-120%); opacity: 0; } 68% { opacity: .7; } 82%,100% { transform: translateX(120%); opacity: 0; } }
+@keyframes ritualMelt { to { transform: scale(1.12, .82) translateY(90px); opacity: .16; filter: blur(10px) brightness(2); } }
+@keyframes liquidDrop { 0% { transform: translateY(-115%) scaleY(.85); } 100% { transform: translateY(0) scaleY(1.18); } }
+@keyframes silverFlood { to { opacity: .72; } }
+@keyframes ritualBlackout { to { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .idle-ritual__tap, .idle-ritual__lip-shine, .motion-sheen::after { animation: none; }
+  .idle-ritual__tap { opacity: 1; }
+  .is-entering .liquid-transition i { animation-duration: .01ms; }
+  .is-entering .liquid-transition > span,
+  .is-entering .idle-ritual__blackout { animation-duration: .15s; animation-delay: 0s; }
+  .anim-fade-up, .anim-quiet-confirm, .anim-ambient { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .anim-fade-in,
+  .anim-breathe,
+  .anim-spin-slow,
+  .anim-drift,
+  .marquee-track,
+  .screen-swap,
+  .pass-reveal,
+  .stamp,
+  .print-noise {
+    animation: none !important;
+  }
+}
+
 /* Paper grain + vignette overlays */
 .grain::after {
   content: "";

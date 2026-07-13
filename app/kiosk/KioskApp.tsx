@@ -7,6 +7,8 @@ import { LangProvider } from "@/app/lib/i18n";
 import { PrintStyleProvider } from "@/app/lib/printStyle";
 import { scentById, serialNo, TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
 import { pickQuote, type Quote } from "@/app/lib/quotes";
+import { pickChromeMotif, type ChromeAsset } from "@/app/lib/chromeAssets";
+import { ChromeArtworkProvider } from "@/app/lib/chromeArtwork";
 import IdleScreen from "./screens/IdleScreen";
 import ScentScreen from "./screens/ScentScreen";
 import FormatSelectScreen from "./screens/FormatSelectScreen";
@@ -32,12 +34,17 @@ export default function KioskApp() {
   const [scent, setScent] = useState<Scent>(() => scentById("nocturne"));
   const [serial, setSerial] = useState("0000-0000");
   const [quote, setQuote] = useState<Quote>(() => pickQuote());
+  const [chromeMotif, setChromeMotif] = useState<ChromeAsset>(() => pickChromeMotif());
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const go = useCallback((p: Phase) => setPhase(p), []);
 
   const startSession = useCallback(() => {
     setFrames([]);
+    setSerial("0000-0000");
+    setScent(scentById("nocturne"));
+    setQuote(pickQuote());
+    setChromeMotif(pickChromeMotif());
     setPhase("scent");
   }, []);
 
@@ -53,8 +60,7 @@ export default function KioskApp() {
 
   const finishCapture = useCallback((captured: number[]) => {
     setFrames(captured);
-    setSerial(serialNo());
-    setQuote(pickQuote()); // decided once; held through print + done
+    setSerial((current) => current === "0000-0000" ? serialNo() : current);
     setPhase("printing");
   }, []);
 
@@ -77,6 +83,7 @@ export default function KioskApp() {
   return (
     <LangProvider>
       <PrintStyleProvider>
+      <ChromeArtworkProvider motif={chromeMotif}>
       <Stage>
         <LangToggle />
         <div key={phase} className="screen-swap">
@@ -106,10 +113,11 @@ export default function KioskApp() {
           />
         )}
         {phase === "done" && (
-          <DoneScreen scent={scent} serial={serial} quote={quote} onReset={reset} />
+          <DoneScreen frames={frames} scent={scent} serial={serial} quote={quote} onReset={reset} />
         )}
         </div>
       </Stage>
+      </ChromeArtworkProvider>
       </PrintStyleProvider>
     </LangProvider>
   );

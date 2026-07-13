@@ -5,7 +5,6 @@ import {
   createElement,
   useCallback,
   useContext,
-  useEffect,
   useState,
   type ReactNode,
 } from "react";
@@ -19,16 +18,8 @@ const PrintStyleContext = createContext<Ctx | null>(null);
 export function PrintStyleProvider({ children }: { children: ReactNode }) {
   const [style, setStyleState] = useState<PrintStyle>("pass");
 
-  useEffect(() => {
-    const saved = window.localStorage.getItem("tr-print-style");
-    if (saved === "pass" || saved === "cover") setStyleState(saved);
-  }, []);
-
   const setStyle = useCallback((s: PrintStyle) => {
     setStyleState(s);
-    try {
-      window.localStorage.setItem("tr-print-style", s);
-    } catch {}
   }, []);
 
   return createElement(
