@@ -5,6 +5,7 @@ import {
   createElement,
   useCallback,
   useContext,
+  useEffect,
   useState,
   type ReactNode,
 } from "react";
@@ -15,8 +16,18 @@ export type PrintStyle = "pass" | "cover";
 type Ctx = { style: PrintStyle; setStyle: (s: PrintStyle) => void };
 const PrintStyleContext = createContext<Ctx | null>(null);
 
-export function PrintStyleProvider({ children }: { children: ReactNode }) {
+export function PrintStyleProvider({
+  children,
+  resetKey,
+}: {
+  children: ReactNode;
+  resetKey?: string;
+}) {
   const [style, setStyleState] = useState<PrintStyle>("pass");
+
+  useEffect(() => {
+    if (resetKey) setStyleState("pass");
+  }, [resetKey]);
 
   const setStyle = useCallback((s: PrintStyle) => {
     setStyleState(s);

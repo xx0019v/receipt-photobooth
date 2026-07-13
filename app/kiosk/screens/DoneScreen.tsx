@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import Masthead from "@/app/components/Masthead";
 import ReceiptStrip from "@/app/components/ReceiptStrip";
+import MagazineCover from "@/app/components/MagazineCover";
 import { type Scent } from "@/app/lib/edition";
 import { type Quote } from "@/app/lib/quotes";
 import { useLang } from "@/app/lib/i18n";
 import { usePrintStyle } from "@/app/lib/printStyle";
-import { useChromeArtwork } from "@/app/lib/chromeArtwork";
 
 const AUTO_RETURN = 12_000;
 
@@ -26,7 +26,6 @@ export default function DoneScreen({
 }) {
   const { t, sub } = useLang();
   const { style } = usePrintStyle();
-  const motif = useChromeArtwork();
   const isCover = style === "cover";
   const totalSeconds = Math.round(AUTO_RETURN / 1000);
   const [left, setLeft] = useState(totalSeconds);
@@ -150,29 +149,18 @@ export default function DoneScreen({
           </div>
 
           <div className="anim-fade-up delay-4 mt-[30px] flex flex-col items-center">
-            <div className="flex items-center gap-[18px] border border-[color:var(--color-ink)] px-[24px] py-[16px]">
-              <img
-                src={motif.path}
-                width={38}
-                height={38}
-                alt=""
-                aria-hidden="true"
-                className="h-[38px] w-[38px] object-contain opacity-70 grayscale contrast-125"
-              />
-              <span className="font-mono text-[16px] uppercase tracking-[0.24em] text-silver-dim">
-                {motif.name}
-              </span>
+            <div className="h-[10px] w-[380px] rounded-t-[4px] bg-ink" />
+            <div className="h-[404px] w-[340px] overflow-hidden shadow-[0_28px_54px_-34px_rgba(0,0,0,.7)]">
+              <div className="origin-top-left scale-[.53125]">
+                <MagazineCover
+                  frames={frames}
+                  scent={scent}
+                  quote={quote}
+                  serial={serial}
+                />
+              </div>
             </div>
-            <p className="mt-[20px] font-mono text-[18px] uppercase tracking-[0.3em] text-silver-dim">
-              {serial}
-            </p>
           </div>
-
-          {isCover && (
-            <p className="anim-fade-up delay-5 mt-[44px] font-display text-[40px] italic leading-tight text-ink">
-              “{quote.text}”
-            </p>
-          )}
 
           <p className="anim-fade-up delay-5 mt-[24px] font-display text-[30px] italic text-ink">
             {t.done.closing}

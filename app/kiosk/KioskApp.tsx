@@ -66,6 +66,10 @@ export default function KioskApp() {
 
   const reset = useCallback(() => {
     setFrames([]);
+    setScent(scentById("nocturne"));
+    setSerial("0000-0000");
+    setQuote(QUOTES[0]);
+    setChromeMotif(COVER_MOTIF_ASSETS[0]);
     setPhase("idle");
   }, []);
 
@@ -82,7 +86,7 @@ export default function KioskApp() {
 
   return (
     <LangProvider>
-      <PrintStyleProvider>
+      <PrintStyleProvider resetKey={phase === "idle" ? "idle" : undefined}>
       <ChromeArtworkProvider motif={chromeMotif}>
       <Stage>
         <LangToggle />
