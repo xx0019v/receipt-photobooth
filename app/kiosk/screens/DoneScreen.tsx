@@ -150,8 +150,8 @@ export default function DoneScreen({
 
           <div className="anim-fade-up delay-4 mt-[30px] flex flex-col items-center">
             <div className="h-[10px] w-[380px] rounded-t-[4px] bg-ink" />
-            <div className="h-[404px] w-[340px] overflow-hidden shadow-[0_28px_54px_-34px_rgba(0,0,0,.7)]">
-              <div className="origin-top-left scale-[.53125]">
+            <div className="h-[614px] w-[307px] overflow-hidden shadow-[0_28px_54px_-34px_rgba(0,0,0,.48)]">
+              <div className="origin-top-left scale-[.48]">
                 <MagazineCover
                   frames={frames}
                   scent={scent}

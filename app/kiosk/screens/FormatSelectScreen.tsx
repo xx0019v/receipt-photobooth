@@ -7,7 +7,7 @@ import { usePrintStyle, type PrintStyle } from "@/app/lib/printStyle";
 import { CHROME_ASSETS } from "@/app/lib/chromeAssets";
 
 /**
- * The ritual of choosing HOW the memory is kept — a boarding pass or a cover.
+ * The ritual of choosing HOW the memory is kept — a boarding pass or film.
  * Two large editorial choices with a schematic of each artefact; a quiet
  * confirm; then Continue. No "template" language, no card-UI cheapness.
  */
@@ -138,20 +138,20 @@ function Choice({
       </div>
 
       <span
-        className={`h-[132px] w-px ${active ? "bg-paper/30" : "bg-[color:var(--color-line)]"}`}
+        className="h-[132px] w-px bg-[color:var(--color-line)]"
       />
 
       <div className="relative z-[1] flex-1">
         <div className="flex items-center gap-[16px]">
           <span
-            className={`font-mono text-[18px] tracking-[0.24em] ${active ? "text-paper/60" : "text-silver-dim"}`}
+            className="font-mono text-[18px] tracking-[0.24em] text-silver-dim"
           >
             {index}
           </span>
           {active && (
             <span
               key="sel"
-              className="font-mono text-[14px] uppercase tracking-[0.3em] text-paper/70"
+              className="font-mono text-[14px] uppercase tracking-[0.3em] text-ink"
               style={{ animation: "wordIn 0.4s ease both" }}
             >
               ● {selectedLabel}
@@ -162,13 +162,13 @@ function Choice({
           {name}
         </h3>
         <p
-          className={`mt-[8px] font-display text-[26px] italic leading-tight ${active ? "text-paper/70" : "text-silver-dim"}`}
+          className="mt-[8px] font-display text-[26px] italic leading-tight text-silver-dim"
         >
           {tag}
         </p>
         {jp && (
           <p
-            className={`jp-sub mt-[8px] text-[17px] ${active ? "text-paper/55" : "text-silver-dim"}`}
+            className="jp-sub mt-[8px] text-[17px] text-silver-dim"
           >
             {jp}
           </p>
@@ -201,16 +201,17 @@ function PassGlyph() {
   );
 }
 
-/** Portrait film-cover schematic. */
+/** Vertical photo-film schematic, matching the printed artefact ratio. */
 function CoverGlyph() {
   return (
-    <div className="relative flex h-[164px] w-[116px] flex-col gap-[5px] overflow-hidden border border-current p-[8px]">
-      <img src={CHROME_ASSETS.ribbon.path} width={60} height={66} alt="" aria-hidden="true" className="absolute bottom-[20px] right-[6px] h-[66px] w-[60px] object-contain opacity-45 grayscale mix-blend-multiply" />
+    <div className="relative flex h-[164px] w-[98px] flex-col gap-[4px] overflow-hidden border border-current p-[7px]">
+      <img src={CHROME_ASSETS.ribbon.path} width={32} height={36} alt="" aria-hidden="true" className="absolute bottom-[8px] right-[5px] h-[36px] w-[32px] object-contain opacity-40 grayscale mix-blend-multiply" />
       <span className="mx-auto mb-[2px] h-[4px] w-[64%] bg-current" />
       {[0, 1, 2].map((i) => (
         <span key={i} className="w-full flex-1 bg-current" />
       ))}
-      <span className="mx-auto mt-[3px] h-[4px] w-[80%] bg-current opacity-50" />
+      <span className="mt-[3px] h-[3px] w-[58%] bg-current opacity-60" />
+      <span className="h-[3px] w-[74%] bg-current opacity-35" />
     </div>
   );
 }

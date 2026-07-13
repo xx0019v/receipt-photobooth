@@ -1,17 +1,14 @@
 "use client";
 
 import Portrait from "./Portrait";
-import { editionDate, issueNo, type Scent } from "@/app/lib/edition";
-import { useLang } from "@/app/lib/i18n";
+import { BRAND, editionDate, issueNo, type Scent } from "@/app/lib/edition";
 import type { Quote } from "@/app/lib/quotes";
 import { useChromeArtwork } from "@/app/lib/chromeArtwork";
 
 /**
- * COVER artefact — a 1:1 square art / quote card in the Korean-photobooth
- * register: a quiet soft-grey card, a small three-frame contact strip, and a
- * big editorial quote as the hero. The paper runs a little longer than the
- * square (thin header/footer), but the eye reads a square print. No QR.
- * Strict white / black / grey.
+ * PHOTO FILM artefact — restored from the original vertical film design:
+ * three square captures stacked as a quiet contact column, followed by one
+ * editorial quote and one fixed session motif. Strict monochrome, no QR.
  */
 export default function MagazineCover({
   frames,
@@ -24,57 +21,74 @@ export default function MagazineCover({
   quote: Quote;
   serial: string;
 }) {
-  const { t } = useLang();
   const motif = useChromeArtwork();
 
   return (
-    <div className="paper-tex relative flex h-[760px] w-[640px] flex-col text-ink shadow-[0_30px_80px_-38px_rgba(0,0,0,0.7)]">
-      {/* thin header */}
-      <div className="flex items-center justify-between px-[40px] pt-[26px] font-mono text-[11px] uppercase tracking-[0.3em] text-silver-dim">
-        <span>Parfum Receipt Studio</span>
+    <div className="paper-tex relative flex h-[1280px] w-[640px] flex-col text-ink shadow-[0_30px_80px_-38px_rgba(0,0,0,0.42)]">
+      <div className="flex items-center justify-between border-b border-[color:var(--color-line)] px-[36px] pb-[16px] pt-[28px] font-mono text-[10px] uppercase tracking-[0.32em] text-silver-dim">
         <span>{issueNo()}</span>
+        <span>Photo Film · {scent.code}</span>
+        <span>{editionDate()}</span>
       </div>
 
-      {/* the 1:1 square art card */}
-      <div className="mx-[40px] mt-[18px] flex aspect-square flex-col bg-[#ece9e3] p-[36px]">
-        {/* small contact strip */}
-        <div className="mb-[18px] flex h-[144px] w-full gap-[7px]">
-          {frames.map((f) => (
-            <div key={f} className="relative min-w-0 flex-1 overflow-hidden bg-ink">
-              <Portrait seed={f - 1} print />
-              <span className="absolute bottom-[5px] left-[7px] font-mono text-[9px] tracking-[0.1em] text-paper">
-                {String(f).padStart(2, "0")}
+      <div className="mx-[36px] mt-[18px] flex h-[974px] flex-col items-center gap-[7px]">
+        {[0, 1, 2].map((index) => {
+          const frame = frames[index] ?? frames[frames.length - 1] ?? 1;
+          const timecode = `00:0${index}:0${(frame * 7) % 10}`;
+          return (
+            <div
+              key={index}
+              className="relative aspect-square h-[320px] w-[320px] shrink-0 overflow-hidden bg-ink outline outline-1 outline-offset-[3px] outline-[color:var(--color-line)]"
+            >
+              <Portrait seed={frame - 1} print />
+              <span className="absolute left-[10px] top-[8px] font-mono text-[10px] tracking-[0.18em] text-paper/90">
+                REC ·
+              </span>
+              <span className="absolute right-[10px] top-[8px] font-mono text-[10px] tracking-[0.18em] text-paper/75">
+                {String(frame).padStart(2, "0")}
+              </span>
+              <span className="absolute bottom-[8px] right-[10px] font-mono text-[10px] tracking-[0.16em] text-paper/75">
+                {timecode}
               </span>
             </div>
-          ))}
-        </div>
+          );
+        })}
+      </div>
 
-        {/* One fixed session motif beside the quote; never regenerated here. */}
-        <div className="grid flex-1 grid-cols-[1fr_112px] items-center gap-[24px]">
-          <QuoteBlock quote={quote} />
-          <figure className="flex h-[156px] items-center justify-center border-l border-[color:var(--color-line)] pl-[18px]">
+      <div className="flex flex-1 flex-col px-[40px] pb-[28px] pt-[24px]">
+        <div className="flex items-start justify-between gap-[28px] border-b border-[color:var(--color-line)] pb-[18px]">
+          <div className="min-w-0 flex-1">
+            <p className="font-mono text-[9px] uppercase tracking-[0.34em] text-silver-dim">
+              Editorial statement · {quote.mood}
+            </p>
+            <QuoteBlock quote={quote} />
+          </div>
+          <figure className="flex h-[84px] w-[76px] shrink-0 items-center justify-center border-l border-[color:var(--color-line)] pl-[14px]">
             <img
               src={motif.path}
-              width={92}
-              height={126}
+              width={62}
+              height={72}
               alt=""
               aria-hidden="true"
-              className="h-[126px] w-[92px] object-contain opacity-60 grayscale contrast-125 mix-blend-multiply"
+              className="h-[72px] w-[62px] object-contain opacity-60 grayscale contrast-125 mix-blend-multiply"
             />
           </figure>
         </div>
 
-        {/* quiet caption inside the card */}
-        <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.24em] text-silver-dim">
-          <span>{scent.mood.en} · {scent.name}</span>
-          <span>{editionDate()}</span>
+        <div className="mt-[14px] flex items-start justify-between gap-[24px]">
+          <div>
+            <h1 className="font-display text-[40px] font-semibold leading-[0.9] tracking-[-0.012em]">
+              {BRAND}
+            </h1>
+            <p className="mt-[7px] font-mono text-[9px] uppercase tracking-[0.25em] text-silver-dim">
+              {scent.mood.en} / {scent.name} · {scent.destination.en}
+            </p>
+          </div>
+          <div className="text-right">
+            <Barcode />
+            <p className="mt-[5px] font-mono text-[10px] tracking-[0.24em]">{serial}</p>
+          </div>
         </div>
-      </div>
-
-      {/* thin footer */}
-      <div className="mt-auto flex items-center justify-between px-[40px] pb-[24px] pt-[16px] font-mono text-[10px] uppercase tracking-[0.26em] text-silver-dim">
-        <span>{serial}</span>
-        <span>{t.pass.closing}</span>
       </div>
     </div>
   );
@@ -82,31 +96,33 @@ export default function MagazineCover({
 
 function QuoteBlock({ quote }: { quote: Quote }) {
   const alignment = quote.alignment === "left" ? "text-left" : quote.alignment === "right" ? "text-right" : "text-center";
-  const scale = quote.scale === "large" ? 1.08 : quote.scale === "compact" ? 0.84 : 1;
-  const base = `${alignment} leading-[1.04]`;
-  const content = quote.lineBreak ?? [quote.text];
-  const lines = content.map((line, index) => <span key={index} className="block">{line}</span>);
-  if (quote.variant === "sans-caps") {
-    return (
-      <p className={`${base} font-sans font-semibold uppercase tracking-[0.02em]`} style={{ fontSize: 66 * scale }}>
-        {lines}
-      </p>
-    );
-  }
-  if (quote.variant === "sans") {
-    return (
-      <p className={`${base} font-sans font-semibold tracking-[-0.01em]`} style={{ fontSize: 52 * scale }}>
-        {lines}
-      </p>
-    );
-  }
-  if (quote.variant === "serif-italic") {
-    return (
-      <p className={`${base} font-display italic`} style={{ fontSize: 58 * scale }}>{lines}</p>
-    );
-  }
-  // serif
+  const scale = quote.scale === "large" ? 1.08 : quote.scale === "compact" ? 0.88 : 1;
+  const lines = quote.lineBreak ?? [quote.text];
+  const variant = quote.variant === "sans-caps"
+    ? "font-sans font-semibold uppercase tracking-[0.015em]"
+    : quote.variant === "sans"
+      ? "font-sans font-semibold tracking-[-0.01em]"
+      : quote.variant === "serif-italic"
+        ? "font-display italic"
+        : "font-display";
+
   return (
-    <p className={`${base} font-display leading-[1.02]`} style={{ fontSize: 52 * scale }}>{lines}</p>
+    <p
+      className={`mt-[8px] text-pretty leading-[0.96] ${alignment} ${variant}`}
+      style={{ fontSize: 35 * scale }}
+    >
+      {lines.map((line) => <span key={line} className="block">{line}</span>)}
+    </p>
+  );
+}
+
+function Barcode() {
+  const bars = "41313221423134122143".split("");
+  return (
+    <div className="flex h-[28px] items-stretch justify-end gap-[2px]" aria-hidden="true">
+      {bars.map((width, index) => (
+        <span key={index} className="bg-ink" style={{ width: Number(width) * 1.1 }} />
+      ))}
+    </div>
   );
 }

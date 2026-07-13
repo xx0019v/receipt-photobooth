@@ -44,7 +44,7 @@ export default function ReceiptStrip({
       </header>
 
       {/* Route is the document's visual signature. */}
-      <section className="relative h-[188px] shrink-0 overflow-hidden px-[34px] py-[22px]">
+      <section className="relative h-[213px] shrink-0 overflow-hidden px-[34px] py-[22px]">
         <img
           src={securitySeal.path}
           width={104}
@@ -72,17 +72,17 @@ export default function ReceiptStrip({
         </div>
       </section>
 
-      {/* Equal portrait frames — no captions or text overlays. */}
-      <section className="mx-[34px] flex h-[278px] shrink-0 gap-[6px] border-y border-[color:var(--color-ink)] py-[10px]">
+      {/* Three equal square frames in one horizontal contact row. */}
+      <section className="mx-[34px] flex h-[200px] shrink-0 items-center gap-[6px] border-y border-[color:var(--color-ink)] py-[10px]">
         {frames.slice(0, 3).map((frame) => (
-          <div key={frame} className="min-w-0 flex-1 overflow-hidden bg-ink">
+          <div key={frame} className="aspect-square min-w-0 flex-1 overflow-hidden bg-ink">
             <Portrait seed={frame - 1} print />
           </div>
         ))}
       </section>
 
       {/* Fragrance manifest */}
-      <section className="mx-[34px] grid h-[142px] shrink-0 grid-cols-[1.25fr_.75fr] gap-[24px] border-b border-[color:var(--color-line)] py-[18px]">
+      <section className="mx-[34px] grid h-[167px] shrink-0 grid-cols-[1.25fr_.75fr] gap-[24px] border-b border-[color:var(--color-line)] py-[18px]">
         <div className="border-r border-[color:var(--color-line)] pr-[22px]">
           <p className="font-mono text-[9px] uppercase tracking-[0.24em] text-silver-dim">{t.pass.fragrance} / {t.pass.mood}</p>
           <p className="mt-[8px] font-display text-[26px] leading-[1.05]">
@@ -101,7 +101,7 @@ export default function ReceiptStrip({
       </section>
 
       {/* Boarding information grid */}
-      <section className="mx-[34px] grid h-[105px] shrink-0 grid-cols-3 border-b border-[color:var(--color-ink)] py-[14px]">
+      <section className="mx-[34px] grid h-[123px] shrink-0 grid-cols-3 border-b border-[color:var(--color-ink)] py-[14px]">
         <BoardingCell label={t.pass.passenger} value={t.pass.passengerValue} />
         <BoardingCell label={t.pass.gate} value={t.pass.gateValue} />
         <BoardingCell label={t.pass.seat} value={seat} />
@@ -111,7 +111,7 @@ export default function ReceiptStrip({
       </section>
 
       {/* Detachable vertical-pass stub */}
-      <footer className="relative mt-auto h-[220px] shrink-0 border-t border-dashed border-[color:var(--color-ink)] px-[34px] py-[14px]">
+      <footer className="relative mt-auto h-[230px] shrink-0 border-t border-dashed border-[color:var(--color-ink)] px-[34px] py-[14px]">
         <span className="absolute -left-[9px] -top-[10px] h-[18px] w-[18px] rounded-full bg-[color:var(--color-paper)]" />
         <span className="absolute -right-[9px] -top-[10px] h-[18px] w-[18px] rounded-full bg-[color:var(--color-paper)]" />
         <div className="flex h-full items-stretch gap-[24px]">

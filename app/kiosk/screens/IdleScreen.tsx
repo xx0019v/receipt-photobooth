@@ -111,7 +111,7 @@ export default function IdleScreen({ onStart }: { onStart: () => void }) {
         ))}
         <span />
       </div>
-      <div className="idle-ritual__blackout" aria-hidden="true" />
+      <div className="idle-ritual__wash" aria-hidden="true" />
     </main>
   );
 }

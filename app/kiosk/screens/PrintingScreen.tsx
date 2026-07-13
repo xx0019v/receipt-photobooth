@@ -8,7 +8,7 @@ import { type Quote } from "@/app/lib/quotes";
 import { useLang } from "@/app/lib/i18n";
 import { usePrintStyle } from "@/app/lib/printStyle";
 
-const COVER_DURATION = 3400;
+const COVER_DURATION = 3900;
 const PASS_DURATION = 4100;
 
 // Stepper-motor feed curve: progress (0-1) -> eject fraction (0-1).
@@ -70,7 +70,7 @@ export default function PrintingScreen({
   const duration = isCover ? COVER_DURATION : PASS_DURATION;
   const slitW = isCover ? 680 : 660;
   const winW = isCover ? 640 : 620;
-  const winH = isCover ? 800 : 1080;
+  const winH = isCover ? 1280 : 1080;
 
   useEffect(() => {
     if (!printStarted) return;
@@ -104,14 +104,22 @@ export default function PrintingScreen({
       ? ["Your print", "at a glance."]
       : done
         ? ["Your print", "is ready."]
-        : ["Printing your", "cover"]
+        : ["Printing your", "photo film"]
     : !printStarted
       ? t.review.title
       : done
         ? t.done.title
         : t.print.title;
   const kicker = !printStarted ? t.review.step : t.print.step;
-  const subLine = !printStarted ? sub?.review.subTail : done ? sub?.done.body : sub?.print.title;
+  const subLine = isCover && !printStarted
+    ? sub ? "印刷前にフォトフィルムを確認してください" : undefined
+    : !printStarted
+      ? sub?.review.subTail
+      : done
+        ? sub?.done.body
+        : isCover && sub
+          ? "フォトフィルムを印刷しています"
+          : sub?.print.title;
 
   return (
     <div className="flex h-full flex-col">
@@ -195,10 +203,10 @@ export default function PrintingScreen({
             >
               <span className="flex flex-col items-center gap-[4px]">
                 <span className="font-mono text-[20px] uppercase tracking-[0.3em]">
-                  {isCover ? "Print my cover" : t.review.print}
+                  {isCover ? "Print my film" : t.review.print}
                 </span>
                 {sub && (
-                  <span className="jp-sub text-[15px] text-paper/55">{isCover ? "COVERを発券" : sub.review.print}</span>
+                  <span className="jp-sub text-[15px] text-paper/55">{isCover ? "FILMを発券" : sub.review.print}</span>
                 )}
               </span>
             </button>
@@ -207,7 +215,7 @@ export default function PrintingScreen({
           <>
             <div className="flex items-center justify-between font-mono text-[18px] uppercase tracking-[0.3em] text-silver-dim">
               <span>
-                {scent.mood.en} · {t.print.progress}
+                {scent.mood.en} · {isCover ? "printing photo film" : t.print.progress}
               </span>
               <span>{Math.round(pct * 100)}%</span>
             </div>
