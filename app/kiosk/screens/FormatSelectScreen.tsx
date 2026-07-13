@@ -45,30 +45,35 @@ export default function FormatSelectScreen({
         )}
       </div>
 
-      <div className="flex flex-1 flex-col justify-center gap-[26px] px-[80px] py-[36px]">
-        <Choice
+      {/* the spread — two facing pages, the chosen one steps forward */}
+      <div className="anim-fade-up delay-2 relative flex flex-1 items-stretch px-[80px] py-[24px]">
+        <Page
           id="pass"
+          side="left"
           active={style === "pass"}
-          index="A"
+          index="I"
           name={t.format.passName}
           tag={t.format.passTag}
           jp={sub?.format.passTag}
           selectedLabel={t.format.selected}
           onPick={() => setStyle("pass")}
           glyph={<PassGlyph />}
-          delay="delay-2"
         />
-        <Choice
+        <span
+          aria-hidden="true"
+          className="relative z-[1] my-[10px] w-px shrink-0 bg-[color:var(--color-line)]"
+        />
+        <Page
           id="cover"
+          side="right"
           active={style === "cover"}
-          index="B"
+          index="II"
           name={t.format.coverName}
           tag={t.format.coverTag}
           jp={sub?.format.coverTag}
           selectedLabel={t.format.selected}
           onPick={() => setStyle("cover")}
           glyph={<CoverGlyph />}
-          delay="delay-3"
         />
       </div>
 
@@ -99,8 +104,9 @@ export default function FormatSelectScreen({
   );
 }
 
-function Choice({
+function Page({
   id,
+  side,
   active,
   index,
   name,
@@ -109,9 +115,9 @@ function Choice({
   selectedLabel,
   onPick,
   glyph,
-  delay,
 }: {
   id: PrintStyle;
+  side: "left" | "right";
   active: boolean;
   index: string;
   name: string;
@@ -120,59 +126,55 @@ function Choice({
   selectedLabel: string;
   onPick: () => void;
   glyph: React.ReactNode;
-  delay: string;
 }) {
+  const recede = side === "left" ? "-translate-x-[14px]" : "translate-x-[14px]";
+
   return (
     <button
       onClick={onPick}
-      className={`card anim-fade-up ${delay} relative flex items-center gap-[44px] border border-[color:var(--color-ink)] px-[50px] py-[38px] text-left ${
-        active ? "is-selected" : "bg-paper-bright"
+      className={`card press relative z-[1] flex flex-1 flex-col items-center justify-center gap-[26px] px-[28px] py-[40px] text-center transition-[transform,opacity,filter] duration-[650ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        active
+          ? "scale-100 opacity-100"
+          : `scale-[0.94] opacity-40 grayscale ${recede}`
       }`}
       style={{ cursor: "pointer" }}
       aria-pressed={active}
       data-format={id}
     >
+      <div className="flex items-center gap-[12px] font-mono text-[16px] tracking-[0.3em] text-silver-dim">
+        <span>{index}</span>
+        {active && (
+          <span
+            key="sel"
+            className="text-[13px] uppercase tracking-[0.3em] text-ink"
+            style={{ animation: "wordIn 0.4s ease both" }}
+          >
+            · {selectedLabel}
+          </span>
+        )}
+      </div>
+
       {/* schematic of the artefact */}
-      <div className="flex h-[168px] w-[240px] shrink-0 items-center justify-center">
+      <div
+        className={`flex shrink-0 items-center justify-center transition-transform duration-[650ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          active ? "scale-100" : "scale-[0.88]"
+        }`}
+      >
         {glyph}
       </div>
 
-      <span
-        className="h-[132px] w-px bg-[color:var(--color-line)]"
-      />
-
-      <div className="relative z-[1] flex-1">
-        <div className="flex items-center gap-[16px]">
-          <span
-            className="font-mono text-[18px] tracking-[0.24em] text-silver-dim"
-          >
-            {index}
-          </span>
-          {active && (
-            <span
-              key="sel"
-              className="font-mono text-[14px] uppercase tracking-[0.3em] text-ink"
-              style={{ animation: "wordIn 0.4s ease both" }}
-            >
-              ● {selectedLabel}
-            </span>
-          )}
-        </div>
-        <h3 className="mt-[8px] font-display text-[52px] font-semibold uppercase leading-[0.9] tracking-[-0.01em]">
+      <div>
+        <h3
+          className={`font-display font-semibold uppercase leading-[0.9] tracking-[-0.01em] transition-all duration-500 ${
+            active ? "text-[50px]" : "text-[40px]"
+          }`}
+        >
           {name}
         </h3>
-        <p
-          className="mt-[8px] font-display text-[26px] italic leading-tight text-silver-dim"
-        >
+        <p className="mt-[10px] font-display text-[22px] italic leading-tight text-silver-dim">
           {tag}
         </p>
-        {jp && (
-          <p
-            className="jp-sub mt-[8px] text-[17px] text-silver-dim"
-          >
-            {jp}
-          </p>
-        )}
+        {jp && <p className="jp-sub mt-[8px] text-[15px] text-silver-dim">{jp}</p>}
       </div>
     </button>
   );

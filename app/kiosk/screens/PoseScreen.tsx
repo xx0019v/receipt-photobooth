@@ -53,13 +53,18 @@ export default function PoseScreen({
             <span className="absolute left-1/2 top-1/2 h-px w-[22px] -translate-x-1/2 -translate-y-1/2 bg-paper/60" />
           </div>
 
+          {/* chrome seal reinterpreted as a bled corner watermark — a guide
+              mark, not a boxed icon */}
+          <img
+            src={symbol.path}
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-[70px] -top-[70px] h-[340px] w-[340px] rotate-[8deg] object-contain opacity-[0.07] grayscale mix-blend-overlay"
+          />
+
           <div className="absolute inset-x-[34px] top-[30px] flex items-center justify-between font-mono text-[17px] uppercase tracking-[0.34em] text-paper/80">
             <span>{t.pose.viewfinder}</span>
             <span>{scent.mood.en}</span>
-          </div>
-
-          <div className="absolute right-[28px] top-[92px] flex h-[58px] w-[58px] items-center justify-center border border-paper/25 bg-paper/10 backdrop-blur-[2px]">
-            <img src={symbol.path} width={36} height={36} alt="" aria-hidden="true" className="h-[36px] w-[36px] object-contain opacity-75 grayscale contrast-125" />
           </div>
 
           <div className="absolute inset-x-0 bottom-[42px] flex items-center justify-center gap-[26px] font-mono text-[18px] uppercase tracking-[0.22em] text-paper/85">

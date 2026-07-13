@@ -586,6 +586,13 @@ body {
 }
 .scent-choice.is-selected { background: var(--color-paper-bright); transform: none; }
 
+/* Scent index — the unchosen lines recede into the margin (no colour) */
+.cards-picked .scent-row:not(.is-picked) {
+  opacity: 0.3;
+  transition: opacity 0.6s var(--ease-out-premium);
+}
+.scent-row { transition: opacity 0.6s var(--ease-out-premium); }
+
 /* Boarding pass "prints in" — a top-down reveal */
 @keyframes passReveal {
   from { clip-path: inset(0 0 100% 0); opacity: 0.55; }

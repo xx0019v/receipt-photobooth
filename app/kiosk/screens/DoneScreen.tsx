@@ -128,45 +128,20 @@ export default function DoneScreen({
             {scent.mood.en} — {scent.name} · {scent.code}
           </p>
 
-          <h2 className="anim-fade-up delay-1 mt-[32px] font-display font-semibold leading-[0.86] tracking-[-0.02em]">
-            <span className="block text-[112px]">Your print</span>
-            <span className="block text-[112px] italic">is ready.</span>
+          <h2 className="anim-fade-up delay-1 mt-[24px] font-display font-semibold leading-[0.86] tracking-[-0.02em]">
+            <span className="block text-[88px]">Your print</span>
+            <span className="block text-[88px] italic">is ready.</span>
           </h2>
           {sub && (
-            <p className="jp-sub anim-fade-up delay-1 mt-[20px] text-[24px] text-silver-dim">
+            <p className="jp-sub anim-fade-up delay-1 mt-[14px] text-[19px] text-silver-dim">
               プリントの準備ができました
             </p>
           )}
 
-          <p className="anim-fade-up delay-2 mt-[46px] max-w-[660px] text-[27px] font-light leading-[1.52] text-ink-soft">
-            {t.done.body}
-          </p>
-          {sub && (
-            <p className="jp-sub anim-fade-up delay-2 mt-[14px] text-[20px] text-silver-dim">
-              {sub.done.body}
-            </p>
-          )}
-
-          {/* Quiet collection cue — draws the eye down, toward the printed
-              piece still resting in the slot beneath the screen. Decorative
-              only; the instruction itself lives in t.done.body above. */}
-          <div
-            aria-hidden="true"
-            className="anim-fade-up delay-3 mt-[40px] flex flex-col items-center gap-[10px] text-silver-dim"
-          >
-            <span className="h-[30px] w-px bg-[color:var(--color-line)]" />
-            <svg width="15" height="9" viewBox="0 0 15 9" fill="none">
-              <path
-                d="M1 1L7.5 7.5L14 1"
-                stroke="currentColor"
-                strokeWidth="1.3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-
-          <div className="anim-fade-up delay-4 mt-[30px] flex flex-col items-center">
+          {/* The artefact — same paper, same photos, same serial — is the
+              hero of this screen; it follows the title directly rather than
+              sitting beneath a block of copy. */}
+          <div className="anim-fade-up delay-2 mt-[34px] flex flex-col items-center">
             <div className="h-[10px] w-[380px] rounded-t-[4px] bg-ink" />
             <div className="h-[614px] w-[307px] overflow-hidden shadow-[0_28px_54px_-34px_rgba(0,0,0,.48)]">
               <div className="origin-top-left scale-[.48]">
@@ -180,11 +155,38 @@ export default function DoneScreen({
             </div>
           </div>
 
-          <p className="anim-fade-up delay-5 mt-[24px] font-display text-[30px] italic text-ink">
+          {/* Quiet collection cue — draws the eye down, toward the printed
+              piece still resting in the slot beneath the screen. */}
+          <div
+            aria-hidden="true"
+            className="anim-fade-up delay-3 mt-[26px] flex flex-col items-center gap-[10px] text-silver-dim"
+          >
+            <span className="h-[26px] w-px bg-[color:var(--color-line)]" />
+            <svg width="15" height="9" viewBox="0 0 15 9" fill="none">
+              <path
+                d="M1 1L7.5 7.5L14 1"
+                stroke="currentColor"
+                strokeWidth="1.3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+
+          <p className="anim-fade-up delay-4 mt-[20px] max-w-[620px] text-[20px] font-light leading-[1.5] text-ink-soft">
+            {t.done.body}
+          </p>
+          {sub && (
+            <p className="jp-sub anim-fade-up delay-4 mt-[8px] text-[16px] text-silver-dim">
+              {sub.done.body}
+            </p>
+          )}
+
+          <p className="anim-fade-up delay-5 mt-[18px] font-display text-[26px] italic text-ink">
             {t.done.closing}
           </p>
           {sub && (
-            <p className="jp-sub anim-fade-up delay-5 mt-[10px] text-[19px] text-silver-dim">
+            <p className="jp-sub anim-fade-up delay-5 mt-[8px] text-[17px] text-silver-dim">
               {sub.done.closing}
             </p>
           )}

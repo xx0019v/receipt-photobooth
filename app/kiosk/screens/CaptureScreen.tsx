@@ -4,7 +4,16 @@ import { useEffect, useState } from "react";
 import Portrait from "@/app/components/Portrait";
 import { type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
+import { passSecurityAsset } from "@/app/lib/chromeAssets";
 
+/**
+ * Capture — the quietest page in the magazine. Camera frame, Shot n/3, one
+ * short instruction, the scent's mark held small in the margin. The
+ * countdown does not simply swap numerals: it reads as though the numeral is
+ * printed on the reverse of the paper and is showing through — soft, then
+ * focused, gone. Capture is a single white flash and a one-shot silver
+ * reflection; the strip below settles into a contact sheet, not an app grid.
+ */
 export default function CaptureScreen({
   total,
   scent,
@@ -19,6 +28,7 @@ export default function CaptureScreen({
   const [count, setCount] = useState(3);
   const [flash, setFlash] = useState(false);
   const [frames, setFrames] = useState<number[]>([]);
+  const seal = passSecurityAsset(scent.id);
 
   useEffect(() => {
     let cancelled = false;
@@ -54,29 +64,58 @@ export default function CaptureScreen({
   }, [total, onComplete]);
 
   return (
-    <div className="flex h-full flex-col">
-      {/* status bar */}
+    <div className="relative flex h-full flex-col overflow-hidden">
+      <style>{`
+        @keyframes paperShow {
+          0%   { opacity: 0;    filter: blur(18px); transform: scale(0.92); clip-path: inset(38% 0 38% 0); }
+          38%  { opacity: 0.5;  filter: blur(7px);  transform: scale(0.97); clip-path: inset(14% 0 14% 0); }
+          62%  { opacity: 1;    filter: blur(0);     transform: scale(1);    clip-path: inset(0 0 0 0); }
+          100% { opacity: 1;    filter: blur(0);     transform: scale(1);    clip-path: inset(0 0 0 0); }
+        }
+        @keyframes silverPass {
+          0%   { transform: translateX(-140%) skewX(-14deg); opacity: 0; }
+          40%  { opacity: 0.5; }
+          100% { transform: translateX(140%) skewX(-14deg); opacity: 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .capture-numeral { animation: none !important; opacity: 1 !important; filter: none !important; transform: none !important; clip-path: none !important; }
+          .capture-sweep { animation: none !important; opacity: 0 !important; }
+        }
+      `}</style>
+
+      {/* status bar — quiet: frame count, one instruction, the scent's mark */}
       <div className="flex items-center justify-between px-[80px] pt-[64px]">
         <div className="flex items-center gap-[16px]">
           <span
-            className="h-[16px] w-[16px] rounded-full bg-ink"
+            className="h-[10px] w-[10px] rounded-full bg-ink"
             style={{ animation: "blink 1s step-end infinite" }}
+            aria-hidden="true"
           />
-          <span className="font-mono text-[20px] uppercase tracking-[0.4em]">
-            {t.capture.recording} · {scent.mood.en}
+          <span className="kicker">
+            {t.capture.frameLabel(
+              String(shot + 1).padStart(2, "0"),
+              String(total).padStart(2, "0"),
+            )}
           </span>
           {sub && (
-            <span className="jp-sub text-[16px] text-silver-dim">
-              {sub.capture.recording}
+            <span className="jp-sub text-[15px] text-silver-dim">
+              {sub.capture.frameLabel(
+                String(shot + 1).padStart(2, "0"),
+                String(total).padStart(2, "0"),
+              )}
             </span>
           )}
         </div>
-        <span className="font-mono text-[20px] uppercase tracking-[0.4em] text-silver-dim">
-          {t.capture.frameLabel(
-            String(shot + 1).padStart(2, "0"),
-            String(total).padStart(2, "0"),
-          )}
-        </span>
+
+        <div className="flex items-center gap-[14px]">
+          <span className="kicker">{scent.mood.en}</span>
+          <img
+            src={seal.path}
+            alt=""
+            aria-hidden="true"
+            className="h-[26px] w-[26px] object-contain opacity-40 grayscale"
+          />
+        </div>
       </div>
 
       <div className="rule-hair mx-[80px] mt-[22px]" />
@@ -86,7 +125,7 @@ export default function CaptureScreen({
         <div className="relative h-[1040px] w-[920px] overflow-hidden bg-ink">
           <Portrait seed={shot} className="opacity-95" />
 
-          {/* rule-of-thirds grid */}
+          {/* rule-of-thirds grid — camera, not decoration */}
           <div className="pointer-events-none absolute inset-0">
             <span className="absolute left-1/3 top-0 h-full w-px bg-paper/10" />
             <span className="absolute left-2/3 top-0 h-full w-px bg-paper/10" />
@@ -100,22 +139,17 @@ export default function CaptureScreen({
           <Corner className="bottom-[24px] right-[24px] rotate-180" />
           <Corner className="bottom-[24px] left-[24px] -rotate-90" />
 
-          {/* countdown */}
+          {/* countdown — reads as if printed through the paper */}
           {count > 0 && (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <span
-                key={`ring-${shot}-${count}`}
-                className="absolute h-[440px] w-[440px] rounded-full border border-paper/25"
-                style={{ animation: "countPop 0.95s ease-out both" }}
-              />
-              <span
                 key={`${shot}-${count}`}
-                className="font-display font-semibold text-paper"
+                className="capture-numeral font-display font-semibold text-paper"
                 style={{
-                  fontSize: 400,
+                  fontSize: 440,
                   lineHeight: 1,
-                  animation: "countPop 0.95s ease-out both",
-                  textShadow: "0 20px 80px rgba(0,0,0,0.5)",
+                  animation: "paperShow 0.95s cubic-bezier(0.16,1,0.3,1) both",
+                  mixBlendMode: "screen",
                 }}
               >
                 {count}
@@ -123,53 +157,78 @@ export default function CaptureScreen({
             </div>
           )}
 
+          {/* one short instruction, held after the count settles */}
           {count === 0 && !flash && (
             <div className="pointer-events-none absolute inset-x-0 bottom-[40px] text-center">
               <span className="anim-fade-in flex flex-col items-center gap-[8px]">
-                <span className="font-mono text-[24px] uppercase tracking-[0.5em] text-paper">
+                <span className="font-mono text-[22px] uppercase tracking-[0.5em] text-paper">
                   {t.capture.hold}
                 </span>
                 {sub && (
-                  <span className="jp-sub text-[17px] text-paper/70">
+                  <span className="jp-sub text-[16px] text-paper/70">
                     {sub.capture.hold}
                   </span>
                 )}
               </span>
             </div>
           )}
+
+          {/* one-shot silver reflection at the capture instant */}
+          {flash && (
+            <div
+              className="capture-sweep pointer-events-none absolute inset-0 z-[65]"
+              style={{
+                background:
+                  "linear-gradient(100deg, transparent 40%, rgba(255,255,255,0.65) 50%, transparent 60%)",
+                animation: "silverPass 0.6s ease-out both",
+              }}
+              aria-hidden="true"
+            />
+          )}
         </div>
       </div>
 
-      {/* thumbnails */}
+      {/* contact sheet — quiet strip, not a card grid */}
       <div className="px-[80px] pb-[80px] pt-[40px]">
-        <div className="grid grid-cols-3 gap-[24px]">
+        <div className="flex items-center justify-between border-b border-[color:var(--color-ink)] pb-[10px] font-mono text-[12px] uppercase tracking-[0.32em] text-silver-dim">
+          <span>Contact</span>
+          <span>{scent.code}</span>
+        </div>
+        <div className="grid grid-cols-3 gap-x-[24px]">
           {Array.from({ length: total }).map((_, i) => {
             const done = frames.includes(i + 1);
             return (
-              <div
-                key={i}
-                className="relative aspect-[3/4] overflow-hidden border border-[color:var(--color-ink)]"
-              >
-                {done ? (
-                  <Portrait seed={i} />
-                ) : (
-                  <div className="flex h-full items-center justify-center bg-paper-bright">
-                    <span className="font-display text-[80px] italic text-silver">
-                      {i + 1}
-                    </span>
-                  </div>
-                )}
+              <div key={i} className="border-r border-[color:var(--color-line)] pr-[24px] last:border-r-0">
+                <div
+                  className={`relative mt-[16px] aspect-[3/4] overflow-hidden bg-paper-bright ${
+                    done ? "anim-quiet-confirm" : ""
+                  }`}
+                >
+                  {done ? (
+                    <Portrait seed={i} />
+                  ) : (
+                    <div className="flex h-full items-center justify-center">
+                      <span className="font-display text-[64px] italic text-silver/50">
+                        {i + 1}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <span className="mt-[8px] block font-mono text-[11px] tracking-[0.24em] text-silver-dim">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* flash overlay */}
+      {/* flash */}
       {flash && (
         <div
           className="pointer-events-none absolute inset-0 z-[70] bg-white"
           style={{ animation: "flash 0.5s ease-out both" }}
+          aria-hidden="true"
         />
       )}
     </div>

@@ -32,6 +32,14 @@ function smoothstep(t: number) {
   return t * t * (3 - 2 * t);
 }
 
+// Quiet cadence label — mirrors the physical feed (no numeric readout, no
+// progress-bar percentage; just the ritual's three phases).
+function feedStage(p: number) {
+  if (p < 0.2) return "Quiet start";
+  if (p < 0.86) return "Steady feed";
+  return "Slow stop";
+}
+
 function mechanicalFeed(progress: number) {
   const p = Math.min(1, Math.max(0, progress));
   for (let i = 0; i < FEED_STOPS.length - 1; i++) {
@@ -128,6 +136,21 @@ export default function PrintingScreen({
 
   return (
     <div className="flex h-full flex-col">
+      {/* Scoped, reduced-motion-aware micro paper tremor — a hair of
+          mechanical judder while the artefact is actively feeding. Kept
+          local to this screen; globals.css is not touched. */}
+      <style>{`
+        @keyframes printingTremor {
+          0%, 100% { transform: translateX(0); }
+          22% { transform: translateX(-.5px); }
+          48% { transform: translateX(.4px); }
+          75% { transform: translateX(-.3px); }
+        }
+        .print-tremor { animation: printingTremor .16s steps(2) infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .print-tremor { animation: none; }
+        }
+      `}</style>
       <div className="px-[80px] pt-[64px]">
         <p className="kicker">{kicker}</p>
         <h2 className="mt-[16px] font-display text-[82px] font-semibold leading-[0.9] tracking-[-0.02em]">
@@ -147,7 +170,13 @@ export default function PrintingScreen({
 
         <div className="relative overflow-hidden rounded-[2px] border border-[color:var(--color-line)] bg-paper-bright" style={{ width: winW, height: winH }}>
           <div
-            className={done ? "anim-quiet-confirm" : !printStarted ? "anim-fade-up" : undefined}
+            className={
+              done
+                ? "anim-quiet-confirm"
+                : !printStarted
+                  ? "anim-fade-up"
+                  : "print-tremor"
+            }
             style={{
               clipPath:
                 printStarted
@@ -237,10 +266,13 @@ export default function PrintingScreen({
               <span>
                 {scent.mood.en} · {isCover ? "printing photo film" : t.print.progress}
               </span>
-              <span>{Math.round(pct * 100)}%</span>
+              <span className="text-ink-soft">{feedStage(pct)}</span>
             </div>
-            <div className="mt-[16px] h-[3px] w-full bg-[color:var(--color-line)]">
-              <div className="h-full bg-ink" style={{ width: `${pct * 100}%` }} />
+            <div className="mt-[16px] h-px w-full bg-[color:var(--color-line-soft)]">
+              <div
+                className="h-full bg-[color:var(--color-line)]"
+                style={{ width: `${pct * 100}%`, transition: "width 80ms linear" }}
+              />
             </div>
           </>
         ) : (

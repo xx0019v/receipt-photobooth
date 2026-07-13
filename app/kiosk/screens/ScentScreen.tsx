@@ -6,6 +6,12 @@ import { SCENTS, type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
 import { passSecurityAsset } from "@/app/lib/chromeAssets";
 
+/**
+ * Scent — an editorial index (a magazine contents page), not four equal cards.
+ * Big serif names down a ruled column; the chosen line gains weight, air and a
+ * quiet chrome seal that surfaces once. Selection is shown by type / space /
+ * reflection — never by colour.
+ */
 export default function ScentScreen({
   onSelect,
 }: {
@@ -15,94 +21,109 @@ export default function ScentScreen({
   const [picked, setPicked] = useState<string | null>(null);
   const selectionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => () => {
-    if (selectionTimer.current) clearTimeout(selectionTimer.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (selectionTimer.current) clearTimeout(selectionTimer.current);
+    },
+    [],
+  );
 
   const choose = (s: Scent) => {
     if (picked) return;
     setPicked(s.id);
-    selectionTimer.current = setTimeout(() => onSelect(s), 420);
+    selectionTimer.current = setTimeout(() => onSelect(s), 520);
   };
 
   return (
     <div className="flex h-full flex-col">
       <Masthead />
 
-      <div className="px-[80px] pt-[60px]">
+      <div className="px-[80px] pt-[56px]">
         <p className="kicker anim-fade-up">{t.scent.step}</p>
-        <h2 className="anim-fade-up delay-1 mt-[22px] font-display text-[92px] font-semibold leading-[0.86] tracking-[-0.025em]">
+        <h2 className="anim-fade-up delay-1 mt-[20px] font-display text-[88px] font-semibold leading-[0.86] tracking-[-0.025em]">
           {t.scent.title[0]}
           <br />
           <span className="italic">{t.scent.title[1]}</span>
         </h2>
-        <p className="anim-fade-up delay-2 mt-[22px] max-w-[850px] text-[23px] leading-[1.5] text-silver-dim">
-          {t.scent.sub}
-          {sub && <span className="jp-sub mt-[9px] block text-[17px]">{sub.scent.sub}</span>}
-        </p>
+        {sub && (
+          <p className="jp-sub anim-fade-up delay-2 mt-[16px] text-[20px] text-silver-dim">
+            {sub.scent.sub}
+          </p>
+        )}
       </div>
 
+      {/* the index */}
       <div
-        className={`flex flex-1 flex-col justify-center gap-[18px] px-[80px] py-[36px] ${
+        className={`flex flex-1 flex-col justify-center px-[80px] py-[30px] ${
           picked ? "cards-picked" : ""
         }`}
       >
-        {SCENTS.map((s, i) => {
+        <div className="flex items-center justify-between border-b border-[color:var(--color-ink)] pb-[12px] font-mono text-[13px] uppercase tracking-[0.32em] text-silver-dim">
+          <span>The Wardrobe</span>
+          <span>{t.scent.destination}</span>
+        </div>
+
+        {SCENTS.map((s) => {
           const isSel = picked === s.id;
-          const symbol = passSecurityAsset(s.id);
+          const seal = passSecurityAsset(s.id);
           return (
             <button
               key={s.id}
               onClick={() => choose(s)}
-              className={`scent-choice card anim-fade-up delay-${i + 2} relative grid min-h-[154px] grid-cols-[112px_1fr_250px] items-center gap-[30px] border border-[color:var(--color-ink)] px-[38px] py-[26px] text-left ${
-                isSel ? "is-selected" : "bg-paper-bright"
+              aria-pressed={isSel}
+              className={`scent-row group relative grid w-full grid-cols-[104px_1fr_300px] items-center gap-[28px] overflow-hidden border-b border-[color:var(--color-line)] text-left transition-[padding] duration-500 ${
+                isSel ? "is-picked py-[40px]" : "py-[30px]"
               }`}
               style={{ cursor: "pointer" }}
-              aria-pressed={isSel}
             >
-              <div className="relative flex flex-col items-center justify-center gap-[8px]">
-                <img
-                  src={symbol.path}
-                  width={56}
-                  height={56}
-                  alt=""
-                  aria-hidden="true"
-                  className={`h-[62px] w-[62px] object-contain opacity-75 grayscale contrast-125 ${
-                    isSel ? "motion-sheen" : ""
+              {/* seal — surfaces only on the chosen line, cropped as a watermark */}
+              <img
+                src={seal.path}
+                alt=""
+                aria-hidden="true"
+                className={`pointer-events-none absolute -right-[30px] top-1/2 h-[260px] w-[260px] -translate-y-1/2 object-contain grayscale transition-opacity duration-700 ${
+                  isSel ? "opacity-[0.07]" : "opacity-0"
+                }`}
+              />
+
+              {/* index */}
+              <span className="relative z-[1] font-mono text-[22px] tracking-[0.1em] text-silver-dim">
+                {s.index}
+              </span>
+
+              {/* name + notes */}
+              <div className="relative z-[1] min-w-0">
+                <h3
+                  className={`font-display font-semibold uppercase leading-[0.9] tracking-[-0.02em] transition-all duration-500 ${
+                    isSel ? "text-[76px]" : "text-[60px]"
                   }`}
-                />
-                <span className="font-mono text-[8px] uppercase tracking-[0.16em] text-silver-dim">
-                  {t.scent.securityMark} {s.index}
-                </span>
-              </div>
-              <div className="relative z-[1] flex-1">
-                <div className="flex items-baseline justify-between gap-[12px]">
-                  <h3 className="font-display text-[44px] font-semibold uppercase leading-[0.92] tracking-[-0.015em]">
-                    {s.name}
-                  </h3>
-                  <span className="font-mono text-[16px] uppercase tracking-[0.24em] text-silver-dim">
-                    {s.code}
+                >
+                  {s.name}
+                </h3>
+                <p className="mt-[10px] font-mono text-[12px] uppercase tracking-[0.2em] text-silver-dim">
+                  {s.code} &nbsp;·&nbsp; {s.notes.map((n) => n.en).join(" · ")}
+                  <span className="ml-[14px] font-display text-[16px] italic normal-case tracking-normal text-ink">
+                    {s.mood.en}
                   </span>
-                </div>
-                <p className="mt-[11px] font-mono text-[12px] uppercase tracking-[0.18em] text-silver-dim">
-                  {s.notes.map((n) => n.en).join("  ·  ")}
-                </p>
-                <p className="mt-[7px] font-display text-[20px] italic leading-none">
-                  {s.mood.en}{sub ? ` / ${s.mood.jp}` : ""}
                 </p>
               </div>
-              <div className="relative z-[1] flex min-h-[92px] flex-col justify-center border-l border-[color:var(--color-line)] pl-[28px]">
-                <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-silver-dim">
-                  {t.scent.destination}
-                </span>
-                <span className="mt-[7px] font-display text-[32px] font-semibold uppercase leading-[.9] tracking-[-.02em]">
-                  {s.destination.en}
-                </span>
-                {sub && <span className="jp-sub mt-[6px] text-[12px] text-silver-dim">{s.destination.jp}</span>}
+
+              {/* destination */}
+              <div className="relative z-[1] flex items-center justify-end gap-[22px] text-right">
+                <div>
+                  <p className="font-display text-[30px] font-semibold uppercase leading-[0.9] tracking-[-0.02em]">
+                    {s.destination.en}
+                  </p>
+                  {sub && (
+                    <p className="jp-sub mt-[5px] text-[12px] text-silver-dim">
+                      {s.destination.jp}
+                    </p>
+                  )}
+                </div>
                 <span
                   key={isSel ? "sel" : "arrow"}
-                  className="absolute bottom-[2px] right-0 font-display text-[24px] leading-none"
-                  style={isSel ? { animation: "wordIn 0.35s ease both" } : undefined}
+                  className="w-[26px] shrink-0 font-display text-[26px] leading-none text-silver-dim"
+                  style={isSel ? { animation: "wordIn 0.4s ease both" } : undefined}
                 >
                   {isSel ? "✓" : "→"}
                 </span>
