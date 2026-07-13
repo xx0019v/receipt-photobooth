@@ -8,6 +8,7 @@ import { type Scent } from "@/app/lib/edition";
 import { type FilmArtifactProps } from "@/app/lib/film";
 import { useLang } from "@/app/lib/i18n";
 import { usePrintStyle } from "@/app/lib/printStyle";
+import { CHROME_ASSETS } from "@/app/lib/chromeAssets";
 
 const AUTO_RETURN = 12_000;
 
@@ -53,6 +54,14 @@ export default function DoneScreen({
         className="absolute inset-0 h-full w-full text-left"
         style={{ cursor: "pointer" }}
       >
+        {/* afterglow — a single silver mark dissolved into the upper field,
+            the quietest use of the motif in the whole flow */}
+        <img
+          src={CHROME_ASSETS.orbit.path}
+          alt=""
+          aria-hidden="true"
+          className="anim-ambient pointer-events-none absolute left-1/2 top-[300px] h-[360px] w-[360px] -translate-x-1/2 object-contain opacity-[0.04] grayscale"
+        />
         <div className="flex h-full flex-col">
           <Masthead />
           <div className="flex flex-1 flex-col items-center px-[80px] pt-[66px] text-center">
@@ -120,6 +129,14 @@ export default function DoneScreen({
       className="absolute inset-0 h-full w-full text-left"
       style={{ cursor: "pointer" }}
     >
+      {/* afterglow — a lone silver mark drifted into the right margin, a
+          different placement and asset from the pass so the pages don't echo */}
+      <img
+        src={CHROME_ASSETS.moons.path}
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute right-[70px] top-[260px] h-[220px] w-[220px] object-contain opacity-[0.05] grayscale"
+      />
       <div className="flex h-full flex-col">
         <Masthead />
 
@@ -129,12 +146,12 @@ export default function DoneScreen({
           </p>
 
           <h2 className="anim-fade-up delay-1 mt-[24px] font-display font-semibold leading-[0.86] tracking-[-0.02em]">
-            <span className="block text-[88px]">Your print</span>
+            <span className="block text-[88px]">Your film</span>
             <span className="block text-[88px] italic">is ready.</span>
           </h2>
           {sub && (
             <p className="jp-sub anim-fade-up delay-1 mt-[14px] text-[19px] text-silver-dim">
-              プリントの準備ができました
+              フィルムの準備ができました
             </p>
           )}
 

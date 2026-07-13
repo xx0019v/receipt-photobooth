@@ -1,7 +1,6 @@
 "use client";
 
 import Portrait from "./Portrait";
-import { BRAND } from "@/app/lib/edition";
 import {
   getQuoteLayoutVariant,
   type FilmArtifactProps,
@@ -9,9 +8,15 @@ import {
 import type { Quote } from "@/app/lib/quotes";
 
 /**
- * PHOTO FILM artefact — restored from the original vertical film design:
- * three square captures stacked as a quiet contact column, followed by one
- * editorial quote and one fixed session motif. Strict monochrome, no QR.
+ * FILM — SCENT · PHOTO. A collectible gallery print rebuilt in React/CSS/SVG
+ * from the reference art direction (never pasted as an image): a Didone
+ * masthead, three square captures stacked slightly left of centre, a single
+ * editorial quote set vertically down the right margin, one cropped chrome
+ * motif, a metadata rule, an editorial statement, and a barcode. Strict
+ * monochrome, thermal-safe, no QR.
+ *
+ * Fixed artefact size 640×1280 so Format / Review / Printing / Done can scale
+ * one identical piece.
  */
 export default function MagazineCover({
   frames,
@@ -25,114 +30,189 @@ export default function MagazineCover({
   issueDate,
   edition,
 }: FilmArtifactProps) {
-  const quoteLayout = getQuoteLayoutVariant(selectedQuote);
+  const layout = getQuoteLayoutVariant(selectedQuote);
+  const isLong = layout === "long";
+  const editionRun = deriveRun(serial);
+  const year = romanYear(issueDate);
 
   return (
     <div
-      className="paper-tex relative flex h-[1280px] w-[640px] flex-col text-ink shadow-[0_30px_80px_-38px_rgba(0,0,0,0.42)]"
+      className="paper-tex relative flex h-[1280px] w-[640px] flex-col overflow-hidden text-ink"
       data-scent-notes={scentNotes.join(" | ")}
+      data-quote-layout={layout}
     >
-      <div className="flex items-center justify-between border-b border-[color:var(--color-line)] px-[36px] pb-[16px] pt-[28px] font-mono text-[10px] uppercase tracking-[0.32em] text-silver-dim">
-        <span>{edition}</span>
-        <span>Photo Film · {selectedScent.code}</span>
-        <span>{issueDate}</span>
-      </div>
+      {/* ---- Masthead --------------------------------------------------- */}
+      <header className="pt-[62px] text-center">
+        <h1 className="font-display text-[74px] font-normal uppercase leading-[0.9] tracking-[0.16em]">
+          FILM
+        </h1>
+        <p className="mt-[17px] font-mono text-[13px] uppercase tracking-[0.52em] text-silver-dim">
+          Scent · Photo
+        </p>
+      </header>
 
-      <div className="mx-[36px] mt-[18px] flex h-[974px] flex-col items-center gap-[7px]">
-        {[0, 1, 2].map((index) => {
-          const frame = frames[index] ?? frames[frames.length - 1] ?? 1;
-          const timecode = `00:0${index}:0${(frame * 7) % 10}`;
-          return (
-            <div
-              key={index}
-              className="relative aspect-square h-[320px] w-[320px] shrink-0 overflow-hidden bg-ink outline outline-1 outline-offset-[3px] outline-[color:var(--color-line)]"
-            >
-              <Portrait seed={frame - 1} print />
-              <span className="absolute left-[10px] top-[8px] font-mono text-[10px] tracking-[0.18em] text-paper/90">
-                REC ·
-              </span>
-              <span className="absolute right-[10px] top-[8px] font-mono text-[10px] tracking-[0.18em] text-paper/75">
-                {String(frame).padStart(2, "0")}
-              </span>
-              <span className="absolute bottom-[8px] right-[10px] font-mono text-[10px] tracking-[0.16em] text-paper/75">
-                {timecode}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+      {/* ---- Body : photo column (left) + quote / motif (right) --------- */}
+      <div className="relative mt-[46px] flex flex-1 items-start px-[46px]">
+        <div className="flex flex-col gap-[14px]">
+          {[0, 1, 2].map((index) => {
+            const frame = frames[index] ?? frames[frames.length - 1] ?? index + 1;
+            return (
+              <div
+                key={index}
+                className="relative h-[288px] w-[288px] shrink-0 overflow-hidden bg-ink"
+              >
+                <Portrait seed={frame - 1} print />
+                <span className="pointer-events-none absolute inset-0 border border-[color:var(--color-line)]" />
+              </div>
+            );
+          })}
+        </div>
 
-      <div className="flex flex-1 flex-col px-[40px] pb-[28px] pt-[24px]">
-        <div
-          className="flex items-start justify-between gap-[28px] border-b border-[color:var(--color-line)] pb-[18px]"
-          data-quote-layout={quoteLayout}
-        >
-          <div className="min-w-0 flex-1">
-            <p className="font-mono text-[9px] uppercase tracking-[0.34em] text-silver-dim">
-              Editorial statement · {selectedQuote.mood}
-            </p>
-            <QuoteBlock quote={selectedQuote} />
-          </div>
-          <figure className="flex h-[84px] w-[76px] shrink-0 items-center justify-center border-l border-[color:var(--color-line)] pl-[14px]">
+        {/* right margin — the editorial breathing room */}
+        <div className="relative flex-1 self-stretch">
+          {/* the same motif, blown up and barely-there — a secondary echo that
+              gives the margin depth without competing with the primary orb or
+              the photographs */}
+          <img
+            src={selectedChromeMotif.path}
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-[140px] top-[210px] h-[420px] w-[420px] object-contain opacity-[0.038] grayscale"
+          />
+
+          {/* cropped chrome motif — an orb read through a circular window,
+              not a pasted SVG icon */}
+          <figure
+            aria-hidden="true"
+            className="absolute right-0 top-[8px] h-[82px] w-[82px] overflow-hidden rounded-full shadow-[inset_0_2px_6px_rgba(0,0,0,0.28),inset_0_-4px_10px_rgba(0,0,0,0.14)]"
+          >
             <img
               src={selectedChromeMotif.path}
-              width={62}
-              height={72}
               alt=""
-              aria-hidden="true"
-              className="h-[72px] w-[62px] object-contain opacity-60 grayscale contrast-125 mix-blend-multiply"
+              className="absolute left-1/2 top-1/2 h-[150%] w-[150%] -translate-x-1/2 -translate-y-1/2 object-cover grayscale contrast-[1.2] brightness-[1.02]"
             />
+            <span className="absolute left-[22%] top-[16%] h-[22px] w-[22px] rounded-full bg-white/55 blur-[3px]" />
           </figure>
-        </div>
 
-        <div className="mt-[14px] flex items-start justify-between gap-[24px]">
-          <div>
-            <h1 className="font-display text-[40px] font-semibold leading-[0.9] tracking-[-0.012em]">
-              {BRAND}
-            </h1>
-            <p className="mt-[7px] font-mono text-[9px] uppercase tracking-[0.25em] text-silver-dim">
-              {scentMood} / {selectedScent.name} · {scentDestination}
-            </p>
-          </div>
-          <div className="text-right">
-            <Barcode />
-            <p className="mt-[5px] font-mono text-[10px] tracking-[0.24em]">{serial}</p>
-          </div>
+          {/* vertical editorial quote — reads bottom-to-top, down the margin */}
+          {!isLong && (
+            <div className="absolute inset-x-0 bottom-0 top-[112px] flex items-center justify-center">
+              <span
+                className="whitespace-nowrap font-display uppercase leading-none tracking-[0.06em] text-ink"
+                style={{
+                  transform: "rotate(-90deg)",
+                  fontSize: layout === "short" ? 60 : 40,
+                }}
+              >
+                {selectedQuote.text.replace(/\.$/, "")}
+                <span className="text-silver-dim">.</span>
+              </span>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* ---- Footer : notes · metadata · statement · barcode ------------ */}
+      <footer className="px-[46px] pb-[46px]">
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-silver-dim">
+          {scentMood} · {scentNotes.join(" · ")}
+        </p>
+
+        <div className="mt-[16px] h-px w-full bg-[color:var(--color-line)]" />
+
+        <dl className="mt-[16px] grid grid-cols-4 gap-x-[16px]">
+          <Meta label="Issue" value={edition || "—"} />
+          <Meta label="Edition" value={editionRun} />
+          <Meta label="Serial" value={serial} />
+          <Meta label="Scent" value={selectedScent.name} />
+        </dl>
+
+        <p className="mt-[26px] text-center font-mono text-[11px] uppercase tracking-[0.36em] text-ink-soft">
+          {isLong
+            ? selectedQuote.text
+            : "Captured by Film, remembered by Scent."}
+        </p>
+
+        <div className="mt-[22px] flex items-end justify-between">
+          <span className="font-display text-[22px] uppercase tracking-[0.14em]">
+            FILM
+          </span>
+          <Barcode />
+          <span className="font-mono text-[13px] tracking-[0.24em] text-silver-dim">
+            {year}
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }
 
-function QuoteBlock({ quote }: { quote: Quote }) {
-  const alignment = quote.alignment === "left" ? "text-left" : quote.alignment === "right" ? "text-right" : "text-center";
-  const scale = quote.scale === "large" ? 1.08 : quote.scale === "compact" ? 0.88 : 1;
-  const lines = quote.lineBreak ?? [quote.text];
-  const variant = quote.variant === "sans-caps"
-    ? "font-sans font-semibold uppercase tracking-[0.015em]"
-    : quote.variant === "sans"
-      ? "font-sans font-semibold tracking-[-0.01em]"
-      : quote.variant === "serif-italic"
-        ? "font-display italic"
-        : "font-display";
-
+function Meta({ label, value }: { label: string; value: string }) {
   return (
-    <p
-      className={`mt-[8px] text-pretty leading-[0.96] ${alignment} ${variant}`}
-      style={{ fontSize: 35 * scale }}
-    >
-      {lines.map((line) => <span key={line} className="block">{line}</span>)}
-    </p>
+    <div className="min-w-0">
+      <dt className="font-mono text-[9px] uppercase tracking-[0.32em] text-silver-dim">
+        {label}
+      </dt>
+      <dd className="mt-[5px] truncate font-mono text-[13px] uppercase tracking-[0.08em] text-ink">
+        {value}
+      </dd>
+    </div>
   );
 }
 
 function Barcode() {
-  const bars = "41313221423134122143".split("");
+  const bars = "413132214231341221433142".split("");
   return (
-    <div className="flex h-[28px] items-stretch justify-end gap-[2px]" aria-hidden="true">
+    <div
+      className="flex h-[34px] items-stretch justify-center gap-[2px]"
+      aria-hidden="true"
+    >
       {bars.map((width, index) => (
-        <span key={index} className="bg-ink" style={{ width: Number(width) * 1.1 }} />
+        <span
+          key={index}
+          className="bg-ink"
+          style={{ width: Number(width) * 1.15 }}
+        />
       ))}
     </div>
   );
+}
+
+/** A collectible print-run number, deterministic from the fixed serial. */
+function deriveRun(serial: string): string {
+  const digits = serial.replace(/\D/gu, "");
+  if (!digits) return "01 / 100";
+  const run = (parseInt(digits.slice(-4), 10) % 100) + 1;
+  return `${String(run).padStart(2, "0")} / 100`;
+}
+
+/** Roman-numeral year lifted from the fixed issue date, e.g. MMXXVI. */
+function romanYear(issueDate: string): string {
+  const match = issueDate.match(/(\d{4})/u);
+  const year = match ? parseInt(match[1], 10) : 0;
+  if (!year) return "";
+  const map: [number, string][] = [
+    [1000, "M"],
+    [900, "CM"],
+    [500, "D"],
+    [400, "CD"],
+    [100, "C"],
+    [90, "XC"],
+    [50, "L"],
+    [40, "XL"],
+    [10, "X"],
+    [9, "IX"],
+    [5, "V"],
+    [4, "IV"],
+    [1, "I"],
+  ];
+  let n = year;
+  let out = "";
+  for (const [value, symbol] of map) {
+    while (n >= value) {
+      out += symbol;
+      n -= value;
+    }
+  }
+  return out;
 }

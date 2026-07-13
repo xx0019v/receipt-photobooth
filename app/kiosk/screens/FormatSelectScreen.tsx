@@ -31,6 +31,13 @@ export default function FormatSelectScreen({
       <Masthead />
 
       <div className="px-[80px] pt-[58px]">
+        {/* chapter emblem — a single silver mark, quiet, sizing the section */}
+        <img
+          src={CHROME_ASSETS.stars.path}
+          alt=""
+          aria-hidden="true"
+          className="anim-fade-up mb-[20px] h-[30px] w-[30px] object-contain opacity-40 grayscale"
+        />
         <p className="kicker anim-fade-up">{t.format.step}</p>
         <h2 className="anim-fade-up delay-1 mt-[20px] font-display text-[92px] font-semibold leading-[0.86] tracking-[-0.025em]">
           {t.format.title[0]}
@@ -203,17 +210,41 @@ function PassGlyph() {
   );
 }
 
-/** Vertical photo-film schematic, matching the printed artefact ratio. */
+/** Miniature of the FILM artefact — masthead, three squares slightly left, a
+ *  vertical quote and cropped motif in the right margin, metadata + barcode.
+ *  A faithful schematic (no photo mounts) so the preview stays Pi-light. */
 function CoverGlyph() {
   return (
-    <div className="relative flex h-[164px] w-[98px] flex-col gap-[4px] overflow-hidden border border-current p-[7px]">
-      <img src={CHROME_ASSETS.ribbon.path} width={32} height={36} alt="" aria-hidden="true" className="absolute bottom-[8px] right-[5px] h-[36px] w-[32px] object-contain opacity-40 grayscale mix-blend-multiply" />
-      <span className="mx-auto mb-[2px] h-[4px] w-[64%] bg-current" />
-      {[0, 1, 2].map((i) => (
-        <span key={i} className="w-full flex-1 bg-current" />
-      ))}
-      <span className="mt-[3px] h-[3px] w-[58%] bg-current opacity-60" />
-      <span className="h-[3px] w-[74%] bg-current opacity-35" />
+    <div className="relative flex h-[176px] w-[110px] flex-col overflow-hidden border border-current px-[9px] pb-[8px] pt-[7px]">
+      {/* masthead */}
+      <span className="mx-auto h-[6px] w-[46%] bg-current" />
+      <span className="mx-auto mt-[3px] h-[2px] w-[30%] bg-current opacity-40" />
+
+      {/* photos (left) + quote / motif (right) */}
+      <div className="mt-[8px] flex flex-1 items-start gap-[7px]">
+        <div className="flex flex-col gap-[4px]">
+          {[0, 1, 2].map((i) => (
+            <span key={i} className="h-[26px] w-[26px] bg-current" />
+          ))}
+        </div>
+        <div className="relative flex-1 self-stretch">
+          <span className="absolute right-0 top-0 h-[12px] w-[12px] rounded-full border border-current opacity-70" />
+          <span className="absolute bottom-[6px] left-1/2 h-[52px] w-[3px] -translate-x-1/2 bg-current opacity-80" />
+        </div>
+      </div>
+
+      {/* footer rule + metadata + barcode */}
+      <span className="mt-[6px] h-px w-full bg-current opacity-30" />
+      <div className="mt-[5px] flex gap-[4px]">
+        {[0, 1, 2, 3].map((i) => (
+          <span key={i} className="h-[3px] flex-1 bg-current opacity-45" />
+        ))}
+      </div>
+      <div className="mt-[6px] flex h-[9px] items-stretch justify-center gap-[1.5px]">
+        {[3, 1, 2, 1, 3, 2, 1, 2].map((w, i) => (
+          <span key={i} className="bg-current" style={{ width: w }} />
+        ))}
+      </div>
     </div>
   );
 }

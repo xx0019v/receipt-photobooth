@@ -7,6 +7,7 @@ import { type Scent } from "@/app/lib/edition";
 import { type FilmArtifactProps } from "@/app/lib/film";
 import { useLang } from "@/app/lib/i18n";
 import { usePrintStyle } from "@/app/lib/printStyle";
+import { CHROME_ASSETS } from "@/app/lib/chromeAssets";
 
 const COVER_DURATION = 3900;
 const PASS_DURATION = 4100;
@@ -114,10 +115,10 @@ export default function PrintingScreen({
   const ease = mechanicalFeed(pct);
   const title = isCover
     ? !printStarted
-      ? ["Your print", "at a glance."]
+      ? ["Your film", "at a glance."]
       : done
-        ? ["Your print", "is ready."]
-        : ["Printing your", "photo film"]
+        ? ["Your film", "is ready."]
+        : ["Printing your", "film"]
     : !printStarted
       ? t.review.title
       : done
@@ -152,7 +153,16 @@ export default function PrintingScreen({
         }
       `}</style>
       <div className="px-[80px] pt-[64px]">
-        <p className="kicker">{kicker}</p>
+        <div className="flex items-center gap-[14px]">
+          {/* proof mark — a small silver sign accompanying the step label */}
+          <img
+            src={CHROME_ASSETS.moons.path}
+            alt=""
+            aria-hidden="true"
+            className="h-[18px] w-[18px] object-contain opacity-45 grayscale"
+          />
+          <p className="kicker">{kicker}</p>
+        </div>
         <h2 className="mt-[16px] font-display text-[82px] font-semibold leading-[0.9] tracking-[-0.02em]">
           <span className="block">{title[0]}</span>
           <span className="mt-[6px] block italic">{title[1]}</span>
@@ -264,7 +274,7 @@ export default function PrintingScreen({
           <>
             <div className="flex items-center justify-between font-mono text-[18px] uppercase tracking-[0.3em] text-silver-dim">
               <span>
-                {scent.mood.en} · {isCover ? "printing photo film" : t.print.progress}
+                {scent.mood.en} · {isCover ? "printing film" : t.print.progress}
               </span>
               <span className="text-ink-soft">{feedStage(pct)}</span>
             </div>

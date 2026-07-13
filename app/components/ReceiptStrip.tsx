@@ -4,7 +4,7 @@ import Portrait from "./Portrait";
 import Qr from "./Qr";
 import { BRAND, DOMAIN, editionDate, editionTime, type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
-import { passSecurityAsset } from "@/app/lib/chromeAssets";
+import { passSecurityAsset, CHROME_ASSETS } from "@/app/lib/chromeAssets";
 
 export const PASS_WIDTH = 620;
 export const PASS_HEIGHT = 1760;
@@ -55,13 +55,30 @@ export default function ReceiptStrip({
       {/* The portraits are the only vertical composition on the pass. */}
       <section className="mx-[34px] h-[1120px] shrink-0 border-b border-[color:var(--color-ink)]">
         <div className="flex h-[38px] items-center justify-between border-b border-[color:var(--color-line)] font-mono text-[8px] uppercase tracking-[0.22em] text-silver-dim">
-          <span>Portrait manifest · 03 frames</span>
+          <span className="flex items-center gap-[7px]">
+            {/* quiet manifest registration mark — a different silver than the
+                verified seal below, kept tiny so it reads as an editorial sign */}
+            <img
+              src={CHROME_ASSETS.orbit.path}
+              alt=""
+              aria-hidden="true"
+              className="h-[13px] w-[13px] object-contain opacity-45 grayscale"
+            />
+            Portrait manifest · 03 frames
+          </span>
           <span>PRS / TYO · Sequence A</span>
         </div>
         <div className="flex h-[1081px] flex-col items-center justify-center gap-[9px]">
           {portraitFrames.map((frame, index) => (
             <figure key={`${frame}-${index}`} className="relative aspect-square h-[352px] w-[352px] shrink-0 overflow-hidden bg-ink">
-              <Portrait seed={frame - 1} print />
+              {/* The final frame is nudged a hair toward centre so the column
+                  settles; the other two are untouched. */}
+              <div
+                className="absolute inset-0"
+                style={index === 2 ? { transform: "translateX(-3px) scale(1.045)", transformOrigin: "center" } : undefined}
+              >
+                <Portrait seed={frame - 1} print />
+              </div>
               <figcaption className="absolute bottom-[8px] left-[9px] bg-black/70 px-[6px] py-[3px] font-mono text-[7px] uppercase tracking-[0.18em] text-white">
                 Frame {String(index + 1).padStart(2, "0")}
               </figcaption>
