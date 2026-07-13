@@ -32,8 +32,17 @@ lsusb
 
 sudo cp ../deploy/99-escpos.rules /etc/udev/rules.d/
 sudo udevadm control --reload && sudo udevadm trigger
+sudo usermod -aG lp chuo   # usblp (/dev/usb/lp0) へのアクセス権
 sudo cp ../deploy/booth-backend.service /etc/systemd/system/
 sudo systemctl enable --now booth-backend
+```
+
+手動起動する場合（QR の着地先 = Pi の LAN IP を必ず指定）:
+
+```bash
+CAMERA_DRIVER=picamera2 PRINTER_DRIVER=escpos PRINTER_CUT=0 \
+QR_BASE_URL=http://192.168.3.5:8000/p \
+.venv/bin/uvicorn booth.main:app --host 0.0.0.0 --port 8000
 ```
 
 ## 環境変数
@@ -44,20 +53,24 @@ sudo systemctl enable --now booth-backend
 | `CAMERA_DRIVER` | `mock` | `mock` / `picamera2` |
 | `PRINTER_DRIVER` | `mock` | `mock` / `escpos` |
 | `PRINTER_WIDTH_DOTS` | `384` | 58mm=384 / 80mm=576 |
-| `PRINTER_USB_VENDOR` / `PRINTER_USB_PRODUCT` | `0x0416` / `0x5011` | `lsusb` の ID |
-| `PRINTER_CUT` | `1` | オートカッターの有無 |
+| `PRINTER_DEVICE` | `/dev/usb/lp0` | usblp デバイスノード（推奨経路）。空にすると pyusb 直叩き |
+| `PRINTER_USB_VENDOR` / `PRINTER_USB_PRODUCT` | `0x28e9` / `0x0289` | pyusb フォールバック用（`lsusb` の ID） |
+| `PRINTER_CUT` | `1` | オートカッターの有無（GD micro-printer は `0`） |
 | `BOOTH_DATA_DIR` | `data` | フレーム・レシート・連番の保存先 |
-| `QR_BASE_URL` | `https://the-receipt.studio/p` | レシート QR の先頭 URL（空で QR 無効） |
+| `QR_BASE_URL` | `https://the-receipt.studio/p` | QR の着地 URL。**実運用では `http://<Pi の LAN IP>:8000/p` を指定**（配布ページに到達させる。空で QR 無効） |
 
 ## 構成
 
 ```
 booth/
   config.py    環境変数 → Settings
-  camera.py    CameraDriver: MockCamera / Picamera2Camera（3:4 縦クロップ）
-  printer.py   PrinterDriver: MockPrinter(PNG出力) / EscposPrinter(USB, バンド印字)
-  receipt.py   ReceiptRenderer: UI の ReceiptStrip を 1bit 画像で再現（F-S ディザ）
-  sessions.py  serial 採番（YYYY-NNNN 永続連番）+ フレーム保存 + TTL
-  jobs.py      印刷ジョブキュー（直列 / queued→rendering→printing→done|error）
-  main.py      FastAPI: health / preview.mjpg / sessions / capture / print
+  camera.py    CameraDriver: MockCamera / Picamera2Camera（3:4 縦クロップ、init リトライ）
+  printer.py   PrinterDriver: MockPrinter(PNG出力) / EscposPrinter(usblp File / pyusb, バンド印字)
+  receipt.py   ReceiptRenderer: PASS(横型→90°回転) / COVER(引用カード) の 2 スタイル（F-S ディザ）
+  sessions.py  serial 採番（YYYY-NNNN 永続連番）+ フレーム保存 + TTL + serial→dir 解決
+  jobs.py      印刷ジョブキュー（直列 / queued→rendering→printing→done|error, style/meta 対応）
+  main.py      FastAPI: health / preview.mjpg / sessions / capture / print /
+               qr/{serial}.png / 配布ページ p/{serial}
 ```
+
+API 契約の全体は [`docs/backend-requirements.md`](../docs/backend-requirements.md) §4 を参照。
