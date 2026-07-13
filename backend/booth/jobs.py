@@ -9,7 +9,7 @@ import uuid
 from dataclasses import dataclass, field
 
 from .printer import PrinterDriver
-from .receipt import ReceiptRenderer
+from .receipt import KNOWN_STYLES, ReceiptRenderer
 from .sessions import Session
 
 log = logging.getLogger("booth.jobs")
@@ -46,15 +46,25 @@ class PrintQueue:
         self.renderer = renderer
         self.printer = printer
         self._jobs: dict[str, PrintJob] = {}
+        self._by_session: dict[str, PrintJob] = {}
+        self._submit_lock = threading.Lock()
         self._q: queue.Queue[PrintJob] = queue.Queue()
         self._worker = threading.Thread(target=self._run, daemon=True)
         self._worker.start()
 
     def submit(self, session: Session, style: str = "pass", meta: dict | None = None) -> PrintJob:
-        job = PrintJob(
-            id=uuid.uuid4().hex[:12], session=session, style=style, meta=meta or {}
-        )
-        self._jobs[job.id] = job
+        """Idempotent per session: a repeat POST (double tap, client retry)
+        returns the session's existing job instead of printing twice. Only a
+        failed job frees the session for another attempt."""
+        with self._submit_lock:
+            existing = self._by_session.get(session.id)
+            if existing is not None and existing.snapshot()["state"] != "error":
+                return existing
+            job = PrintJob(
+                id=uuid.uuid4().hex[:12], session=session, style=style, meta=meta or {}
+            )
+            self._jobs[job.id] = job
+            self._by_session[session.id] = job
         self._q.put(job)
         return job
 
@@ -77,8 +87,13 @@ class PrintQueue:
                 self.printer.print_image(
                     image, on_progress=lambda p: job.update(progress=p)
                 )
-                job.update(state="done", progress=1.0)
-                log.info("printed serial=%s job=%s", job.session.serial, job.id)
+                note = (
+                    ""
+                    if job.style in KNOWN_STYLES
+                    else f"style '{job.style}' has no dedicated layout yet — printed with the default one"
+                )
+                job.update(state="done", progress=1.0, message=note)
+                log.info("printed serial=%s job=%s style=%s", job.session.serial, job.id, job.style)
             except Exception as exc:  # printer unplugged, out of paper, ...
                 log.exception("print job failed job=%s", job.id)
                 job.update(state="error", message=str(exc))

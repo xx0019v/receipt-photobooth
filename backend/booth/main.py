@@ -20,7 +20,7 @@ from fastapi.responses import (
     Response,
     StreamingResponse,
 )
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from .camera import make_camera
 from .config import settings_from_env
@@ -116,11 +116,15 @@ def frame(frame_id: str) -> FileResponse:
 class PrintRequest(BaseModel):
     """Print payload from the kiosk: which artefact + its copy.
 
-    `scent` / `quote` mirror the UI objects (app/lib/edition.ts, quotes.ts);
-    the renderer falls back to defaults for anything missing.
+    Deliberately loose — the frontend owns the artefact design and its
+    vocabulary. `style` is a free string (unknown values print with the
+    default layout rather than erroring), and any extra fields (`motif`,
+    future additions) are passed through to the renderer untouched.
     """
 
-    style: str = "pass"  # "pass" | "cover"
+    model_config = ConfigDict(extra="allow")
+
+    style: str = "pass"
     scent: dict | None = None
     quote: dict | None = None
 
@@ -133,11 +137,9 @@ def print_session(sid: str, req: PrintRequest | None = None) -> dict:
     if not session.frames:
         raise HTTPException(409, "session has no captured frames")
     req = req or PrintRequest()
-    if req.style not in ("pass", "cover"):
-        raise HTTPException(422, f"unknown print style: {req.style}")
-    job = print_queue.submit(
-        session, style=req.style, meta={"scent": req.scent, "quote": req.quote}
-    )
+    meta = {"scent": req.scent, "quote": req.quote, **(req.model_extra or {})}
+    # Idempotent per session: a duplicate POST returns the same job.
+    job = print_queue.submit(session, style=req.style, meta=meta)
     return {"job_id": job.id}
 
 

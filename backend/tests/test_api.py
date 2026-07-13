@@ -86,11 +86,41 @@ def test_share_page_and_qr(client):
     assert client.get("/p/../etc").status_code == 404
 
 
-def test_unknown_style_rejected(client):
+def _wait_done(client, job_id, timeout=30):
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        state = client.get(f"/api/print-jobs/{job_id}").json()
+        if state["state"] in ("done", "error"):
+            return state
+        time.sleep(0.2)
+    raise AssertionError("print job did not finish")
+
+
+def test_unknown_style_falls_back_to_default_layout(client):
+    """The frontend owns the style vocabulary: a style this side doesn't know
+    yet must still print (default layout), not 4xx."""
     sid = client.post("/api/sessions").json()["session_id"]
     client.post(f"/api/sessions/{sid}/capture")
-    res = client.post(f"/api/sessions/{sid}/print", json={"style": "poster"})
-    assert res.status_code == 422
+    res = client.post(
+        f"/api/sessions/{sid}/print",
+        json={"style": "film", "motif": {"id": "grain-01"}},
+    )
+    assert res.status_code == 202
+    state = _wait_done(client, res.json()["job_id"])
+    assert state["state"] == "done"
+    assert "default" in state["message"]
+
+
+def test_duplicate_print_is_idempotent(client):
+    sid = client.post("/api/sessions").json()["session_id"]
+    client.post(f"/api/sessions/{sid}/capture")
+    first = client.post(f"/api/sessions/{sid}/print", json={"style": "pass"})
+    second = client.post(f"/api/sessions/{sid}/print", json={"style": "pass"})
+    assert first.json()["job_id"] == second.json()["job_id"]
+    # ...even after the job has finished: one session, one print.
+    _wait_done(client, first.json()["job_id"])
+    third = client.post(f"/api/sessions/{sid}/print", json={"style": "pass"})
+    assert third.json()["job_id"] == first.json()["job_id"]
 
 
 def test_unknown_session_404(client):

@@ -29,6 +29,11 @@ from .config import Settings
 
 BRAND = "THE RECEIPT"
 
+# Styles with a dedicated layout. Anything else falls back to the default
+# layout instead of erroring: the frontend owns the design vocabulary and may
+# introduce new styles before this side learns to render them.
+KNOWN_STYLES = ("pass", "cover")
+
 # Copy shared with the kiosk UI (app/lib/i18n.ts — English voice).
 AIRLINE = "SCENT MEMORY AIRWAYS"
 PASS_TITLE = "SCENT BOARDING PASS"
@@ -317,6 +322,6 @@ class ReceiptRenderer:
         now = now or datetime.now()
         if style == "cover":
             img = self._render_cover(frames, serial, scent, quote, now)
-        else:
+        else:  # "pass" and any yet-unknown style
             img = self._render_pass(frames, serial, scent, now)
         return img.convert("1")  # global Floyd-Steinberg pass

@@ -54,7 +54,7 @@ Base: `http://127.0.0.1:8000`（UI から）/ `http://<Pi の LAN IP>:8000`（�
 | POST | `/api/sessions` | セッション開始。`{session_id, serial}`（serial はバックエンド採番 `YYYY-NNNN` 永続連番） |
 | POST | `/api/sessions/{id}/capture` | 静止画 1 枚撮影。`{frame_id: "{serial}-{n}", url}` |
 | GET | `/api/frames/{serial}-{n}.jpg` | 撮影フレーム取得（UI 表示・配布ページ共用） |
-| POST | `/api/sessions/{id}/print` | 印刷ジョブ投入。body `{style: "pass"\|"cover", scent: {...}, quote: {...}}`（UI の選択内容。省略時デフォルト）→ `{job_id}` |
+| POST | `/api/sessions/{id}/print` | 印刷ジョブ投入 → `{job_id}`。body `{style, scent, quote, ...}` は**疎結合**: `style` は自由文字列（未知スタイルは既定レイアウトで印字 + message で通知）、`motif` 等の追加フィールドはそのまま renderer へ透過。**同一セッションへの再 POST は冪等**（既存 job_id を返し二重印字しない。error 時のみ再試行可） |
 | GET | `/api/print-jobs/{job_id}` | `{state: queued\|rendering\|printing\|done\|error, progress, message}` |
 | GET | `/api/qr/{serial}.png` | 実 QR 画像（DONE 画面表示用。遷移先は下記配布ページ） |
 | GET | `/p/{serial}` | **写真配布ページ**（写真 + レシート画像の閲覧・保存。QR の着地先） |
@@ -75,7 +75,9 @@ Base: `http://127.0.0.1:8000`（UI から）/ `http://<Pi の LAN IP>:8000`（�
 - どちらも中央 3:4 縦クロップ。プレビューは lores の Y プレーン（グレースケール — モノクロ UI と整合）
 - 初期化は 4 回リトライ（プロセス再起動時のカメラ解放待ち競合対策）
 
-### 5.2 レシート合成（2 スタイル）
+### 5.2 レシート合成（2 スタイル・暫定リファレンス実装）
+
+> **紙面デザインの所有権はフロントエンド側にある。** 以下のレイアウトは現行 UI（`ReceiptStrip` / `MagazineCover`）に合わせた**暫定のリファレンス実装**であり、固定仕様ではない。UI/紙面デザインの変更が確定した段階で、payload（style / scent / quote / motif / serial / 写真）を入力とする renderer をフロント側とすり合わせて差し替える前提。バックエンドが保証するのは API 契約（§4）とレンダリング〜印字パイプラインであり、寸法・配置・見た目ではない。
 - **PASS**（`ReceiptStrip` 対応）: 横型ボーディングパス 1000×636 を横組みでレンダリング → **90° 回転して 384dot 幅へ縮小**（≒48×75mm）。写真 3 連 / NOW ✈ 行き先 / フレグランスノート / スタブ（GATE・SEAT・FLIGHT・バーコード・実 QR）
 - **COVER**（`MagazineCover` 対応）: 引用カード 640×780 を縦のまま 384dot へ。グレー地はディザで網点化。quote は 4 タイポバリアント（serif / serif-italic / sans / sans-caps）+ 自動折返し
 - 文字サイズは画面デザインより意図的に大きく（感熱 203dpi で最小 ~1.5mm を確保）
