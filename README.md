@@ -48,9 +48,9 @@ Chromium を kiosk モードで起動し、`npm run build && npm run start` し�
 - [x] リポジトリ初期化
 - [x] モニター UI/UX デザイン（全7フェーズ実装・静的ビルド確認済み）
 - [x] バックエンド実装（FastAPI + カメラ/プリンタードライバー、モックで E2E 確認済み）
-- [x] カメラ連携（UI をバックエンド API に接続。実機 Picamera2 検証は未）
-- [x] サーマルプリンター連携（レシート合成・ESC/POS 印字実装。実機検証は未）
-- [ ] Raspberry Pi 実機検証（Picamera2 / USB プリンター / Chromium kiosk）
+- [x] カメラ連携（Pi 5 + Camera Module 3 実機で検証済み。capture 157ms）
+- [x] サーマルプリンター連携（GD micro-printer 実機でレシート印字成功。2026-07-13）
+- [ ] Pi でのキオスク起動（Node インストール → next build → Chromium kiosk + systemd 常駐化）
 
 ### 実装メモ
 
