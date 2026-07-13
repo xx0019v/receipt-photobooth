@@ -42,17 +42,17 @@ export default function MagazineCover({
       data-quote-layout={layout}
     >
       {/* ---- Masthead --------------------------------------------------- */}
-      <header className="pt-[62px] text-center">
+      <header className="pt-[44px] text-center">
         <h1 className="font-display text-[74px] font-normal uppercase leading-[0.9] tracking-[0.16em]">
           FILM
         </h1>
-        <p className="mt-[17px] font-mono text-[13px] uppercase tracking-[0.52em] text-silver-dim">
+        <p className="mt-[16px] font-mono text-[13px] uppercase tracking-[0.52em] text-silver-dim">
           Scent · Photo
         </p>
       </header>
 
       {/* ---- Body : photo column (left) + quote / motif (right) --------- */}
-      <div className="relative mt-[46px] flex flex-1 items-start px-[46px]">
+      <div className="relative mt-[30px] flex flex-1 items-start px-[46px]">
         <div className="flex flex-col gap-[14px]">
           {[0, 1, 2].map((index) => {
             const frame = frames[index] ?? frames[frames.length - 1] ?? index + 1;
@@ -70,14 +70,11 @@ export default function MagazineCover({
 
         {/* right margin — the editorial breathing room */}
         <div className="relative flex-1 self-stretch">
-          {/* the same motif, blown up and barely-there — a secondary echo that
-              gives the margin depth without competing with the primary orb or
-              the photographs */}
-          <img
-            src={selectedChromeMotif.path}
-            alt=""
+          {/* a thin registration line gives the margin depth — non-figurative,
+              so the session motif is drawn exactly once (the orb below) */}
+          <span
             aria-hidden="true"
-            className="pointer-events-none absolute -right-[140px] top-[210px] h-[420px] w-[420px] object-contain opacity-[0.038] grayscale"
+            className="absolute right-[6px] top-[120px] bottom-[8px] w-px bg-[color:var(--color-line-soft)]"
           />
 
           {/* cropped chrome motif — an orb read through a circular window,
@@ -113,32 +110,34 @@ export default function MagazineCover({
       </div>
 
       {/* ---- Footer : notes · metadata · statement · barcode ------------ */}
-      <footer className="px-[46px] pb-[46px]">
+      <footer className="px-[46px] pb-[38px]">
         <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-silver-dim">
           {scentMood} · {scentNotes.join(" · ")}
         </p>
 
-        <div className="mt-[16px] h-px w-full bg-[color:var(--color-line)]" />
+        <div className="mt-[14px] h-px w-full bg-[color:var(--color-line)]" />
 
-        <dl className="mt-[16px] grid grid-cols-4 gap-x-[16px]">
-          <Meta label="Issue" value={edition || "—"} />
+        <dl className="mt-[12px] grid grid-cols-4 gap-x-[14px]">
+          <Meta label="Issued" value={issueDate || "—"} />
           <Meta label="Edition" value={editionRun} />
           <Meta label="Serial" value={serial} />
           <Meta label="Scent" value={selectedScent.name} />
         </dl>
 
-        <p className="mt-[26px] text-center font-mono text-[11px] uppercase tracking-[0.36em] text-ink-soft">
+        <p className="mt-[16px] text-center font-mono text-[11px] uppercase tracking-[0.34em] text-ink-soft">
           {isLong
             ? selectedQuote.text
             : "Captured by Film, remembered by Scent."}
         </p>
 
-        <div className="mt-[22px] flex items-end justify-between">
+        <div className="mt-[14px] flex items-end justify-between">
           <span className="font-display text-[22px] uppercase tracking-[0.14em]">
             FILM
           </span>
           <Barcode />
-          <span className="font-mono text-[13px] tracking-[0.24em] text-silver-dim">
+          <span className="text-right font-mono text-[10px] leading-[1.5] tracking-[0.2em] text-silver-dim">
+            {edition || "—"}
+            <br />
             {year}
           </span>
         </div>

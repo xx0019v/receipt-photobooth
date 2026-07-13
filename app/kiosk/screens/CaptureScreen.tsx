@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Portrait from "@/app/components/Portrait";
 import { type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
-import { passSecurityAsset } from "@/app/lib/chromeAssets";
+import { useChromeArtwork } from "@/app/lib/chromeArtwork";
 
 /**
  * Capture — the quietest page in the magazine. Camera frame, Shot n/3, one
@@ -28,7 +28,7 @@ export default function CaptureScreen({
   const [count, setCount] = useState(3);
   const [flash, setFlash] = useState(false);
   const [frames, setFrames] = useState<number[]>([]);
-  const seal = passSecurityAsset(scent.id);
+  const seal = useChromeArtwork();
 
   useEffect(() => {
     let cancelled = false;

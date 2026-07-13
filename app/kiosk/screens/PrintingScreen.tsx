@@ -7,10 +7,10 @@ import { type Scent } from "@/app/lib/edition";
 import { type FilmArtifactProps } from "@/app/lib/film";
 import { useLang } from "@/app/lib/i18n";
 import { usePrintStyle } from "@/app/lib/printStyle";
-import { CHROME_ASSETS } from "@/app/lib/chromeAssets";
 
 const COVER_DURATION = 3900;
 const PASS_DURATION = 4100;
+const REDUCED_MOTION_DURATION = 120;
 
 // Stepper-motor feed curve: progress (0-1) -> eject fraction (0-1).
 // Mirrors the `receiptOut` keyframe in globals.css — brief catches (holds)
@@ -78,13 +78,26 @@ export default function PrintingScreen({
   const [pct, setPct] = useState(0);
   const [done, setDone] = useState(false);
   const [printStarted, setPrintStarted] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
 
   const isCover = style === "cover";
-  const duration = isCover ? COVER_DURATION : PASS_DURATION;
+  const duration = reducedMotion
+    ? REDUCED_MOTION_DURATION
+    : isCover
+      ? COVER_DURATION
+      : PASS_DURATION;
   const slitW = isCover ? 680 : 540;
   const winW = isCover ? 640 : 500;
   const winH = isCover ? 1280 : 1290;
   const artefactScale = isCover ? 1 : 0.73;
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => setReducedMotion(media.matches);
+    updatePreference();
+    media.addEventListener("change", updatePreference);
+    return () => media.removeEventListener("change", updatePreference);
+  }, []);
 
   useEffect(() => {
     if (!printStarted) return;
@@ -148,21 +161,14 @@ export default function PrintingScreen({
           75% { transform: translateX(-.3px); }
         }
         .print-tremor { animation: printingTremor .16s steps(2) infinite; }
+        .printing-scan { animation: scan 1.1s cubic-bezier(0.4,0,0.2,1) infinite; }
         @media (prefers-reduced-motion: reduce) {
-          .print-tremor { animation: none; }
+          .print-tremor { animation: none !important; }
+          .printing-scan { animation: none !important; opacity: 0; }
         }
       `}</style>
       <div className="px-[80px] pt-[64px]">
-        <div className="flex items-center gap-[14px]">
-          {/* proof mark — a small silver sign accompanying the step label */}
-          <img
-            src={CHROME_ASSETS.moons.path}
-            alt=""
-            aria-hidden="true"
-            className="h-[18px] w-[18px] object-contain opacity-45 grayscale"
-          />
-          <p className="kicker">{kicker}</p>
-        </div>
+        <p className="kicker">{kicker}</p>
         <h2 className="mt-[16px] font-display text-[82px] font-semibold leading-[0.9] tracking-[-0.02em]">
           <span className="block">{title[0]}</span>
           <span className="mt-[6px] block italic">{title[1]}</span>
@@ -226,10 +232,7 @@ export default function PrintingScreen({
 
           {printStarted && !done && (
             <>
-              <div
-                className="pointer-events-none absolute inset-x-0 top-0 h-px bg-ink/35"
-                style={{ animation: "scan 1.1s cubic-bezier(0.4,0,0.2,1) infinite" }}
-              />
+              <div className="printing-scan pointer-events-none absolute inset-x-0 top-0 h-px bg-ink/35" />
               <div className="print-noise pointer-events-none absolute inset-0 opacity-[0.035] mix-blend-multiply" />
             </>
           )}

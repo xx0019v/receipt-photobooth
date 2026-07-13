@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import Masthead from "@/app/components/Masthead";
 import { useLang } from "@/app/lib/i18n";
 import { usePrintStyle, type PrintStyle } from "@/app/lib/printStyle";
-import { CHROME_ASSETS } from "@/app/lib/chromeAssets";
+import { useChromeArtwork } from "@/app/lib/chromeArtwork";
 
 /**
  * The ritual of choosing HOW the memory is kept — a boarding pass or film.
@@ -18,6 +18,7 @@ export default function FormatSelectScreen({
 }) {
   const { t, sub } = useLang();
   const { style, setStyle } = usePrintStyle();
+  const motif = useChromeArtwork();
 
   useEffect(() => {
     setStyle("pass");
@@ -31,9 +32,9 @@ export default function FormatSelectScreen({
       <Masthead />
 
       <div className="px-[80px] pt-[58px]">
-        {/* chapter emblem — a single silver mark, quiet, sizing the section */}
+        {/* chapter emblem — the session's silver motif, drawn once here */}
         <img
-          src={CHROME_ASSETS.stars.path}
+          src={motif.path}
           alt=""
           aria-hidden="true"
           className="anim-fade-up mb-[20px] h-[30px] w-[30px] object-contain opacity-40 grayscale"
@@ -191,7 +192,8 @@ function Page({
 function PassGlyph() {
   return (
     <div className="relative flex h-[164px] w-[104px] flex-col overflow-hidden border border-current p-[7px]">
-      <img src={CHROME_ASSETS.stars.path} width={34} height={34} alt="" aria-hidden="true" className="absolute right-[4px] top-[4px] h-[34px] w-[34px] object-contain opacity-30 grayscale mix-blend-multiply" />
+      {/* abstract registration mark — schematic, not the real motif */}
+      <span className="absolute right-[6px] top-[6px] h-[12px] w-[12px] rotate-45 border border-current opacity-40" />
       <span className="h-[4px] w-[70%] bg-current" />
       <div className="mx-auto mt-[7px] flex h-[76px] w-[24px] flex-col gap-[2px] border-y border-current py-[3px]">
         {[0, 1, 2].map((i) => (

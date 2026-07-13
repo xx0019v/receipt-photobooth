@@ -4,7 +4,8 @@ import Portrait from "./Portrait";
 import Qr from "./Qr";
 import { BRAND, DOMAIN, editionDate, editionTime, type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
-import { passSecurityAsset, CHROME_ASSETS } from "@/app/lib/chromeAssets";
+import { passSecurityAsset } from "@/app/lib/chromeAssets";
+import { useChromeArtwork } from "@/app/lib/chromeArtwork";
 
 export const PASS_WIDTH = 620;
 export const PASS_HEIGHT = 1760;
@@ -24,6 +25,7 @@ export default function ReceiptStrip({
   time?: string;
 }) {
   const { t, sub } = useLang();
+  const sessionMotif = useChromeArtwork();
   const printedDate = date || editionDate();
   const stamp = time || editionTime();
   const seat = String(frames.length).padStart(2, "0");
@@ -56,10 +58,10 @@ export default function ReceiptStrip({
       <section className="mx-[34px] h-[1120px] shrink-0 border-b border-[color:var(--color-ink)]">
         <div className="flex h-[38px] items-center justify-between border-b border-[color:var(--color-line)] font-mono text-[8px] uppercase tracking-[0.22em] text-silver-dim">
           <span className="flex items-center gap-[7px]">
-            {/* quiet manifest registration mark — a different silver than the
-                verified seal below, kept tiny so it reads as an editorial sign */}
+            {/* the session's silver motif, kept tiny as an editorial manifest
+                mark; the verified security seal below is a separate function */}
             <img
-              src={CHROME_ASSETS.orbit.path}
+              src={sessionMotif.path}
               alt=""
               aria-hidden="true"
               className="h-[13px] w-[13px] object-contain opacity-45 grayscale"

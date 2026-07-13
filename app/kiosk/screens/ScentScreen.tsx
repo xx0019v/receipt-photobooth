@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import Masthead from "@/app/components/Masthead";
 import type { Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
-import { CHROME_ASSETS, type ChromeAsset } from "@/app/lib/chromeAssets";
+import { useChromeArtwork } from "@/app/lib/chromeArtwork";
 
 const REVEAL_DURATION = 1600;
 
@@ -19,15 +19,6 @@ const REVEAL_DURATION = 1600;
  * field washes to white. `prefers-reduced-motion` collapses this to a short
  * fade with no reflection or wash animation.
  */
-
-/** Per-scent identity mark, reinterpreted from the chrome registry. */
-const SCENT_SYMBOL: Record<string, ChromeAsset> = {
-  nocturne: CHROME_ASSETS.stars,
-  clean: CHROME_ASSETS.crescent,
-  warm: CHROME_ASSETS.ribbon,
-  cold: CHROME_ASSETS.moons,
-};
-
 export default function ScentScreen({
   selectedScent,
   onComplete,
@@ -36,7 +27,7 @@ export default function ScentScreen({
   onComplete: () => void;
 }) {
   const { sub } = useLang();
-  const symbol = SCENT_SYMBOL[selectedScent.id] ?? CHROME_ASSETS.stars;
+  const symbol = useChromeArtwork();
 
   useEffect(() => {
     const timer = setTimeout(onComplete, REVEAL_DURATION);

@@ -4,7 +4,7 @@ import Masthead from "@/app/components/Masthead";
 import Portrait from "@/app/components/Portrait";
 import { TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
-import { passSecurityAsset } from "@/app/lib/chromeAssets";
+import { useChromeArtwork } from "@/app/lib/chromeArtwork";
 
 export default function PoseScreen({
   scent,
@@ -14,7 +14,7 @@ export default function PoseScreen({
   onBegin: () => void;
 }) {
   const { t, sub } = useLang();
-  const symbol = passSecurityAsset(scent.id);
+  const symbol = useChromeArtwork();
 
   return (
     <div className="flex h-full flex-col">

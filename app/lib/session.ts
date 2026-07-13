@@ -1,6 +1,18 @@
-import { COVER_MOTIF_ASSETS, type ChromeAsset } from "./chromeAssets";
+import { CHROME_ASSETS, COVER_MOTIF_ASSETS, type ChromeAsset } from "./chromeAssets";
 import { SCENTS, type Scent } from "./edition";
 import { QUOTES, type Quote } from "./quotes";
+
+/**
+ * Each scent owns a small set of silver motifs; one is chosen per session and
+ * then used everywhere (Reveal, Format, Pose, Capture, PASS, FILM, Review,
+ * Printing, Done) so a session never mixes marks.
+ */
+const SCENT_MOTIFS: Record<string, readonly ChromeAsset[]> = {
+  nocturne: [CHROME_ASSETS.stars, CHROME_ASSETS.moons],
+  clean: [CHROME_ASSETS.crescent, CHROME_ASSETS.orbit],
+  warm: [CHROME_ASSETS.ribbon, CHROME_ASSETS.cherries],
+  cold: [CHROME_ASSETS.moons, CHROME_ASSETS.bust],
+};
 
 export type SelectedScentInput = Scent | string | null | undefined;
 
@@ -49,10 +61,12 @@ export function createSessionIdentity(
   selectedScent?: SelectedScentInput,
   random: () => number = Math.random,
 ): SessionIdentity {
+  const scent = resolveInitialScent(selectedScent, random);
+  const motifs = SCENT_MOTIFS[scent.id] ?? COVER_MOTIF_ASSETS;
   return {
-    selectedScent: resolveInitialScent(selectedScent, random),
+    selectedScent: scent,
     selectedQuote: pickOne(QUOTES, random),
-    selectedChromeMotif: pickOne(COVER_MOTIF_ASSETS, random),
+    selectedChromeMotif: pickOne(motifs, random),
   };
 }
 
