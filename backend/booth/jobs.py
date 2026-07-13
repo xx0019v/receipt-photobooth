@@ -19,6 +19,8 @@ log = logging.getLogger("booth.jobs")
 class PrintJob:
     id: str
     session: Session
+    style: str = "pass"  # "pass" | "cover"
+    meta: dict = field(default_factory=dict)  # scent / quote from the UI
     state: str = "queued"  # queued | rendering | printing | done | error
     progress: float = 0.0
     message: str = ""
@@ -48,8 +50,10 @@ class PrintQueue:
         self._worker = threading.Thread(target=self._run, daemon=True)
         self._worker.start()
 
-    def submit(self, session: Session) -> PrintJob:
-        job = PrintJob(id=uuid.uuid4().hex[:12], session=session)
+    def submit(self, session: Session, style: str = "pass", meta: dict | None = None) -> PrintJob:
+        job = PrintJob(
+            id=uuid.uuid4().hex[:12], session=session, style=style, meta=meta or {}
+        )
         self._jobs[job.id] = job
         self._q.put(job)
         return job
@@ -63,7 +67,9 @@ class PrintQueue:
             try:
                 job.update(state="rendering", progress=0.0)
                 frames = [p.read_bytes() for p in job.session.frames]
-                image = self.renderer.render(frames, job.session.serial)
+                image = self.renderer.render(
+                    frames, job.session.serial, style=job.style, meta=job.meta
+                )
                 # Keep a copy of what actually went to paper.
                 image.save(job.session.dir / "receipt.png")
 

@@ -40,7 +40,14 @@ def test_full_session_flow(client):
         assert res.status_code == 200
         assert res.headers["content-type"] == "image/jpeg"
 
-    job = client.post(f"/api/sessions/{sid['session_id']}/print")
+    job = client.post(
+        f"/api/sessions/{sid['session_id']}/print",
+        json={
+            "style": "cover",
+            "scent": {"mood": "Warm", "name": "SLOW BURN"},
+            "quote": {"text": "trust the process.", "variant": "serif-italic"},
+        },
+    )
     assert job.status_code == 202
     job_id = job.json()["job_id"]
 
@@ -58,6 +65,32 @@ def test_full_session_flow(client):
 def test_print_empty_session_rejected(client):
     sid = client.post("/api/sessions").json()["session_id"]
     assert client.post(f"/api/sessions/{sid}/print").status_code == 409
+
+
+def test_share_page_and_qr(client):
+    sid = client.post("/api/sessions").json()
+    for _ in range(2):
+        client.post(f"/api/sessions/{sid['session_id']}/capture")
+    serial = sid["serial"]
+
+    page = client.get(f"/p/{serial}")
+    assert page.status_code == 200
+    assert serial in page.text
+    assert f"/api/frames/{serial}-1.jpg" in page.text
+
+    qr = client.get(f"/api/qr/{serial}.png")
+    assert qr.status_code == 200
+    assert qr.headers["content-type"] == "image/png"
+
+    assert client.get("/p/2099-9999").status_code == 404
+    assert client.get("/p/../etc").status_code == 404
+
+
+def test_unknown_style_rejected(client):
+    sid = client.post("/api/sessions").json()["session_id"]
+    client.post(f"/api/sessions/{sid}/capture")
+    res = client.post(f"/api/sessions/{sid}/print", json={"style": "poster"})
+    assert res.status_code == 422
 
 
 def test_unknown_session_404(client):

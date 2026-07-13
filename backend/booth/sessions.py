@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import re
 import threading
 import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+
+_SERIAL_RE = re.compile(r"^\d{4}-\d{4}$")
 
 from .config import Settings
 
@@ -78,6 +81,15 @@ class SessionStore:
             return None
         path = (self.root / serial / f"frame-{n}.jpg").resolve()
         if not path.is_relative_to(self.root.resolve()) or not path.exists():
+            return None
+        return path
+
+    def serial_dir(self, serial: str) -> Path | None:
+        """Resolve a session directory from a printed serial (share page)."""
+        if not _SERIAL_RE.match(serial):
+            return None
+        path = (self.root / serial).resolve()
+        if not path.is_relative_to(self.root.resolve()) or not path.is_dir():
             return None
         return path
 

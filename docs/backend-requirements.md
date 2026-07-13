@@ -52,7 +52,7 @@ Base: `http://127.0.0.1:8000`
 | POST | `/api/sessions` | セッション開始。`{session_id, serial}` を返す（serial はバックエンドが採番） |
 | POST | `/api/sessions/{id}/capture` | 静止画 1 枚撮影。`{frame_id, url}` を返す（3 回呼ぶ） |
 | GET | `/api/frames/{frame_id}.jpg` | 撮影フレーム取得（REVIEW 画面表示用） |
-| POST | `/api/sessions/{id}/print` | レシート合成 + 印刷ジョブ投入。`{job_id}` |
+| POST | `/api/sessions/{id}/print` | 印刷ジョブ投入。body: `{style: "pass"\|"cover", scent: {...}, quote: {...}}`（UI の選択内容。省略時はデフォルト）。`{job_id}` を返す |
 | GET | `/api/print-jobs/{job_id}` | `{state: queued|rendering|printing|done|error, progress, message}` |
 
 設計方針:

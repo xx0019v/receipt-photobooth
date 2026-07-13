@@ -125,7 +125,16 @@ class Picamera2Camera(CameraDriver):
 
         self.settings = settings
         self._lock = threading.Lock()
-        self.picam = Picamera2()
+        # A restart can race the previous process still releasing the camera;
+        # retry briefly instead of dying (systemd would loop us anyway).
+        for attempt in range(4):
+            try:
+                self.picam = Picamera2()
+                break
+            except RuntimeError:
+                if attempt == 3:
+                    raise
+                time.sleep(2)
         main_w, main_h = settings.still_size
         # Sensor is landscape; request swapped dims and crop to portrait.
         config = self.picam.create_video_configuration(
