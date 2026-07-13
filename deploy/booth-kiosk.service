@@ -12,7 +12,7 @@ Wants=booth-ui.service
 [Service]
 Environment=WAYLAND_DISPLAY=wayland-0
 Environment=XDG_RUNTIME_DIR=/run/user/%U
-ExecStart=/usr/bin/chromium --kiosk --noerrdialogs --disable-infobars \
+ExecStart=/usr/bin/chromium --kiosk --incognito --noerrdialogs --disable-infobars \
   --disable-session-crashed-bubble --ozone-platform=wayland \
   http://127.0.0.1:3000
 Restart=always
