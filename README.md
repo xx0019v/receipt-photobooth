@@ -39,9 +39,16 @@ BOOTH_MOCK=1 .venv/bin/uvicorn booth.main:app --port 8000
 
 UI はバックエンドを自動検出する（未起動ならモック表示のまま動作）。要件定義は `docs/backend-requirements.md`、セットアップ詳細は `backend/README.md`。
 
-### Raspberry Pi キオスク運用（後日）
+### Raspberry Pi キオスク運用
 
-Chromium を kiosk モードで起動し、`npm run build && npm run start` した本体を全画面表示する。
+UI は静的エクスポート（`next.config.mjs` の `output: "export"`）なので Pi に Node は不要:
+
+```bash
+npm run build                                   # Mac 側: out/ を生成
+rsync -az --delete out/ chuo@<pi>:~/receipt-photobooth/ui-dist/
+```
+
+Pi 側はバックエンド（`deploy/booth-backend.service`）+ 静的配信（`deploy/booth-ui.service`）+ Chromium kiosk（`deploy/booth-kiosk.service`）の 3 ユニット構成。タッチパネルの縦回転は `~/.config/labwc/autostart` の `wlr-randr --output DSI-2 --transform 270`。
 
 ## ステータス
 
