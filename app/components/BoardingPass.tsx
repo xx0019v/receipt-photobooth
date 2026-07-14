@@ -17,12 +17,15 @@ import { useChromeArtwork } from "@/app/lib/chromeArtwork";
  * into the fixed 620×1760 thermal canvas (see BoardingPassPrint) so the paper,
  * held sideways, reads exactly like this. On screen it is shown horizontally.
  */
-export const BOARDING_W = 1760;
+// Single source of truth for the PASS dimensions. Width (the printed paper
+// width) is fixed at 620; the length is derived from the artwork so the photo
+// strip can stay large without cramping the ticket data.
+export const BOARDING_W = 1880;
 export const BOARDING_H = 620;
 
-/** Physical thermal canvas — unchanged; the horizontal ticket is rotated into it. */
+/** Physical thermal canvas — paper width fixed 620, length follows the artwork. */
 export const PASS_PRINT_W = 620;
-export const PASS_PRINT_H = 1760;
+export const PASS_PRINT_H = BOARDING_W;
 
 export default function BoardingPass({
   frames,
@@ -54,21 +57,20 @@ export default function BoardingPass({
       <EdgeMark side="left">{BRAND} — {t.pass.title}</EdgeMark>
 
       {/* ---- Main : headline + photo strip ----------------------------- */}
-      <div className="flex h-full w-[1112px] shrink-0 flex-col px-[40px] py-[30px]">
+      <div className="flex h-full w-[1232px] shrink-0 flex-col px-[40px] py-[26px]">
         <div className="flex items-center justify-between font-mono text-[15px] uppercase tracking-[0.3em]">
           <span>{BRAND}</span>
           <span className="text-silver-dim">{t.pass.title}</span>
         </div>
         <div className="mt-[14px] h-px w-full bg-[color:var(--color-ink)]" />
 
-        <div className="mt-[20px] flex items-start justify-between">
+        <div className="mt-[16px] flex items-start justify-between">
           <div>
-            <h1 className="font-display text-[64px] font-semibold uppercase leading-[0.9] tracking-[-0.02em]">
+            <h1 className="font-display text-[54px] font-semibold uppercase leading-[0.92] tracking-[-0.02em]">
               Memories, bottled.
             </h1>
-            <p className="mt-[10px] font-mono text-[13px] uppercase leading-[1.7] tracking-[0.28em] text-silver-dim">
-              A journey in scent.
-              <br />A memory that stays.
+            <p className="mt-[9px] font-mono text-[13px] uppercase leading-[1.6] tracking-[0.28em] text-silver-dim">
+              A journey in scent. A memory that stays.
             </p>
           </div>
           {/* circular security seal — a flat printed stamp, not an object */}
@@ -84,11 +86,11 @@ export default function BoardingPass({
           </figure>
         </div>
 
-        <div className="mt-[22px] flex gap-[18px]">
+        <div className="mt-[18px] flex gap-[20px]">
           {photos.map((frame, i) => (
             <figure
               key={`${frame}-${i}`}
-              className="relative h-[330px] w-[330px] shrink-0 overflow-hidden bg-ink"
+              className="relative h-[368px] w-[368px] shrink-0 overflow-hidden bg-ink"
             >
               <div
                 className="absolute inset-0"
@@ -119,7 +121,7 @@ export default function BoardingPass({
       </div>
 
       {/* ---- Stub : the data column ------------------------------------ */}
-      <div className="flex h-full w-[500px] shrink-0 flex-col px-[36px] py-[30px]">
+      <div className="flex h-full w-[500px] shrink-0 flex-col px-[36px] py-[26px]">
         <div className="grid grid-cols-2 gap-x-[20px]">
           <Field label={`Pass No.`} value={passNo} big />
           <Field label={`Serial No.`} value={serial} big />
