@@ -68,7 +68,7 @@ export default function DoneScreen({
             )}
 
             <div
-              className="anim-fade-up delay-2 relative mx-auto mt-[44px] overflow-hidden shadow-[0_30px_60px_-34px_rgba(0,0,0,.5)]"
+              className="anim-fade-up delay-2 relative mt-[44px] overflow-hidden shadow-[0_30px_60px_-34px_rgba(0,0,0,.5)]"
               style={{ width: BOARDING_SCREEN_W, height: Math.round((BOARDING_H * BOARDING_SCREEN_W) / BOARDING_W) }}
             >
               <div

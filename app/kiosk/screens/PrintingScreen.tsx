@@ -180,7 +180,7 @@ export default function PrintingScreen({
         )}
       </div>
 
-      <div className="flex flex-1 flex-col items-center justify-center px-[40px]">
+      <div className="flex flex-1 flex-col items-center justify-start px-[40px] pt-[230px]">
         <div className="relative z-[20]" style={{ width: slitW }}>
           <div className="h-[22px] w-full rounded-t-[6px] bg-ink" />
           <div className="h-[9px] w-full bg-ink-soft shadow-[inset_0_-6px_10px_rgba(0,0,0,0.6)]" />
