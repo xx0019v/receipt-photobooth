@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Masthead from "@/app/components/Masthead";
-import ReceiptStrip, { PASS_HEIGHT, PASS_WIDTH } from "@/app/components/ReceiptStrip";
+import BoardingPass, { BOARDING_W, BOARDING_H } from "@/app/components/BoardingPass";
 import MagazineCover from "@/app/components/MagazineCover";
+
+const DONE_PASS_W = 860;
 import { type Scent } from "@/app/lib/edition";
 import { type FilmArtifactProps } from "@/app/lib/film";
 import { useLang } from "@/app/lib/i18n";
@@ -66,26 +68,25 @@ export default function DoneScreen({
               </p>
             )}
 
-            <div className="anim-fade-up delay-2 mt-[40px]">
-              <div className="mx-auto h-[12px] w-[420px] rounded-t-[4px] bg-ink" />
-              <div className="relative mx-auto h-[581px] w-[360px] overflow-hidden shadow-[0_30px_60px_-34px_rgba(0,0,0,.72)]">
-                <div
-                  className="origin-top-left"
-                  style={{
-                    width: PASS_WIDTH,
-                    height: PASS_HEIGHT,
-                    marginLeft: 78,
-                    transform: "scale(.33)",
-                  }}
-                >
-                  <ReceiptStrip
-                    frames={frames}
-                    scent={scent}
-                    serial={serial}
-                    date={issuedDate}
-                    time={issuedTime}
-                  />
-                </div>
+            <div
+              className="anim-fade-up delay-2 relative mx-auto mt-[44px] overflow-hidden shadow-[0_30px_60px_-34px_rgba(0,0,0,.5)]"
+              style={{ width: DONE_PASS_W, height: Math.round((BOARDING_H * DONE_PASS_W) / BOARDING_W) }}
+            >
+              <div
+                style={{
+                  width: BOARDING_W,
+                  height: BOARDING_H,
+                  transform: `scale(${DONE_PASS_W / BOARDING_W})`,
+                  transformOrigin: "top left",
+                }}
+              >
+                <BoardingPass
+                  frames={frames}
+                  scent={scent}
+                  serial={serial}
+                  date={issuedDate}
+                  time={issuedTime}
+                />
               </div>
             </div>
 
