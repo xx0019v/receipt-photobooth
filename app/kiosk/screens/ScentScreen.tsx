@@ -1,145 +1,140 @@
 "use client";
 
-import { useEffect } from "react";
-import Masthead from "@/app/components/Masthead";
+import { useEffect, useRef } from "react";
 import type { Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
-import { useChromeArtwork } from "@/app/lib/chromeArtwork";
-
-const REVEAL_DURATION = 1600;
+import { motifForScent } from "@/app/lib/session";
 
 /**
- * SCENT IDENTITY REVEAL — a white scent signature, not a loading screen and
- * not a chooser. The scent is already fixed by KioskApp; this screen states it
- * once, in a gallery-quiet white space, then dissolves to white and advances
- * to Format Select without any input.
- *
- * Motion order: a hairline draws in → the name's letter-spacing settles → the
- * notes rise → a single reflection passes across the scent's symbol → the whole
- * field washes to white. `prefers-reduced-motion` collapses this to a short
- * fade with no reflection or wash animation.
+ * THE SCENT — a vertical chapter sequence, not a four-up menu. One scent fills
+ * the screen at a time; scrolling reveals the next like turning the page of a
+ * fragrance editorial. The guest confirms the scent currently in view. White
+ * space, black type, a ghost of the scent's silver mark in the margin — no
+ * cards, no object-like chrome, no web-form buttons.
  */
 export default function ScentScreen({
-  selectedScent,
-  onComplete,
+  scents,
+  onSelect,
 }: {
-  selectedScent: Scent;
-  onComplete: () => void;
+  scents: Scent[];
+  onSelect: (scent: Scent) => void;
 }) {
   const { sub } = useLang();
-  const symbol = useChromeArtwork();
+  const rootRef = useRef<HTMLDivElement>(null);
 
+  // Reveal each scene as it settles into view — a quiet page-turn, not a
+  // carousel. Reduced-motion users get the static composition (see globals.css).
   useEffect(() => {
-    const timer = setTimeout(onComplete, REVEAL_DURATION);
-    return () => clearTimeout(timer);
-  }, [onComplete]);
+    const root = rootRef.current;
+    if (!root) return;
+    const scenes = Array.from(root.querySelectorAll<HTMLElement>(".scent-scene"));
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) if (e.isIntersecting) e.target.classList.add("is-in");
+      },
+      { root, threshold: 0.55 },
+    );
+    scenes.forEach((s) => io.observe(s));
+    return () => io.disconnect();
+  }, []);
+
+  const total = String(scents.length).padStart(2, "0");
 
   return (
-    <div className="scent-reveal relative flex h-full flex-col overflow-hidden bg-paper">
-      <style>{`
-        @keyframes srLine {
-          from { transform: scaleX(0); opacity: 0; }
-          to { transform: scaleX(1); opacity: 1; }
-        }
-        @keyframes srName {
-          from { opacity: 0; letter-spacing: 0.34em; transform: translateY(6px); }
-          to { opacity: 1; letter-spacing: -0.02em; transform: translateY(0); }
-        }
-        @keyframes srRise {
-          from { opacity: 0; transform: translateY(14px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes srReflect {
-          0% { transform: translateX(-160%) skewX(-12deg); opacity: 0; }
-          45% { opacity: 0.55; }
-          100% { transform: translateX(160%) skewX(-12deg); opacity: 0; }
-        }
-        @keyframes srWash {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        .sr-line { transform-origin: left center; animation: srLine .72s var(--ease-out-premium) both; }
-        .sr-name { animation: srName .95s .16s var(--ease-out-premium) both; }
-        .sr-notes { animation: srRise .8s .5s var(--ease-out-premium) both; }
-        .sr-meta { animation: srRise .8s .64s var(--ease-out-premium) both; }
-        .sr-symbol { animation: srRise 1.1s .3s var(--ease-out-premium) both; }
-        .sr-sheen { animation: srReflect .9s .72s ease-out both; }
-        .sr-wash { animation: srWash .34s 1.26s ease-in both; }
+    <div ref={rootRef} className="scent-scroll">
+      {scents.map((scent, i) => {
+        const symbol = motifForScent(scent);
+        const index = String(i + 1).padStart(2, "0");
+        return (
+          <section key={scent.id} className="scent-scene">
+            {/* the scent's silver mark — a ghost in the margin, never an object */}
+            <img
+              src={symbol.path}
+              alt=""
+              aria-hidden="true"
+              className="pointer-events-none absolute -right-[180px] top-1/2 h-[640px] w-[640px] -translate-y-1/2 object-contain opacity-[0.05] grayscale"
+            />
 
-        @media (prefers-reduced-motion: reduce) {
-          .sr-line, .sr-name, .sr-notes, .sr-meta, .sr-symbol {
-            animation: srRise .18s ease-out both;
-            letter-spacing: normal;
-          }
-          .sr-sheen { animation: none; opacity: 0; }
-          .sr-wash { animation: srWash .1s 1.4s ease-in both; }
-        }
-      `}</style>
+            <div className="scene-inner relative z-[2] flex h-full flex-col px-[120px]">
+              <div className="flex items-center justify-between pt-[150px]">
+                <p className="kicker">The Scent</p>
+                <p className="font-mono text-[15px] tracking-[0.32em] text-silver-dim">
+                  {index}
+                  <span className="mx-[8px] text-[color:var(--color-line)]">/</span>
+                  {total}
+                </p>
+              </div>
 
-      <Masthead />
+              <div className="flex flex-1 flex-col justify-center">
+                <button
+                  type="button"
+                  onClick={() => onSelect(scent)}
+                  className="press group block w-full text-left"
+                  style={{ cursor: "pointer" }}
+                  aria-label={`Select ${scent.name}`}
+                >
+                  <span className="block font-mono text-[15px] uppercase tracking-[0.3em] text-silver-dim">
+                    {scent.mood.en}
+                  </span>
+                  <h2 className="mt-[18px] font-display text-[150px] font-semibold uppercase leading-[0.82] tracking-[-0.03em]">
+                    {scent.name}
+                  </h2>
+                  <p className="mt-[32px] font-mono text-[19px] uppercase tracking-[0.24em] text-ink-soft">
+                    {scent.notes.map((n) => n.en).join("  ·  ")}
+                  </p>
 
-      {/* the scent's symbol — bled off the right edge, cropped and grayscaled
-          into a watermark, with one reflection passing across it */}
-      <div
-        aria-hidden="true"
-        className="sr-symbol pointer-events-none absolute -right-[190px] top-1/2 h-[720px] w-[720px] -translate-y-1/2"
-      >
-        <img
-          src={symbol.path}
-          alt=""
-          className="h-full w-full object-contain opacity-[0.06] grayscale contrast-125"
-        />
-        <div className="absolute inset-0 overflow-hidden">
-          <span
-            className="sr-sheen absolute inset-y-0 -left-1/2 w-1/2"
-            style={{
-              background:
-                "linear-gradient(100deg, transparent 30%, rgba(120,120,118,0.5) 50%, transparent 70%)",
-            }}
-          />
-        </div>
-      </div>
+                  <div className="mt-[46px] flex items-end gap-[48px] border-t border-[color:var(--color-line)] pt-[26px]">
+                    <div>
+                      <p className="font-mono text-[12px] uppercase tracking-[0.3em] text-silver-dim">
+                        Destination
+                      </p>
+                      <p className="mt-[8px] font-display text-[40px] uppercase leading-none">
+                        {scent.destination.en}
+                      </p>
+                      {sub && (
+                        <p className="jp-sub mt-[7px] text-[16px] text-silver-dim">
+                          {scent.mood.jp}
+                        </p>
+                      )}
+                    </div>
+                    <div className="ml-auto flex flex-col items-end text-right">
+                      <span className="scent-select font-mono text-[16px] uppercase tracking-[0.34em] text-ink">
+                        Select this scent
+                      </span>
+                      {sub && (
+                        <span className="jp-sub mt-[7px] text-[15px] text-silver-dim">
+                          この香りにする
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              </div>
 
-      <main className="relative z-[2] flex flex-1 flex-col justify-center px-[120px]">
-        <span className="sr-line block h-px w-[132px] bg-ink" />
-
-        <p className="sr-notes kicker mt-[30px]">Your scent identity</p>
-
-        <h2 className="sr-name mt-[24px] font-display text-[128px] font-semibold uppercase leading-[0.84]">
-          {selectedScent.name}
-        </h2>
-
-        <p className="sr-notes mt-[34px] font-mono text-[19px] uppercase tracking-[0.24em] text-ink-soft">
-          {selectedScent.notes.map((note) => note.en).join("  ·  ")}
-        </p>
-
-        <div className="sr-meta mt-[52px] flex items-end gap-[64px] border-t border-[color:var(--color-line)] pt-[26px]">
-          <div>
-            <p className="font-mono text-[12px] uppercase tracking-[0.3em] text-silver-dim">
-              Mood
-            </p>
-            <p className="mt-[8px] font-display text-[40px] italic leading-none text-ink">
-              {selectedScent.mood.en}
-            </p>
-            {sub && (
-              <p className="jp-sub mt-[8px] text-[17px] text-silver-dim">
-                {selectedScent.mood.jp}
-              </p>
-            )}
-          </div>
-          <div className="ml-auto text-right">
-            <p className="font-mono text-[12px] uppercase tracking-[0.3em] text-silver-dim">
-              Destination
-            </p>
-            <p className="mt-[8px] font-display text-[40px] uppercase leading-none text-ink">
-              {selectedScent.destination.en}
-            </p>
-          </div>
-        </div>
-      </main>
-
-      {/* final dissolve to white, handing off to Format Select */}
-      <div className="sr-wash pointer-events-none absolute inset-0 z-[20] bg-paper" />
+              <div className="flex h-[150px] items-center justify-center">
+                {i < scents.length - 1 ? (
+                  <span className="scent-hint flex flex-col items-center gap-[8px] text-silver-dim">
+                    <span className="font-mono text-[13px] uppercase tracking-[0.4em]">Scroll</span>
+                    <svg width="15" height="9" viewBox="0 0 15 9" fill="none" aria-hidden="true">
+                      <path
+                        d="M1 1L7.5 7.5L14 1"
+                        stroke="currentColor"
+                        strokeWidth="1.3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                ) : (
+                  <span className="font-mono text-[13px] uppercase tracking-[0.4em] text-silver-dim">
+                    {sub ? "見ている香りをタップ" : "Tap a scent to choose"}
+                  </span>
+                )}
+              </div>
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 }

@@ -36,6 +36,12 @@ function pickOne<T>(items: readonly T[], random: () => number): T {
   return items[Math.max(0, index)];
 }
 
+/** The one silver motif that belongs to a scent — deterministic, so the mark a
+ *  guest meets on the Scent page is the same one printed everywhere after. */
+export function motifForScent(scent: Scent): ChromeAsset {
+  return (SCENT_MOTIFS[scent.id] ?? COVER_MOTIF_ASSETS)[0];
+}
+
 /** Resolve an externally supplied scent first; otherwise decide once per session. */
 export function resolveInitialScent(
   selectedScent?: SelectedScentInput,
@@ -62,11 +68,10 @@ export function createSessionIdentity(
   random: () => number = Math.random,
 ): SessionIdentity {
   const scent = resolveInitialScent(selectedScent, random);
-  const motifs = SCENT_MOTIFS[scent.id] ?? COVER_MOTIF_ASSETS;
   return {
     selectedScent: scent,
     selectedQuote: pickOne(QUOTES, random),
-    selectedChromeMotif: pickOne(motifs, random),
+    selectedChromeMotif: motifForScent(scent),
   };
 }
 
