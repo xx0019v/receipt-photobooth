@@ -13,15 +13,22 @@ import { useChromeArtwork } from "@/app/lib/chromeArtwork";
  * on the left, a detachable data stub on the right, a vertical perforation
  * between them. Strict monochrome, thermal-safe.
  *
- * The artwork is horizontal (1760×620). For physical print it is rotated 90°
- * into the fixed 620×1760 thermal canvas (see BoardingPassPrint) so the paper,
+ * The artwork is horizontal. For physical print it is rotated 90° into the
+ * thermal canvas (see BoardingPassPrint) so the paper,
  * held sideways, reads exactly like this. On screen it is shown horizontally.
  */
 // Single source of truth for the PASS dimensions. Width (the printed paper
 // width) is fixed at 620; the length is derived from the artwork so the photo
 // strip can stay large without cramping the ticket data.
-export const BOARDING_W = 1880;
+export const BOARDING_W = 1920;
 export const BOARDING_H = 620;
+export const BOARDING_MAIN_W = 1232;
+export const BOARDING_STUB_W = 540;
+export const BOARDING_PHOTO_SIZE = 368;
+export const BOARDING_PHOTO_GAP = 20;
+
+/** Shared on-screen width for Review, Printing, and Done at 1080×1920. */
+export const BOARDING_SCREEN_W = 880;
 
 /** Physical thermal canvas — paper width fixed 620, length follows the artwork. */
 export const PASS_PRINT_W = 620;
@@ -57,7 +64,10 @@ export default function BoardingPass({
       <EdgeMark side="left">{BRAND} — {t.pass.title}</EdgeMark>
 
       {/* ---- Main : headline + photo strip ----------------------------- */}
-      <div className="flex h-full w-[1232px] shrink-0 flex-col px-[40px] py-[26px]">
+      <div
+        className="flex h-full shrink-0 flex-col px-[40px] py-[26px]"
+        style={{ width: BOARDING_MAIN_W }}
+      >
         <div className="flex items-center justify-between font-mono text-[15px] uppercase tracking-[0.3em]">
           <span>{BRAND}</span>
           <span className="text-silver-dim">{t.pass.title}</span>
@@ -70,7 +80,7 @@ export default function BoardingPass({
               Memories, bottled.
             </h1>
             <p className="mt-[9px] font-mono text-[13px] uppercase leading-[1.6] tracking-[0.28em] text-silver-dim">
-              A journey in scent. A memory that stays.
+              A journey in scent. A memory that stays with you.
             </p>
           </div>
           {/* circular security seal — a flat printed stamp, not an object */}
@@ -86,11 +96,12 @@ export default function BoardingPass({
           </figure>
         </div>
 
-        <div className="mt-[18px] flex gap-[20px]">
+        <div className="mt-[18px] flex" style={{ gap: BOARDING_PHOTO_GAP }}>
           {photos.map((frame, i) => (
             <figure
               key={`${frame}-${i}`}
-              className="relative h-[368px] w-[368px] shrink-0 overflow-hidden bg-ink"
+              className="relative shrink-0 overflow-hidden bg-ink"
+              style={{ width: BOARDING_PHOTO_SIZE, height: BOARDING_PHOTO_SIZE }}
             >
               <div
                 className="absolute inset-0"
@@ -121,8 +132,11 @@ export default function BoardingPass({
       </div>
 
       {/* ---- Stub : the data column ------------------------------------ */}
-      <div className="flex h-full w-[500px] shrink-0 flex-col px-[36px] py-[26px]">
-        <div className="grid grid-cols-2 gap-x-[20px]">
+      <div
+        className="flex h-full shrink-0 flex-col px-[36px] py-[26px]"
+        style={{ width: BOARDING_STUB_W }}
+      >
+        <div className="grid grid-cols-2 gap-x-[28px]">
           <Field label={`Pass No.`} value={passNo} big />
           <Field label={`Serial No.`} value={serial} big />
         </div>
@@ -132,22 +146,22 @@ export default function BoardingPass({
         <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-[10px]">
           <div>
             <Label>{t.pass.from}</Label>
-            <p className="mt-[6px] font-display text-[30px] uppercase leading-none">{t.pass.fromValue}</p>
+            <p className="mt-[6px] font-display text-[34px] uppercase leading-none">{t.pass.fromValue}</p>
           </div>
           <Plane />
           <div className="text-right">
             <Label>{t.pass.to}</Label>
-            <p className="mt-[6px] font-display text-[30px] uppercase leading-none">{scent.destination.en}</p>
+            <p className="mt-[6px] font-display text-[34px] uppercase leading-none">{scent.destination.en}</p>
           </div>
         </div>
         <div className="mt-[16px]">
           <Label>Route</Label>
-          <p className="mt-[5px] font-mono text-[15px] uppercase tracking-[0.2em]">You → Forever</p>
+          <p className="mt-[6px] font-mono text-[16px] uppercase tracking-[0.2em]">You → Forever</p>
         </div>
 
         <Rule />
 
-        <div className="grid grid-cols-2 gap-x-[20px] gap-y-[16px]">
+        <div className="grid grid-cols-2 gap-x-[28px] gap-y-[18px]">
           <div>
             <Label>{t.pass.fragrance}</Label>
             <p className="mt-[5px] font-display text-[22px] uppercase leading-none">{scent.name}</p>
@@ -177,8 +191,8 @@ export default function BoardingPass({
 
         <div className="mt-[14px]">
           <Label>Notes</Label>
-          <p className="mt-[5px] font-mono text-[11px] uppercase leading-[1.5] tracking-[0.14em] text-ink-soft">
-            {scent.notes.map((n) => n.en).join(" · ")}
+          <p className="mt-[6px] font-mono text-[12px] uppercase leading-[1.55] tracking-[0.14em] text-ink-soft">
+            Thank you for sharing your moment with us.
           </p>
         </div>
 
@@ -198,7 +212,7 @@ export default function BoardingPass({
   );
 }
 
-/** The horizontal ticket rotated into the fixed 620×1760 thermal canvas. */
+/** The horizontal ticket rotated into the shared thermal canvas. */
 export function BoardingPassPrint(props: React.ComponentProps<typeof BoardingPass>) {
   return (
     <div className="relative shrink-0" style={{ width: PASS_PRINT_W, height: PASS_PRINT_H }}>

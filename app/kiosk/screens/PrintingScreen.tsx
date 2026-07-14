@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import BoardingPass, { BOARDING_W, BOARDING_H } from "@/app/components/BoardingPass";
+import BoardingPass, { BOARDING_W, BOARDING_H, BOARDING_SCREEN_W } from "@/app/components/BoardingPass";
 import MagazineCover from "@/app/components/MagazineCover";
 import { type Scent } from "@/app/lib/edition";
 import { type FilmArtifactProps } from "@/app/lib/film";
@@ -87,7 +87,7 @@ export default function PrintingScreen({
       ? COVER_DURATION
       : PASS_DURATION;
   // PASS is now a horizontal boarding ticket, shown wide on screen.
-  const passWinW = 940;
+  const passWinW = BOARDING_SCREEN_W;
   const passScale = passWinW / BOARDING_W;
   const slitW = isCover ? 680 : passWinW + 40;
   const winW = isCover ? 640 : passWinW;

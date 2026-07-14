@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Masthead from "@/app/components/Masthead";
 import { useLang } from "@/app/lib/i18n";
 import { usePrintStyle, type PrintStyle } from "@/app/lib/printStyle";
+import { BOARDING_H, BOARDING_W } from "@/app/components/BoardingPass";
 import { useChromeArtwork } from "@/app/lib/chromeArtwork";
 
 /**
@@ -191,26 +192,29 @@ function Page({
 /** Horizontal boarding-ticket schematic — photo strip + detachable stub. */
 function PassGlyph() {
   return (
-    <div className="relative flex h-[116px] w-[188px] overflow-hidden border border-current">
+    <div
+      className="relative flex w-[192px] overflow-hidden border border-current"
+      style={{ aspectRatio: `${BOARDING_W} / ${BOARDING_H}` }}
+    >
       {/* main : headline rule + three photos in a row */}
-      <div className="flex flex-1 flex-col justify-center gap-[7px] px-[10px] py-[9px]">
+      <div className="flex flex-1 flex-col justify-center gap-[4px] px-[8px] py-[6px]">
         <span className="h-[4px] w-[64%] bg-current" />
-        <div className="flex gap-[6px]">
+        <div className="flex gap-[4px]">
           {[0, 1, 2].map((i) => (
-            <span key={i} className="h-[48px] w-[48px] bg-current" />
+            <span key={i} className="h-[32px] w-[32px] bg-current" />
           ))}
         </div>
         <span className="h-[3px] w-[82%] bg-current opacity-40" />
       </div>
       {/* perforation */}
-      <span className="my-[8px] w-px self-stretch border-l border-dashed border-current" />
+      <span className="my-[5px] w-px self-stretch border-l border-dashed border-current" />
       {/* stub */}
-      <div className="flex w-[54px] flex-col gap-[5px] px-[8px] py-[9px]">
+      <div className="flex w-[54px] flex-col gap-[3px] px-[7px] py-[6px]">
         <span className="h-[3px] w-full bg-current opacity-70" />
         <span className="h-[3px] w-[68%] bg-current opacity-40" />
         <span className="h-[3px] w-[84%] bg-current opacity-40" />
         <span className="h-[3px] w-[56%] bg-current opacity-40" />
-        <span className="mt-auto h-[14px] w-full bg-current opacity-75" />
+        <span className="mt-auto h-[10px] w-full bg-current opacity-75" />
       </div>
     </div>
   );

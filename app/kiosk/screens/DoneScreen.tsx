@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Masthead from "@/app/components/Masthead";
-import BoardingPass, { BOARDING_W, BOARDING_H } from "@/app/components/BoardingPass";
+import BoardingPass, { BOARDING_W, BOARDING_H, BOARDING_SCREEN_W } from "@/app/components/BoardingPass";
 import MagazineCover from "@/app/components/MagazineCover";
 
-const DONE_PASS_W = 860;
 import { type Scent } from "@/app/lib/edition";
 import { type FilmArtifactProps } from "@/app/lib/film";
 import { useLang } from "@/app/lib/i18n";
@@ -70,13 +69,13 @@ export default function DoneScreen({
 
             <div
               className="anim-fade-up delay-2 relative mx-auto mt-[44px] overflow-hidden shadow-[0_30px_60px_-34px_rgba(0,0,0,.5)]"
-              style={{ width: DONE_PASS_W, height: Math.round((BOARDING_H * DONE_PASS_W) / BOARDING_W) }}
+              style={{ width: BOARDING_SCREEN_W, height: Math.round((BOARDING_H * BOARDING_SCREEN_W) / BOARDING_W) }}
             >
               <div
                 style={{
                   width: BOARDING_W,
                   height: BOARDING_H,
-                  transform: `scale(${DONE_PASS_W / BOARDING_W})`,
+                  transform: `scale(${BOARDING_SCREEN_W / BOARDING_W})`,
                   transformOrigin: "top left",
                 }}
               >
