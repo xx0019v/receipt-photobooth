@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import BoardingPass, { BOARDING_W, BOARDING_H } from "@/app/components/BoardingPass";
+import BoardingPass, { BOARDING_W, BOARDING_H, BOARDING_SCREEN_W } from "@/app/components/BoardingPass";
 import MagazineCover from "@/app/components/MagazineCover";
 import { type Scent } from "@/app/lib/edition";
 import { type FilmArtifactProps } from "@/app/lib/film";
@@ -87,7 +87,7 @@ export default function PrintingScreen({
       ? COVER_DURATION
       : PASS_DURATION;
   // PASS is now a horizontal boarding ticket, shown wide on screen.
-  const passWinW = 940;
+  const passWinW = BOARDING_SCREEN_W;
   const passScale = passWinW / BOARDING_W;
   const slitW = isCover ? 680 : passWinW + 40;
   const winW = isCover ? 640 : passWinW;
@@ -180,7 +180,7 @@ export default function PrintingScreen({
         )}
       </div>
 
-      <div className="flex flex-1 flex-col items-center justify-center px-[40px]">
+      <div className="flex flex-1 flex-col items-center justify-start px-[40px] pt-[230px]">
         <div className="relative z-[20]" style={{ width: slitW }}>
           <div className="h-[22px] w-full rounded-t-[6px] bg-ink" />
           <div className="h-[9px] w-full bg-ink-soft shadow-[inset_0_-6px_10px_rgba(0,0,0,0.6)]" />
