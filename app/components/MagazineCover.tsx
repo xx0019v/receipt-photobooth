@@ -5,6 +5,7 @@ import {
   getQuoteLayoutVariant,
   type FilmArtifactProps,
 } from "@/app/lib/film";
+import { editionForScent } from "@/app/lib/edition";
 import type { Quote } from "@/app/lib/quotes";
 
 /**
@@ -24,8 +25,6 @@ export default function MagazineCover({
   selectedChromeMotif,
   selectedScent,
   scentNotes,
-  scentMood,
-  scentDestination,
   serial,
   issueDate,
   edition,
@@ -34,6 +33,7 @@ export default function MagazineCover({
   const isLong = layout === "long";
   const editionRun = deriveRun(serial);
   const year = romanYear(issueDate);
+  const ed = editionForScent(selectedScent);
 
   return (
     <div
@@ -47,7 +47,7 @@ export default function MagazineCover({
           FILM
         </h1>
         <p className="mt-[16px] font-mono text-[13px] uppercase tracking-[0.52em] text-silver-dim">
-          Scent · Photo
+          Edition · Print
         </p>
       </header>
 
@@ -111,22 +111,20 @@ export default function MagazineCover({
       {/* ---- Footer : notes · metadata · statement · barcode ------------ */}
       <footer className="px-[46px] pb-[38px]">
         <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-silver-dim">
-          {scentMood} · {scentNotes.join(" · ")}
+          {ed.code} — {ed.character.en}
         </p>
 
         <div className="mt-[14px] h-px w-full bg-[color:var(--color-line)]" />
 
         <dl className="mt-[12px] grid grid-cols-4 gap-x-[14px]">
           <Meta label="Issued" value={issueDate || "—"} />
-          <Meta label="Edition" value={editionRun} />
+          <Meta label="Run" value={editionRun} />
           <Meta label="Serial" value={serial} />
-          <Meta label="Scent" value={selectedScent.name} />
+          <Meta label="Edition" value={ed.code} />
         </dl>
 
         <p className="mt-[16px] text-center font-mono text-[11px] uppercase tracking-[0.34em] text-ink-soft">
-          {isLong
-            ? selectedQuote.text
-            : "Captured by Film, remembered by Scent."}
+          {isLong ? selectedQuote.text : "Captured, composed, issued."}
         </p>
 
         <div className="mt-[14px] flex items-end justify-between">

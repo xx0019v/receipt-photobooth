@@ -34,7 +34,7 @@ export default function IdleScreen({ onStart }: { onStart: () => void }) {
   return (
     <main className={`idle-ritual${entering ? " is-entering" : ""}`}>
       <header className="idle-ritual__header" aria-hidden={entering}>
-        <p>PARFUM RECEIPT STUDIO</p>
+        <p>THE RECEIPT · PRINT STUDIO</p>
         <span>ACUSE / TOKYO</span>
       </header>
 
@@ -88,7 +88,7 @@ export default function IdleScreen({ onStart }: { onStart: () => void }) {
           <span>∞</span>
         </div>
         <p className="idle-ritual__footer-jp">
-          {sub ? "香りの記憶を起動する" : "SCENT BECOMES MEMORY"}
+          {sub ? "一瞬を、発行する" : "A MOMENT, ISSUED"}
         </p>
       </footer>
 

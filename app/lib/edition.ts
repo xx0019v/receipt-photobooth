@@ -71,6 +71,35 @@ export function scentById(id: string): Scent {
   return SCENTS.find((s) => s.id === id) ?? SCENTS[0];
 }
 
+/**
+ * EDITION ADAPTER — the customer-facing identity of a session. The kiosk no
+ * longer speaks of scent / fragrance / notes; a guest selects a limited
+ * EDITION. Internally each edition still maps to a legacy `scent` so the
+ * printed artefact fields and the backend renderer contract stay intact.
+ * This is a display adapter only — no scent field is renamed or removed.
+ */
+export type Edition = {
+  no: string; // "01".."04"
+  code: string; // RAW / STILL / BOLD / AFTERIMAGE
+  character: L; // one short editorial line
+  scentId: string; // legacy link, never shown to the guest
+};
+
+export const EDITIONS: Edition[] = [
+  { no: "01", code: "RAW", character: N("First light, unedited.", "手を加えない、最初の光。"), scentId: "cold" },
+  { no: "02", code: "STILL", character: N("Held, composed, exact.", "静かに、整った一枚。"), scentId: "clean" },
+  { no: "03", code: "BOLD", character: N("High contrast. Nothing hidden.", "強い明暗、隠さない。"), scentId: "warm" },
+  { no: "04", code: "AFTERIMAGE", character: N("The trace a moment leaves.", "瞬間が残す、残像。"), scentId: "nocturne" },
+];
+
+export function editionForScent(scent: Scent): Edition {
+  return EDITIONS.find((e) => e.scentId === scent.id) ?? EDITIONS[0];
+}
+
+export function scentForEdition(edition: Edition): Scent {
+  return scentById(edition.scentId);
+}
+
 /** Pull the language value from a localized string. */
 export function loc(v: L, lang: Lang): string {
   return v[lang];

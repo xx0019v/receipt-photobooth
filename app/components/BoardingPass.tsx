@@ -2,7 +2,7 @@
 
 import Portrait from "./Portrait";
 import Qr from "./Qr";
-import { BRAND, DOMAIN, editionDate, editionTime, type Scent } from "@/app/lib/edition";
+import { BRAND, DOMAIN, editionDate, editionTime, editionForScent, type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
 import { passSecurityAsset } from "@/app/lib/chromeAssets";
 import { useChromeArtwork } from "@/app/lib/chromeArtwork";
@@ -55,6 +55,7 @@ export default function BoardingPass({
   const seat = `${String(frames.length).padStart(2, "0")}A`;
   const photos = Array.from({ length: 3 }, (_, i) => frames[i] ?? i + 1);
   const passNo = `TR-${serial.replace(/\D/gu, "").slice(-6).padStart(6, "0")}`;
+  const edition = editionForScent(scent);
 
   return (
     <article
@@ -163,9 +164,8 @@ export default function BoardingPass({
 
         <div className="grid grid-cols-2 gap-x-[40px] gap-y-[18px]">
           <div>
-            <Label>{t.pass.fragrance}</Label>
-            <p className="mt-[6px] font-display text-[25px] uppercase leading-none">{scent.name}</p>
-            {sub && <p className="jp-sub mt-[4px] text-[12px] text-silver-dim">{scent.mood.jp}</p>}
+            <Label>Edition</Label>
+            <p className="mt-[6px] font-display text-[25px] uppercase leading-none">{edition.no} · {edition.code}</p>
           </div>
           <div className="text-right">
             <Label>{t.pass.flight}</Label>

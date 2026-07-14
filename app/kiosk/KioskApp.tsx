@@ -5,7 +5,7 @@ import Stage from "@/app/components/Stage";
 import LangToggle from "@/app/components/LangToggle";
 import { LangProvider } from "@/app/lib/i18n";
 import { PrintStyleProvider } from "@/app/lib/printStyle";
-import { editionDate, editionTime, issueNo, scentById, serialNo, SCENTS, TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
+import { editionDate, editionTime, issueNo, scentById, serialNo, TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
 import { QUOTES, type Quote } from "@/app/lib/quotes";
 import { COVER_MOTIF_ASSETS, type ChromeAsset } from "@/app/lib/chromeAssets";
 import { ChromeArtworkProvider } from "@/app/lib/chromeArtwork";
@@ -142,9 +142,7 @@ export default function KioskApp({
         <LangToggle />
         <div key={phase} className="screen-swap">
         {phase === "idle" && <IdleScreen onStart={startSession} />}
-        {phase === "scent" && (
-          <ScentScreen scents={SCENTS} onSelect={chooseScent} />
-        )}
+        {phase === "scent" && <ScentScreen onSelect={chooseScent} />}
         {phase === "format" && (
           <FormatSelectScreen onContinue={() => go("pose")} />
         )}
