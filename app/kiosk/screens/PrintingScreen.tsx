@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ReceiptStrip, { PASS_HEIGHT, PASS_WIDTH } from "@/app/components/ReceiptStrip";
+import BoardingPass, { BOARDING_W, BOARDING_H } from "@/app/components/BoardingPass";
 import MagazineCover from "@/app/components/MagazineCover";
 import { type Scent } from "@/app/lib/edition";
 import { type FilmArtifactProps } from "@/app/lib/film";
@@ -86,10 +86,12 @@ export default function PrintingScreen({
     : isCover
       ? COVER_DURATION
       : PASS_DURATION;
-  const slitW = isCover ? 680 : 540;
-  const winW = isCover ? 640 : 500;
-  const winH = isCover ? 1280 : 1290;
-  const artefactScale = isCover ? 1 : 0.73;
+  // PASS is now a horizontal boarding ticket, shown wide on screen.
+  const passWinW = 940;
+  const passScale = passWinW / BOARDING_W;
+  const slitW = isCover ? 680 : passWinW + 40;
+  const winW = isCover ? 640 : passWinW;
+  const winH = isCover ? 1280 : Math.round(BOARDING_H * passScale);
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -203,27 +205,28 @@ export default function PrintingScreen({
                 : "drop-shadow(0 20px 44px rgba(0,0,0,0.16))",
             }}
           >
-            <div
-              style={{
-                width: isCover ? 640 : PASS_WIDTH,
-                height: isCover ? undefined : PASS_HEIGHT,
-                marginLeft: isCover ? 0 : (winW - PASS_WIDTH) / 2,
-                transform: `scale(${artefactScale})`,
-                transformOrigin: "top center",
-              }}
-            >
-              {isCover ? (
+            {isCover ? (
+              <div style={{ width: 640, transformOrigin: "top center" }}>
                 <MagazineCover {...filmProps} />
-              ) : (
-                <ReceiptStrip
+              </div>
+            ) : (
+              <div
+                style={{
+                  width: BOARDING_W,
+                  height: BOARDING_H,
+                  transform: `scale(${passScale})`,
+                  transformOrigin: "top left",
+                }}
+              >
+                <BoardingPass
                   frames={frames}
                   scent={scent}
                   serial={serial}
                   date={issuedDate}
                   time={issuedTime}
                 />
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {!printStarted && !done && (

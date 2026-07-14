@@ -188,25 +188,29 @@ function Page({
   );
 }
 
-/** Vertical 80mm boarding-pass schematic. */
+/** Horizontal boarding-ticket schematic — photo strip + detachable stub. */
 function PassGlyph() {
   return (
-    <div className="relative flex h-[164px] w-[104px] flex-col overflow-hidden border border-current p-[7px]">
-      {/* abstract registration mark — schematic, not the real motif */}
-      <span className="absolute right-[6px] top-[6px] h-[12px] w-[12px] rotate-45 border border-current opacity-40" />
-      <span className="h-[4px] w-[70%] bg-current" />
-      <div className="mx-auto mt-[7px] flex h-[76px] w-[24px] flex-col gap-[2px] border-y border-current py-[3px]">
-        {[0, 1, 2].map((i) => (
-          <span key={i} className="aspect-square w-full bg-current" />
-        ))}
+    <div className="relative flex h-[116px] w-[188px] overflow-hidden border border-current">
+      {/* main : headline rule + three photos in a row */}
+      <div className="flex flex-1 flex-col justify-center gap-[7px] px-[10px] py-[9px]">
+        <span className="h-[4px] w-[64%] bg-current" />
+        <div className="flex gap-[6px]">
+          {[0, 1, 2].map((i) => (
+            <span key={i} className="h-[48px] w-[48px] bg-current" />
+          ))}
+        </div>
+        <span className="h-[3px] w-[82%] bg-current opacity-40" />
       </div>
-      <div className="mt-[6px] flex flex-col gap-[4px]">
-        <span className="h-[3px] w-[92%] bg-current" />
+      {/* perforation */}
+      <span className="my-[8px] w-px self-stretch border-l border-dashed border-current" />
+      {/* stub */}
+      <div className="flex w-[54px] flex-col gap-[5px] px-[8px] py-[9px]">
+        <span className="h-[3px] w-full bg-current opacity-70" />
         <span className="h-[3px] w-[68%] bg-current opacity-40" />
-      </div>
-      <div className="mt-auto flex items-end gap-[7px] border-t border-dashed border-current pt-[7px]">
-        <span className="h-[18px] flex-1 bg-current" />
-        <span className="h-[22px] w-[22px] border border-current" />
+        <span className="h-[3px] w-[84%] bg-current opacity-40" />
+        <span className="h-[3px] w-[56%] bg-current opacity-40" />
+        <span className="mt-auto h-[14px] w-full bg-current opacity-75" />
       </div>
     </div>
   );
