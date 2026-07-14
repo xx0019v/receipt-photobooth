@@ -5,13 +5,14 @@ import Stage from "@/app/components/Stage";
 import LangToggle from "@/app/components/LangToggle";
 import { LangProvider } from "@/app/lib/i18n";
 import { PrintStyleProvider } from "@/app/lib/printStyle";
-import { editionDate, editionTime, issueNo, scentById, serialNo, TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
+import { editionDate, editionTime, issueNo, scentById, serialNo, SCENTS, TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
 import { QUOTES, type Quote } from "@/app/lib/quotes";
 import { COVER_MOTIF_ASSETS, type ChromeAsset } from "@/app/lib/chromeAssets";
 import { ChromeArtworkProvider } from "@/app/lib/chromeArtwork";
 import { createFilmArtifactProps } from "@/app/lib/film";
 import {
   initializeSession,
+  motifForScent,
   type SelectedScentInput,
 } from "@/app/lib/session";
 import IdleScreen from "./screens/IdleScreen";
@@ -50,7 +51,13 @@ export default function KioskApp({
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const go = useCallback((p: Phase) => setPhase(p), []);
-  const completeScentReveal = useCallback(() => setPhase("format"), []);
+  // The guest scrolls the scent chapters and confirms one; that scent and its
+  // silver motif become fixed for the whole session, then we move to Format.
+  const chooseScent = useCallback((scent: Scent) => {
+    setSelectedScent(scent);
+    setSelectedChromeMotif(motifForScent(scent));
+    setPhase("format");
+  }, []);
 
   const startSession = useCallback(() => {
     const session = initializeSession(externalSelectedScent);
@@ -136,10 +143,7 @@ export default function KioskApp({
         <div key={phase} className="screen-swap">
         {phase === "idle" && <IdleScreen onStart={startSession} />}
         {phase === "scent" && (
-          <ScentScreen
-            selectedScent={selectedScent}
-            onComplete={completeScentReveal}
-          />
+          <ScentScreen scents={SCENTS} onSelect={chooseScent} />
         )}
         {phase === "format" && (
           <FormatSelectScreen onContinue={() => go("pose")} />

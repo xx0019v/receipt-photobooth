@@ -77,18 +77,17 @@ export default function MagazineCover({
             className="absolute right-[6px] top-[120px] bottom-[8px] w-px bg-[color:var(--color-line-soft)]"
           />
 
-          {/* cropped chrome motif — an orb read through a circular window,
-              not a pasted SVG icon */}
+          {/* the scent's mark, printed into the sheet through a circular
+              window — flat and grayscale, an editorial stamp not a glossy orb */}
           <figure
             aria-hidden="true"
-            className="absolute right-0 top-[8px] h-[82px] w-[82px] overflow-hidden rounded-full shadow-[inset_0_2px_6px_rgba(0,0,0,0.28),inset_0_-4px_10px_rgba(0,0,0,0.14)]"
+            className="absolute right-0 top-[10px] h-[74px] w-[74px] overflow-hidden rounded-full opacity-90 ring-1 ring-[color:var(--color-line)]"
           >
             <img
               src={selectedChromeMotif.path}
               alt=""
-              className="absolute left-1/2 top-1/2 h-[150%] w-[150%] -translate-x-1/2 -translate-y-1/2 object-cover grayscale contrast-[1.2] brightness-[1.02]"
+              className="absolute left-1/2 top-1/2 h-[132%] w-[132%] -translate-x-1/2 -translate-y-1/2 object-cover grayscale contrast-[0.9] brightness-105 mix-blend-multiply"
             />
-            <span className="absolute left-[22%] top-[16%] h-[22px] w-[22px] rounded-full bg-white/55 blur-[3px]" />
           </figure>
 
           {/* vertical editorial quote — reads bottom-to-top, down the margin */}
