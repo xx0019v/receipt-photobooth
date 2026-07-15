@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Masthead from "@/app/components/Masthead";
 import Portrait from "@/app/components/Portrait";
 import FrameSelectionCarousel from "@/app/components/FrameSelectionCarousel";
@@ -10,6 +10,8 @@ import { useLang } from "@/app/lib/i18n";
 /**
  * SELECT YOUR FRAMES — pick TOTAL_SHOTS of the captured frames, in order.
  * capturedFrames never gets reordered; selectedIds is the only ordered list.
+ * Two ways to register a frame: tap the active photo (appends to the next
+ * open PRINT ORDER slot), or peel it — drag down — and drop it onto a slot.
  */
 export default function SelectFramesScreen({
   capturedFrames,
@@ -24,6 +26,9 @@ export default function SelectFramesScreen({
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [fullNotice, setFullNotice] = useState(false);
+  const slotRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -33,15 +38,52 @@ export default function SelectFramesScreen({
     return () => media.removeEventListener("change", update);
   }, []);
 
+  useEffect(() => () => {
+    if (noticeTimer.current) clearTimeout(noticeTimer.current);
+  }, []);
+
+  // Quiet one-shot notice when a 4th selection is attempted — no toast, no
+  // error styling, just a line that appears once and fades.
+  const showFullNotice = useCallback(() => {
+    setFullNotice(true);
+    if (noticeTimer.current) clearTimeout(noticeTimer.current);
+    noticeTimer.current = setTimeout(() => setFullNotice(false), 2000);
+  }, []);
+
   const toggleSelect = useCallback(
     (id: number) => {
       setSelectedIds((prev) => {
         if (prev.includes(id)) return prev.filter((x) => x !== id);
-        if (prev.length >= TOTAL_SHOTS) return prev;
+        if (prev.length >= TOTAL_SHOTS) {
+          showFullNotice();
+          return prev;
+        }
         return [...prev, id];
       });
     },
-    [],
+    [showFullNotice],
+  );
+
+  // Peel-drop: register the frame only if it landed on a PRINT ORDER slot.
+  // A drop anywhere else quietly cancels (the ghost has already unmounted).
+  const handlePeelDrop = useCallback(
+    (frameId: number, clientX: number, clientY: number) => {
+      const hit = slotRefs.current.some((el) => {
+        if (!el) return false;
+        const r = el.getBoundingClientRect();
+        return clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
+      });
+      if (!hit) return;
+      setSelectedIds((prev) => {
+        if (prev.includes(frameId)) return prev;
+        if (prev.length >= TOTAL_SHOTS) {
+          showFullNotice();
+          return prev;
+        }
+        return [...prev, frameId];
+      });
+    },
+    [showFullNotice],
   );
 
   const ready = selectedIds.length === TOTAL_SHOTS;
@@ -57,7 +99,11 @@ export default function SelectFramesScreen({
         </h2>
         {sub && <p className="jp-sub mt-[10px] text-[19px] text-silver-dim">印刷する3枚を選んでください</p>}
         <p className="mt-[14px] font-mono text-[16px] uppercase tracking-[0.28em] text-silver-dim">
-          Selected {selectedIds.length} / {TOTAL_SHOTS}
+          {fullNotice ? (
+            <span className="text-ink">3 frames already registered</span>
+          ) : (
+            <>Selected {selectedIds.length} / {TOTAL_SHOTS}</>
+          )}
         </p>
       </div>
 
@@ -68,6 +114,7 @@ export default function SelectFramesScreen({
           onActiveChange={setActiveIndex}
           selectedIds={selectedIds}
           onToggleSelect={toggleSelect}
+          onPeelDrop={handlePeelDrop}
           reducedMotion={reducedMotion}
         />
       </div>
@@ -84,6 +131,9 @@ export default function SelectFramesScreen({
             return (
               <button
                 key={i}
+                ref={(el) => {
+                  slotRefs.current[i] = el;
+                }}
                 onClick={() => {
                   if (id === undefined) return;
                   const idx = capturedFrames.indexOf(id);

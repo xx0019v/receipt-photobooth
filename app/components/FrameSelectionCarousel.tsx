@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Portrait from "@/app/components/Portrait";
 
 const ITEM_W = 620;
@@ -9,21 +9,44 @@ const STEP = ITEM_W + GAP;
 const VIEWPORT_W = 700;
 const DRAG_THRESHOLD = 56;
 const TAP_MOVE_TOLERANCE = 8;
+const RAPID_TAP_LOCK_MS = 220;
+
+// Peel (drag-to-slot) gesture — Draggable Sticker's grab/lift/paste principle
+// rebuilt with CSS transform/opacity only (no WebGL, no canvas, no mesh).
+const PEEL_START_DY = 48; // vertical-down travel before the proof "peels"
+const PEEL_GHOST_W = 150;
+const PEEL_MAX_TILT = 2.5; // degrees
+
+// Arc thumbnail rail — Round Carousel's circle-placement principle flattened
+// to a 2D parabola: lift(dist) = ARC_K * dist^2. Max depth at dist=2 is
+// 14 * 4 = 56px (inside the 50–90px acceptance band).
+const ARC_K = 14;
+const THUMB_SIZE = [104, 84, 68] as const;
+const THUMB_OPACITY = [1, 0.8, 0.55] as const;
+
+type PeelState = {
+  frameId: number;
+  /** ghost centre, in the carousel root's local (pre-scale) coordinates */
+  x: number;
+  y: number;
+  tilt: number;
+};
 
 /**
  * FrameSelectionCarousel — the touch photo-selection stage. A single
  * integer (`activeIndex`) is the source of truth; the CSS `transform`
- * transition does all the settling, so there is no per-frame requestAnimationFrame
- * loop or React state update while idle. Design lineage (adapted, not
- * copied, from the OriginKit carousels supplied for this project):
- *  - Coverflow: one position value drives both the stage and the rail —
- *    distance-from-active determines size/opacity everywhere.
- *  - Button Carousel: the arc thumbnail rail and tap-to-select interaction.
- *  - Box Carousel: pointer-capture / drag-vs-tap / stale-closure discipline
- *    (a ref mirrors activeIndex so pointer handlers never read stale state).
- * The 3D cube itself, autoplay, hover-driven magnification, backdrop-filter
- * blur, and per-frame rAF interpolation from those sources are deliberately
- * not used — see docs/ORIGINKIT_USAGE.md.
+ * transition does all the settling, so there is no per-frame
+ * requestAnimationFrame loop or React state update while idle. Design
+ * lineage (principles adapted, no code copied — see
+ * docs/DESIGN_SOURCE_INVENTORY.md):
+ *  - Coverflow: one position value drives both the stage and the rail.
+ *  - Button Carousel: arc thumbnail rail + tap-to-select.
+ *  - Box Carousel: pointer-capture / drag-vs-tap / stale-closure / rapid-tap
+ *    discipline (activeIndexRef mirrors state; pointercancel is terminal).
+ *  - Round Carousel: the circle-placement math behind the rail's parabolic
+ *    arc (no 3D ring, no autoplay, no idle rAF).
+ *  - Draggable Sticker: the grab → lift → paste gesture, reinterpreted as
+ *    lifting a print proof into a PRINT ORDER slot (no WebGL, no holo).
  */
 export default function FrameSelectionCarousel({
   frameIds,
@@ -31,6 +54,7 @@ export default function FrameSelectionCarousel({
   onActiveChange,
   selectedIds,
   onToggleSelect,
+  onPeelDrop,
   reducedMotion,
 }: {
   frameIds: number[];
@@ -38,13 +62,37 @@ export default function FrameSelectionCarousel({
   onActiveChange: (i: number) => void;
   selectedIds: number[];
   onToggleSelect: (id: number) => void;
+  /** Optional drag-to-slot: called with the frame and the drop point (client coords). */
+  onPeelDrop?: (frameId: number, clientX: number, clientY: number) => void;
   reducedMotion: boolean;
 }) {
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
+  const [pressed, setPressed] = useState(false);
+  const [peel, setPeel] = useState<PeelState | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const activeIndexRef = useRef(activeIndex);
   activeIndexRef.current = activeIndex;
-  const dragState = useRef<{ pointerId: number; startX: number; startY: number; moved: number } | null>(null);
+  const lastTapRef = useRef(0);
+  const dragState = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    moved: number;
+    mode: "undecided" | "swipe" | "peel";
+    lastX: number;
+  } | null>(null);
+
+  // Convert client coordinates to the carousel root's local space. The kiosk
+  // stage is scaled to fit the window, so client px ≠ local px; dividing by
+  // the measured scale keeps the peel ghost under the finger at any zoom.
+  const toLocal = useCallback((clientX: number, clientY: number) => {
+    const root = rootRef.current;
+    if (!root) return { x: clientX, y: clientY };
+    const rect = root.getBoundingClientRect();
+    const scale = rect.width / root.offsetWidth || 1;
+    return { x: (clientX - rect.left) / scale, y: (clientY - rect.top) / scale };
+  }, []);
 
   const commitDrag = useCallback(
     (dx: number) => {
@@ -56,23 +104,51 @@ export default function FrameSelectionCarousel({
   );
 
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (dragState.current) return; // one pointer at a time — no multi-touch races
     try {
       (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
     } catch {}
-    dragState.current = { pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, moved: 0 };
+    dragState.current = {
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      moved: 0,
+      mode: "undecided",
+      lastX: e.clientX,
+    };
     setDragging(true);
+    setPressed(true);
   }, []);
 
-  const onPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    const s = dragState.current;
-    if (!s || s.pointerId !== e.pointerId) return;
-    const dx = e.clientX - s.startX;
-    const dy = e.clientY - s.startY;
-    // Ignore drags that are clearly vertical (not our axis).
-    if (Math.abs(dy) > Math.abs(dx) + 16 && Math.abs(dx) < 12) return;
-    s.moved = Math.max(s.moved, Math.abs(dx));
-    setDragX(dx);
-  }, []);
+  const onPointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      const s = dragState.current;
+      if (!s || s.pointerId !== e.pointerId) return;
+      const dx = e.clientX - s.startX;
+      const dy = e.clientY - s.startY;
+      s.moved = Math.max(s.moved, Math.abs(dx), Math.abs(dy));
+
+      if (s.mode === "undecided") {
+        if (Math.abs(dx) > 14 && Math.abs(dx) > Math.abs(dy)) {
+          s.mode = "swipe";
+        } else if (onPeelDrop && dy > PEEL_START_DY && Math.abs(dx) < dy) {
+          // Downward pull — the proof peels off the stage toward the slots.
+          s.mode = "peel";
+        }
+      }
+
+      if (s.mode === "swipe") {
+        setDragX(dx);
+      } else if (s.mode === "peel") {
+        const { x, y } = toLocal(e.clientX, e.clientY);
+        const vx = e.clientX - s.lastX;
+        const tilt = reducedMotion ? 0 : Math.max(-PEEL_MAX_TILT, Math.min(PEEL_MAX_TILT, vx * 0.4));
+        setPeel({ frameId: frameIds[activeIndexRef.current], x, y, tilt });
+      }
+      s.lastX = e.clientX;
+    },
+    [frameIds, onPeelDrop, reducedMotion, toLocal],
+  );
 
   const endDrag = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
@@ -81,24 +157,52 @@ export default function FrameSelectionCarousel({
       try {
         (e.currentTarget as HTMLDivElement).releasePointerCapture(e.pointerId);
       } catch {}
+      const { mode, moved } = s;
       const dx = dragX;
-      const moved = s.moved;
       dragState.current = null;
       setDragging(false);
+      setPressed(false);
       setDragX(0);
-      if (moved < TAP_MOVE_TOLERANCE) {
-        onToggleSelect(frameIds[activeIndexRef.current]);
-      } else {
-        commitDrag(dx);
+      setPeel(null);
+
+      // pointercancel is terminal: no tap, no navigation, no drop.
+      if (e.type === "pointercancel") return;
+
+      if (mode === "peel") {
+        onPeelDrop?.(frameIds[activeIndexRef.current], e.clientX, e.clientY);
+        return;
       }
+      if (moved < TAP_MOVE_TOLERANCE) {
+        // Rapid-tap lock — a second tap inside the window is ignored so a
+        // double-fire can never select-then-deselect in one gesture.
+        const now = performance.now();
+        if (now - lastTapRef.current < RAPID_TAP_LOCK_MS) return;
+        lastTapRef.current = now;
+        onToggleSelect(frameIds[activeIndexRef.current]);
+        return;
+      }
+      if (mode === "swipe") commitDrag(dx);
     },
-    [dragX, frameIds, onToggleSelect, commitDrag],
+    [dragX, frameIds, onToggleSelect, onPeelDrop, commitDrag],
   );
 
-  const trackX = (VIEWPORT_W - ITEM_W) / 2 - activeIndex * STEP + (dragging ? dragX : 0);
+  const trackX = (VIEWPORT_W - ITEM_W) / 2 - activeIndex * STEP + (dragging && !peel ? dragX : 0);
+  const activeSelected = selectedIds.includes(frameIds[activeIndex]);
 
   return (
-    <div className="flex flex-col items-center">
+    <div ref={rootRef} className="relative flex flex-col items-center">
+      {/* one-shot silver sweep for the peel lift — defined locally, runs once */}
+      <style>{`
+        @keyframes peelSheen {
+          0% { transform: translateX(-130%) skewX(-12deg); opacity: 0; }
+          45% { opacity: 0.45; }
+          100% { transform: translateX(130%) skewX(-12deg); opacity: 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .peel-sheen { animation: none !important; opacity: 0 !important; }
+        }
+      `}</style>
+
       {/* Main stage — active photo centred, neighbours peek as thin slats */}
       <div
         className="relative overflow-hidden"
@@ -120,6 +224,9 @@ export default function FrameSelectionCarousel({
             const isActive = i === activeIndex;
             const isSelected = selectedIds.includes(id);
             const printNo = isSelected ? selectedIds.indexOf(id) + 1 : null;
+            // Press lift — the proof detaches a hair from the machine bed.
+            const lifted = isActive && pressed && !reducedMotion;
+            const peeling = isActive && peel !== null;
             return (
               <div
                 key={id}
@@ -127,11 +234,26 @@ export default function FrameSelectionCarousel({
                 style={{
                   width: ITEM_W,
                   height: ITEM_W,
-                  opacity: isActive ? 1 : 0.5,
-                  transition: reducedMotion ? "opacity 140ms linear" : "opacity 260ms ease",
+                  opacity: peeling ? 0.45 : isActive ? 1 : 0.5,
+                  transform: lifted ? "translateY(-6px) scale(0.992)" : "none",
+                  boxShadow: lifted ? "0 10px 18px -14px rgba(0,0,0,0.35)" : "none",
+                  transition: reducedMotion
+                    ? "opacity 140ms linear"
+                    : "opacity 260ms ease, transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1), box-shadow 200ms ease",
                 }}
               >
                 <Portrait seed={id} />
+                {lifted && (
+                  <span
+                    className="peel-sheen pointer-events-none absolute inset-0"
+                    style={{
+                      background:
+                        "linear-gradient(100deg, transparent 42%, rgba(255,255,255,0.5) 50%, transparent 58%)",
+                      animation: "peelSheen 0.5s ease-out both",
+                    }}
+                    aria-hidden="true"
+                  />
+                )}
                 {isActive && (
                   <>
                     <RegMark className="left-[16px] top-[16px]" selected={isSelected} />
@@ -155,31 +277,31 @@ export default function FrameSelectionCarousel({
       </div>
 
       <p className="mt-[18px] font-mono text-[15px] uppercase tracking-[0.32em] text-silver-dim">
-        {selectedIds.includes(frameIds[activeIndex]) ? "Selected — tap to deselect" : "Tap the photo to select"}
+        {activeSelected ? "Selected — tap to deselect" : "Tap to select · drag down to place"}
       </p>
 
-      {/* Arc thumbnail rail — distance-from-active drives size/opacity */}
-      <div className="mt-[26px] flex items-end justify-center" style={{ gap: 10 }}>
+      {/* Arc thumbnail rail — parabolic lift from distance-to-active */}
+      <div className="mt-[26px] flex items-start justify-center" style={{ gap: 10 }}>
         {frameIds.map((id, i) => {
-          const dist = Math.abs(i - activeIndex);
-          const visSize = dist === 0 ? 104 : dist === 1 ? 84 : 64;
-          const lift = dist === 0 ? 0 : dist === 1 ? 10 : 22;
-          const opacity = dist === 0 ? 1 : dist === 1 ? 0.78 : 0.5;
+          const dist = Math.min(2, Math.abs(i - activeIndex));
+          const visSize = THUMB_SIZE[dist];
+          const lift = ARC_K * Math.abs(i - activeIndex) ** 2;
+          const opacity = THUMB_OPACITY[dist];
           const selected = selectedIds.includes(id);
           return (
             <button
               key={id}
               onClick={() => onActiveChange(i)}
               aria-label={`Frame ${i + 1}`}
-              className="press flex shrink-0 items-center justify-center"
-              style={{ width: 88, height: 88, cursor: "pointer" }}
+              className="press flex shrink-0 items-start justify-center"
+              style={{ width: 88, height: 88 + ARC_K * 4, cursor: "pointer" }}
             >
               <span
                 className="relative block overflow-hidden border"
                 style={{
                   width: visSize,
                   height: visSize,
-                  marginBottom: lift,
+                  marginTop: Math.min(lift, ARC_K * 4),
                   opacity,
                   borderColor: i === activeIndex ? "var(--color-ink)" : "var(--color-line)",
                   transition: reducedMotion
@@ -196,6 +318,25 @@ export default function FrameSelectionCarousel({
           );
         })}
       </div>
+
+      {/* Peel ghost — a small proof following the finger toward the slots.
+          transform/opacity only; unmounts the moment the gesture ends. */}
+      {peel && (
+        <div
+          className="pointer-events-none absolute z-[40] overflow-hidden border border-[color:var(--color-ink)] bg-paper-bright"
+          style={{
+            width: PEEL_GHOST_W,
+            height: PEEL_GHOST_W,
+            left: peel.x - PEEL_GHOST_W / 2,
+            top: peel.y - PEEL_GHOST_W / 2,
+            transform: `rotate(${peel.tilt}deg)`,
+            boxShadow: reducedMotion ? "none" : "0 12px 20px -16px rgba(0,0,0,0.4)",
+          }}
+          aria-hidden="true"
+        >
+          <Portrait seed={peel.frameId} />
+        </div>
+      )}
     </div>
   );
 }
