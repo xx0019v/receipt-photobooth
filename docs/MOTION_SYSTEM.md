@@ -4,7 +4,7 @@ One motion language for the whole machine. Every animation belongs to exactly
 one of **four families**; nothing floats, bounces, glows, or loops for
 decoration.
 
-## Six families (Printing phase adds two)
+## Seven families (Printing adds two, Frame Selection adds one)
 
 1. **TYPE SET** — letter-spacing / weight / position settling as type is
    composed. Used for headings, edition names, step labels.
@@ -21,6 +21,19 @@ decoration.
    and always in phase with ISSUE CORE's `issue` state (same `progress` value).
 6. **COLLECT SETTLE** — a 1–2px settle + single opacity fade as Printing exits
    to Done; no loop, nothing lingers on the Done screen.
+7. **FRAME CORE** — the six-fragment registration sculpture's own
+   unprocessed/indexing/registering/ready motion. See `FRAME_SELECTION.md`.
+   Used only in the Registering Frames interstitial between Capture and
+   Select — distinct from ISSUE CORE (different object, different states,
+   never shares an animation).
+
+## Frame Selection Carousel — a source-of-truth position, not a new family
+
+The carousel's own motion (track `translateX`, thumbnail size/opacity by
+distance) is REGISTRATION LOCK + PAPER CUT applied to a touch list rather than
+a new family: one integer (`activeIndex`) plus a live drag offset drives a
+single CSS `transition`, exactly like Proof Lock's marks converge on a value
+rather than looping. See `FRAME_SELECTION.md` for the full breakdown.
 
 ## Tokens (single source — `app/globals.css :root`)
 

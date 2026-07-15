@@ -92,3 +92,73 @@ blade-transform frames rendered (matches `REDUCED_MOTION_DURATION`), state
 still progressed through the full `review → proofLock → … → ready` sequence
 (state transitions preserved, only the visual motion suppressed), console
 clean.
+
+## Phase 2/3 — 6-frame capture + FrameSelectionCarousel
+
+Full PASS run verified live in production preview (`npm run build` +
+`next start -p 3090`), 1080×1920, console/network monitored throughout:
+
+Idle → Edition → Format (PASS) → Pose ("6 frames →" confirmed) → Capture
+(all 6 frames, "FRAME 0N / 06" progress, 3×2 contact sheet, per-frame
+REGISTERED labels) → Registering Frames (FRAME CORE unprocessed → indexing
+→ registering → ready, reflection clip fetched — see below) → Select (tap to
+select/deselect, thumbnail nav, 4th-selection blocked at "Selected 3/3",
+deselecting frame 2 correctly renumbered frame 4's badge from PRINT 03 to
+PRINT 02) → USE THESE 3 → Proof (3 photos in chosen order, "STEP V · THE
+PROOF" — correctly renumbered from IV) → Proof Lock → Printing (ISSUE CORE
+calibrate/register/issue/release) → Done ("STEP VI" printing step also
+renumbered correctly) → Retake (from Proof) returns to Capture (not Pose)
+with a fresh 6-frame session, session id/edition/serial preserved. Console
+clean and zero unexpected network requests at every step.
+
+FILM path verified the same way through to Proof: 3 photos in chosen order
+on the FILM artefact, quote/motif/metadata/barcode unchanged, "STEP V · THE
+PROOF" correctly shown, console clean.
+
+Error recovery + Staff Mode regression re-verified after these changes:
+Staff Mode PIN → Test Print → simulated failure → "PRINTING PAUSED" shown
+with EN+JP copy → Retry Print → resumes on the same 3 photos/serial (no
+regeneration), console clean throughout.
+
+### Two real bugs found and fixed during this QA pass
+
+1. **`setPointerCapture` exception silently broke every tap after the
+   first.** Automated pointer testing (synthetic `PointerEvent`s with
+   fabricated `pointerId`s) surfaced that `setPointerCapture` can throw for
+   a `pointerId` the browser doesn't recognize as a live pointer; without a
+   `try/catch` the exception aborted `onPointerDown` before drag state was
+   recorded, so every subsequent tap/drag silently no-opped (visible as
+   Next.js's dev overlay showing "1 Issue"). Fixed with `try {} catch {}`
+   around both `setPointerCapture` and `releasePointerCapture` in
+   `FrameSelectionCarousel.tsx` (matching the reference Box Carousel's own
+   defensive pattern) — confirmed fixed by re-running the same selection
+   sequence and seeing "Selected 2/3", "Selected 3/3" progress correctly.
+2. **Registering Frames' `registering`/`ready` timers could fire out of
+   order.** The original `MAX_MS - 220` calculation for entering `ready`
+   could resolve to a timestamp *before* the `registering` timer fired,
+   so the state briefly reverted from `ready` back to `registering` a
+   moment before the screen unmounted — and, combined with `preload="none"`
+   on the reflection `<video>`, meant the clip's fetch never had time to
+   start before the screen was gone (only the poster ever loaded, confirmed
+   via `read_network_requests`). Rewrote the timeline as a single set of
+   monotonically-increasing constants (`RegisteringFramesScreen.tsx`) and
+   switched the video to `preload="auto"` (justified — the optimized clip is
+   63KB) so the browser fetches/decodes it during the ~1s of indexing that
+   precedes `registering`. Re-verified: `frame-register-core.mp4` now shows
+   a `206 Partial Content` fetch inside the registering window, console
+   clean.
+
+### Not verified in this session (explicitly incomplete)
+
+- Real Raspberry Pi hardware for the new Carousel/FRAME CORE/video path.
+- `prefers-reduced-motion` was not re-toggled live specifically for
+  `FrameSelectionCarousel`/`FrameCore`/the reflection video in this pass
+  (Phase 1/2's ISSUE CORE reduced-motion path was re-verified above); their
+  `matchMedia` wiring mirrors the already-verified ISSUE CORE pattern
+  exactly, but was not independently re-exercised live.
+- Static/video QA captures were not saved to `docs/frame-selection-qa/` —
+  no headless-browser-to-disk screenshot tooling (no puppeteer/playwright/
+  chromium binary) is available in this environment; all QA above was done
+  live in the interactive Browser pane and is recorded here as the QA
+  artifact instead of image files.
+clean.

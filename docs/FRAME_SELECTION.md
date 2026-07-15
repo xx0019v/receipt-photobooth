@@ -102,9 +102,19 @@ opacity 1 / 0.78 / 0.5, and a small downward `margin-bottom` offset (0 / 10px
 one-shot interstitial: `unprocessed → indexing → registering → ready`, where
 `indexing` steps through the 6 captured frames one at a time
 (`registeredCount` prop, 0→6) so the object visibly "reads" each of the 6
-photos before settling. See `ORIGINKIT_USAGE.md` for why the supplied 12 SVGs
-and `pc：wiget(1).mp4` were not used here, and why FRAME CORE is a separate,
-smaller sculpture from ISSUE CORE rather than a reused/retextured copy of it.
+photos before settling. See `ORIGINKIT_USAGE.md` for the full audit of why
+the supplied 12 SVGs were not used (they turned out to be the project's own
+existing chrome-motif library, byte-identical to `public/assets/chrome/*`,
+each a single embedded raster with no fragmentable vector structure) and why
+FRAME CORE is a separate, smaller sculpture from ISSUE CORE rather than a
+reused/retextured copy of it.
+
+A faint, one-shot reflection sourced from the supplied `pc：wiget.mp4` — this
+one *was* usable after optimization (6.5MB/2880px/32fps → 63KB/640px/24fps,
+1.625s, muted, no loop) — plays once behind the sculpture only during the
+`registering` state, at 0.3 opacity with `mix-blend-mode: multiply`, and is
+replaced entirely by a static poster image under `prefers-reduced-motion`.
+See `ORIGINKIT_USAGE.md` for the full before/after table.
 
 ## Reduced motion
 

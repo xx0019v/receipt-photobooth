@@ -101,19 +101,54 @@ dependency):
   (no per-frame loop), and the transition is disabled outright while dragging
   or under `prefers-reduced-motion`.
 
-### FRAME CORE — the 12 supplied SVGs and `pc：wiget(1).mp4`
+### FRAME CORE — the 12 supplied SVGs, audited in full
 
-The 12 SVGs at `/Users/exx/Downloads/ACUSE/*.svg` were inspected before use.
-Each one is **~2MB+** (one measured at 2,101,540 tokens as plain text) —
-almost certainly dense/embedded raster or extremely high path-count vector
-data, not lightweight icon assets. Shipping even one of these to a Raspberry
-Pi kiosk would conflict directly with this project's own performance rules
-(no heavy SVG, no large embedded assets, target 55–60fps on a Pi). **None of
-the 12 SVGs were used.** `pc：wiget(1).mp4` was not opened/profiled for the
-same reason — without a confirmed post-optimization size/codec, using it in
-production would risk the same budget, and the project's own fallback rule
-("性能条件を満たせない場合：動画をproductionでは使わない、SVG構成へfallback")
-directly covers this case.
+The 12 SVGs at `/Users/exx/Downloads/ACUSE/*.svg` were opened and decoded
+(byte size, embedded-image detection, path count, PNG dimensions) rather than
+rejected on size alone. Findings:
+
+- **They are byte-identical to this project's own existing motif library**:
+  every one of the 12 files matches, byte-for-byte, a file already committed
+  at `public/assets/chrome/*.svg` and already registered in
+  `app/lib/chromeAssets.ts` (`chrome-face`, `chrome-lips`, `chrome-stars`,
+  `chrome-crescent-star`, `chrome-orbit-star`, `chrome-paw`, `fashion-legs`,
+  `chrome-balloon-dog`, `monochrome-cherries`, `chrome-ribbon`,
+  `chrome-bust`, `chrome-moons`). These are not new/unknown assets — they're
+  already live in Idle, Pose, Capture's corner watermark, the PASS security
+  seal, and the FILM/COVER motif, loaded via `<img src>` (a real HTTP
+  request + browser-native decode/cache), not inlined.
+- **Structurally, each is one embedded raster, not fragmentable vector art**:
+  every file wraps exactly one `<image xlink:href="data:image/png;base64,...">`
+  (confirmed via `grep -c "<image"` = 1 and `<path>` count = 1, the outer
+  clip rect) inside an SVG `mask`/`feColorMatrix` scaffold that recolors a
+  PNG to monochrome. Decoding a few samples: `monochrome-cherries.svg`
+  contains a 2000×2000px cherries silhouette; `chrome-moons.svg` contains a
+  6364×6364px nested-crescents illustration. There is no vector path
+  structure to carve into "4–6 small registration fragments" — it's one
+  drawing per file, full stop.
+- Sizes range 484KB (`monochrome-cherries` / `9.svg`) to 9.0MB
+  (`fashion-legs` / `7.svg`).
+
+**None of the 12 were used for FRAME CORE**, for two reasons — one
+performance, one identity:
+
+1. **Cost for a one-shot, ≤1.8s transient screen.** Even the smallest
+   (484KB) triggers a real network fetch + full-resolution image decode the
+   first time it's needed; a self-authored inline SVG (see below) costs zero
+   requests and near-zero decode. For a screen whose entire purpose is to
+   feel instant, that's the wrong trade — even though the app already pays
+   this cost elsewhere (Idle/Pose/PASS), those are either idle-time-loaded
+   or genuinely decorative watermarks, not a screen gating the guest's next
+   action.
+2. **Content mismatch, not just performance.** The recognizable-object
+   content (cherries, a paw, a balloon dog, fashion legs, lips, a bust) and
+   even the more abstract celestial ones (stars/crescent/moons, which *are*
+   visually closer to a registration mark) all belong to the pre-pivot
+   scent-identity system (`PASS_SECURITY_ASSETS`, `COVER_MOTIF_ASSETS`).
+   FRAME CORE is explicitly specified as a distinct, precision-instrument
+   object separate from that vocabulary and from ISSUE CORE — reusing one of
+   these would visually re-merge two systems the project deliberately kept
+   apart.
 
 Instead, `FrameCore` (`app/components/motion/FrameCore.tsx`) is a small,
 self-authored SVG sculpture — 6 radially-arranged circular fragments plus a
@@ -121,7 +156,34 @@ registration ring, ~10 DOM nodes, no filters, no gradients beyond one
 `radialGradient` reused across all 6 fragments — built in the same visual
 language as `IssueCore` (silver, registration marks, grayscale, one-shot) but
 with its own distinct 4-state motion (`unprocessed → indexing → registering →
-ready`), so it never shares an animation with the printing-side ISSUE CORE.
+ready`), so it never shares an animation with the printing-side ISSUE CORE,
+and never shares imagery with the Idle/Pose/PASS motif system either.
+
+### `pc：wiget.mp4` — audited and optimized, used once
+
+Unlike the SVGs, this clip *was* profiled with `ffprobe` and re-encoded with
+`ffmpeg` (both available in this environment) rather than skipped on
+assumption:
+
+| | source | optimized (`public/assets/motion/frame-register-core.mp4`) |
+|---|---|---|
+| resolution | 2880×2880 | 640×640 |
+| fps | 32 | 24 |
+| duration | 6.125s | 1.625s (first segment only) |
+| bitrate | 8.48 Mbps | ~0.30 Mbps |
+| size | 6.50 MB | **62.9 KB** |
+| audio | present | stripped (`-an`) |
+
+This lands comfortably inside the brief's own budget (512–640px, 24–30fps,
+muted, ≤2MB) — a genuine 100× size reduction, not a rejection. It's used
+exactly once, only during FRAME CORE's `registering` state (the ~0.3s window
+where the sculpture assembles), as a faint (`opacity: 0.3`, `mix-blend-mode:
+multiply`) reflection layered behind the SVG sculpture — `<video preload="none"
+muted playsInline>`, `currentTime` reset and `.play()` called only on
+entering `registering`, `.pause()` on leaving it or on unmount. A single
+extracted poster frame (`frame-register-core-poster.jpg`, 7.5KB, 320×320)
+stands in for it under `prefers-reduced-motion` — shown as a static, low
+opacity image with no playback at all, per the brief's reduced-motion rule.
 
 ## Adopted list
 
