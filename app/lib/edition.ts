@@ -1,8 +1,11 @@
 /** Edition metadata + scent system for THE RECEIPT. */
 import type { L, Lang } from "./i18n";
 
-/** Number of frames captured per session. */
+/** Number of frames printed on the PASS/FILM artefact — fixed, unchanged. */
 export const TOTAL_SHOTS = 3;
+
+/** Number of frames captured per session; the guest picks TOTAL_SHOTS of these. */
+export const CAPTURE_TOTAL = 6;
 
 export const BRAND = "THE RECEIPT";
 export const DOMAIN = "the-receipt.studio";

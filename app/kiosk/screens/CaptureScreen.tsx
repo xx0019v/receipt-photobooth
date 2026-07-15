@@ -122,7 +122,7 @@ export default function CaptureScreen({
 
       {/* camera viewport */}
       <div className="flex flex-1 items-center justify-center px-[80px]">
-        <div className="relative h-[1040px] w-[920px] overflow-hidden bg-ink">
+        <div className="relative h-[800px] w-[720px] overflow-hidden bg-ink">
           <Portrait seed={shot} className="opacity-95" />
 
           {/* rule-of-thirds grid — camera, not decoration */}
@@ -194,13 +194,17 @@ export default function CaptureScreen({
           <span>Contact</span>
           <span>{scent.code}</span>
         </div>
-        <div className="grid grid-cols-3 gap-x-[24px]">
+        <div className="grid grid-cols-3 gap-x-[24px] gap-y-[18px]">
           {Array.from({ length: total }).map((_, i) => {
             const done = frames.includes(i + 1);
+            const colEnd = (i + 1) % 3 === 0;
             return (
-              <div key={i} className="border-r border-[color:var(--color-line)] pr-[24px] last:border-r-0">
+              <div
+                key={i}
+                className={`pr-[24px] ${colEnd ? "" : "border-r border-[color:var(--color-line)]"}`}
+              >
                 <div
-                  className={`relative mt-[16px] aspect-[3/4] overflow-hidden bg-paper-bright ${
+                  className={`relative mt-[10px] aspect-square overflow-hidden bg-paper-bright ${
                     done ? "anim-quiet-confirm" : ""
                   }`}
                 >

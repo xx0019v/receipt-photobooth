@@ -2,7 +2,7 @@
 
 import Masthead from "@/app/components/Masthead";
 import Portrait from "@/app/components/Portrait";
-import { TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
+import { CAPTURE_TOTAL, type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
 import { useChromeArtwork } from "@/app/lib/chromeArtwork";
 
@@ -100,7 +100,7 @@ export default function PoseScreen({
             )}
           </span>
           <span className="font-mono text-[19px] uppercase tracking-[0.28em] text-paper/60">
-            {TOTAL_SHOTS} {t.pose.frames} →
+            {CAPTURE_TOTAL} {t.pose.frames} →
           </span>
         </button>
       </div>
