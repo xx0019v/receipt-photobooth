@@ -2,7 +2,7 @@
 
 import Portrait from "./Portrait";
 import Qr from "./Qr";
-import { BRAND, DOMAIN, editionDate, editionTime, editionForScent, type Scent } from "@/app/lib/edition";
+import { BRAND, editionDate, editionTime, editionForScent, type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
 import { passSecurityAsset } from "@/app/lib/chromeAssets";
 import { useChromeArtwork } from "@/app/lib/chromeArtwork";
@@ -20,15 +20,23 @@ import { useChromeArtwork } from "@/app/lib/chromeArtwork";
 // Single source of truth for the PASS dimensions. Width (the printed paper
 // width) is fixed at 620; the length is derived from the artwork so the photo
 // strip can stay large without cramping the ticket data.
-export const BOARDING_W = 2000;
+// Layout: leftEdge(54) + MAIN(1232, photos untouched) + cut(40) + INFO(400)
+// + cut(40) + STUB(280) + rightEdge(54) = 2100. The paper length grew so the
+// right-hand boarding data reads like a real airline ticket without ever
+// shrinking the photo strip.
+export const BOARDING_W = 2100;
 export const BOARDING_H = 620;
 export const BOARDING_MAIN_W = 1232;
-export const BOARDING_STUB_W = 620;
+export const BOARDING_INFO_W = 400;
+export const BOARDING_STUB_W = 280;
 export const BOARDING_PHOTO_SIZE = 368;
 export const BOARDING_PHOTO_GAP = 20;
 
 /** Shared on-screen width for Review, Printing, and Done at 1080×1920. */
 export const BOARDING_SCREEN_W = 1000;
+
+/** Right-edge printer slot (screen presentation only, Printing/Done). */
+export const PASS_SLOT_W = 46;
 
 /** Physical thermal canvas — paper width fixed 620, length follows the artwork. */
 export const PASS_PRINT_W = 620;
@@ -47,7 +55,7 @@ export default function BoardingPass({
   date?: string;
   time?: string;
 }) {
-  const { t, sub } = useLang();
+  const { t } = useLang();
   const motif = useChromeArtwork();
   const seal = passSecurityAsset(scent.id);
   const printedDate = date || editionDate();
@@ -62,7 +70,7 @@ export default function BoardingPass({
       className="paper-tex relative flex shrink-0 overflow-hidden text-ink shadow-[0_30px_80px_-40px_rgba(0,0,0,0.6)]"
       style={{ width: BOARDING_W, height: BOARDING_H }}
     >
-      <EdgeMark side="left">{BRAND} — {t.pass.title}</EdgeMark>
+      <EdgeMark side="left">{BRAND} — Boarding Pass</EdgeMark>
 
       {/* ---- Main : headline + photo strip ----------------------------- */}
       <div
@@ -71,7 +79,7 @@ export default function BoardingPass({
       >
         <div className="flex items-center justify-between font-mono text-[15px] uppercase tracking-[0.3em]">
           <span>{BRAND}</span>
-          <span className="text-silver-dim">{t.pass.title}</span>
+          <span className="text-silver-dim">Boarding Pass</span>
         </div>
         <div className="mt-[14px] h-px w-full bg-[color:var(--color-ink)]" />
 
@@ -81,7 +89,7 @@ export default function BoardingPass({
               Memories, bottled.
             </h1>
             <p className="mt-[9px] font-mono text-[13px] uppercase leading-[1.6] tracking-[0.28em] text-silver-dim">
-              A journey in scent. A memory that stays with you.
+              A journey in frames. A memory that stays with you.
             </p>
           </div>
           {/* circular security seal — a flat printed stamp, not an object */}
@@ -132,82 +140,139 @@ export default function BoardingPass({
         <span className="absolute left-1/2 bottom-0 h-[11px] w-[22px] -translate-x-1/2 translate-y-1/2 rounded-full bg-[color:var(--color-paper)] ring-1 ring-[color:var(--color-line)]" />
       </div>
 
-      {/* ---- Stub : the data column ------------------------------------ */}
+      {/* ---- Main boarding information --------------------------------- */}
       <div
-        className="flex h-full shrink-0 flex-col px-[36px] py-[20px]"
-        style={{ width: BOARDING_STUB_W }}
+        className="flex h-full shrink-0 flex-col px-[30px] py-[26px]"
+        style={{ width: BOARDING_INFO_W }}
       >
-        <div className="grid grid-cols-2 gap-x-[40px]">
-          <Field label={`Pass No.`} value={passNo} big />
-          <Field label={`Serial No.`} value={serial} big />
+        <div className="flex items-start justify-between">
+          <div>
+            <Label>Passenger</Label>
+            <p className="mt-[6px] font-display text-[26px] uppercase leading-none">Guest</p>
+          </div>
+          <div className="text-right">
+            <Label>Class</Label>
+            <p className="mt-[6px] font-mono text-[15px] uppercase tracking-[0.14em]">Archive</p>
+          </div>
         </div>
 
         <Rule />
 
-        <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-[10px]">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-[8px]">
           <div>
-            <Label>{t.pass.from}</Label>
-            <p className="mt-[7px] font-display text-[40px] uppercase leading-none">{t.pass.fromValue}</p>
+            <Label>From</Label>
+            <p className="mt-[7px] font-display text-[38px] uppercase leading-none">Now</p>
           </div>
           <Plane />
           <div className="text-right">
-            <Label>{t.pass.to}</Label>
-            <p className="mt-[7px] font-display text-[40px] uppercase leading-none">{scent.destination.en}</p>
+            <Label>To</Label>
+            <p className="mt-[7px] font-display text-[38px] uppercase leading-none">Forever</p>
           </div>
         </div>
         <div className="mt-[16px]">
           <Label>Route</Label>
-          <p className="mt-[6px] font-mono text-[18px] uppercase tracking-[0.2em]">You → Forever</p>
+          <p className="mt-[6px] font-mono text-[17px] uppercase tracking-[0.18em]">Memory → Archive</p>
         </div>
 
         <Rule />
 
-        <div className="grid grid-cols-2 gap-x-[40px] gap-y-[18px]">
+        <div className="grid grid-cols-3 gap-x-[14px] gap-y-[18px]">
+          <div>
+            <Label>Flight</Label>
+            <p className="mt-[6px] font-mono text-[20px] uppercase tracking-[0.08em]">{scent.code}</p>
+          </div>
+          <div>
+            <Label>Gate</Label>
+            <p className="mt-[6px] font-mono text-[20px] uppercase tracking-[0.08em]">{t.pass.gateValue}</p>
+          </div>
+          <div className="text-right">
+            <Label>Seat</Label>
+            <p className="mt-[6px] font-mono text-[20px] uppercase tracking-[0.08em]">{seat}</p>
+          </div>
+          <div>
+            <Label>Boarding</Label>
+            <p className="mt-[6px] font-mono text-[18px] tracking-[0.06em]">{stamp}</p>
+          </div>
+          <div className="col-span-2 text-right">
+            <Label>Date</Label>
+            <p className="mt-[6px] font-mono text-[18px] tracking-[0.06em]">{printedDate}</p>
+          </div>
+        </div>
+
+        <div className="mt-auto grid grid-cols-2 gap-x-[14px] border-t border-[color:var(--color-line)] pt-[16px]">
           <div>
             <Label>Edition</Label>
-            <p className="mt-[6px] font-display text-[25px] uppercase leading-none">{edition.no} · {edition.code}</p>
+            <p className="mt-[6px] font-display text-[22px] uppercase leading-none">{edition.no} · {edition.code}</p>
           </div>
           <div className="text-right">
-            <Label>{t.pass.flight}</Label>
-            <p className="mt-[6px] font-mono text-[20px] uppercase tracking-[0.1em]">{scent.code}</p>
-          </div>
-          <div>
-            <Label>{t.pass.date}</Label>
-            <p className="mt-[6px] font-mono text-[16px] tracking-[0.06em]">{printedDate}</p>
-          </div>
-          <div className="text-right">
-            <Label>{t.pass.boarding}</Label>
-            <p className="mt-[6px] font-mono text-[16px] tracking-[0.06em]">{stamp}</p>
-          </div>
-          <div>
-            <Label>{t.pass.gate}</Label>
-            <p className="mt-[6px] font-mono text-[18px] uppercase tracking-[0.1em]">{t.pass.gateValue}</p>
-          </div>
-          <div className="text-right">
-            <Label>{t.pass.seat}</Label>
-            <p className="mt-[6px] font-mono text-[18px] uppercase tracking-[0.1em]">{seat}</p>
-          </div>
-        </div>
-
-        <div className="mt-[12px]">
-          <Label>Notes</Label>
-          <p className="mt-[7px] font-mono text-[13px] uppercase leading-[1.6] tracking-[0.14em] text-ink-soft">
-            Thank you for sharing your moment with us.
-          </p>
-        </div>
-
-        <div className="mt-auto flex items-end justify-between gap-[24px]">
-          <div className="min-w-0">
-            <Barcode />
-            <p className="mt-[5px] font-mono text-[10px] tracking-[0.16em] text-silver-dim">{DOMAIN}</p>
-          </div>
-          <div className="shrink-0 border border-[color:var(--color-ink)] p-[6px]">
-            <Qr cell={4} seed={hashSeed(serial)} />
+            <Label>Serial</Label>
+            <p className="mt-[6px] font-mono text-[16px] tracking-[0.06em]">{serial}</p>
           </div>
         </div>
       </div>
 
-      <EdgeMark side="right">Scented memories. Made to last.</EdgeMark>
+      {/* ---- Perforation between main info and the tear-off stub -------- */}
+      <div className="relative w-[40px] shrink-0 overflow-hidden">
+        <span className="absolute left-1/2 top-[22px] bottom-[22px] w-px -translate-x-1/2 border-l border-dashed border-[color:var(--color-ink)]" />
+        <span className="absolute left-1/2 top-0 h-[11px] w-[22px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--color-paper)] ring-1 ring-[color:var(--color-line)]" />
+        <span className="absolute left-1/2 bottom-0 h-[11px] w-[22px] -translate-x-1/2 translate-y-1/2 rounded-full bg-[color:var(--color-paper)] ring-1 ring-[color:var(--color-line)]" />
+      </div>
+
+      {/* ---- Tear-off stub (nearest the printer slot) ------------------- */}
+      <div
+        className="flex h-full shrink-0 flex-col px-[24px] py-[24px]"
+        style={{ width: BOARDING_STUB_W }}
+      >
+        <Label>Pass No.</Label>
+        <p className="mt-[5px] font-mono text-[19px] uppercase tracking-[0.06em]">{passNo}</p>
+        <div className="mt-[12px]">
+          <Label>Serial</Label>
+          <p className="mt-[4px] font-mono text-[14px] tracking-[0.06em]">{serial}</p>
+        </div>
+
+        <Rule />
+
+        <div className="grid grid-cols-2 gap-x-[14px] gap-y-[13px]">
+          <div>
+            <Label>From</Label>
+            <p className="mt-[4px] font-display text-[19px] uppercase leading-none">Now</p>
+          </div>
+          <div className="text-right">
+            <Label>To</Label>
+            <p className="mt-[4px] font-display text-[19px] uppercase leading-none">Forever</p>
+          </div>
+          <div>
+            <Label>Flight</Label>
+            <p className="mt-[4px] font-mono text-[14px] uppercase tracking-[0.06em]">{scent.code}</p>
+          </div>
+          <div className="text-right">
+            <Label>Seat</Label>
+            <p className="mt-[4px] font-mono text-[14px] uppercase tracking-[0.06em]">{seat}</p>
+          </div>
+          <div>
+            <Label>Date</Label>
+            <p className="mt-[4px] font-mono text-[12px] tracking-[0.04em]">{printedDate}</p>
+          </div>
+          <div className="text-right">
+            <Label>Time</Label>
+            <p className="mt-[4px] font-mono text-[12px] tracking-[0.04em]">{stamp}</p>
+          </div>
+        </div>
+
+        <div className="mt-auto">
+          <Barcode />
+          <div className="mt-[10px] flex items-end justify-between gap-[10px]">
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-silver-dim">
+              Ed. {edition.no}
+            </span>
+            <div className="shrink-0 border border-[color:var(--color-ink)] p-[5px]">
+              <Qr cell={3} seed={hashSeed(serial)} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <EdgeMark side="right">One of the archive. Made to last.</EdgeMark>
     </article>
   );
 }
@@ -238,17 +303,6 @@ function EdgeMark({ side, children }: { side: "left" | "right"; children: React.
       >
         {children}
       </span>
-    </div>
-  );
-}
-
-function Field({ label, value, big }: { label: string; value: string; big?: boolean }) {
-  return (
-    <div className="min-w-0">
-      <Label>{label}</Label>
-      <p className={`mt-[6px] truncate font-mono uppercase tracking-[0.08em] ${big ? "text-[24px]" : "text-[16px]"}`}>
-        {value}
-      </p>
     </div>
   );
 }

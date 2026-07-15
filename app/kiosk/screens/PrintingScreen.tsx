@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import BoardingPass, { BOARDING_W, BOARDING_H, BOARDING_SCREEN_W } from "@/app/components/BoardingPass";
+import BoardingPass, { BOARDING_W, BOARDING_H, BOARDING_SCREEN_W, PASS_SLOT_W } from "@/app/components/BoardingPass";
 import MagazineCover from "@/app/components/MagazineCover";
 import { type Scent } from "@/app/lib/edition";
 import { type FilmArtifactProps } from "@/app/lib/film";
@@ -180,67 +180,85 @@ export default function PrintingScreen({
         )}
       </div>
 
-      <div className="flex flex-1 flex-col items-center justify-start px-[40px] pt-[230px]">
-        <div className="relative z-[20]" style={{ width: slitW }}>
-          <div className="h-[22px] w-full rounded-t-[6px] bg-ink" />
-          <div className="h-[9px] w-full bg-ink-soft shadow-[inset_0_-6px_10px_rgba(0,0,0,0.6)]" />
-        </div>
-
-        <div className="relative overflow-hidden rounded-[2px] border border-[color:var(--color-line)] bg-paper-bright" style={{ width: winW, height: winH }}>
-          <div
-            className={
-              done
-                ? "anim-quiet-confirm"
-                : !printStarted
-                  ? "anim-fade-up"
-                  : "print-tremor"
-            }
-            style={{
-              clipPath:
-                printStarted
-                  ? `inset(0 0 ${(1 - ease) * 100}% 0)`
-                  : undefined,
-              filter: printStarted
-                ? `drop-shadow(0 ${16 * ease}px ${30 * ease}px rgba(0,0,0,${0.2 * ease}))`
-                : "drop-shadow(0 20px 44px rgba(0,0,0,0.16))",
-            }}
-          >
-            {isCover ? (
+      {isCover ? (
+        /* FILM — feeds from a top slit, top-down reveal (unchanged) */
+        <div className="flex flex-1 flex-col items-center justify-start px-[40px] pt-[230px]">
+          <div className="relative z-[20]" style={{ width: slitW }}>
+            <div className="h-[22px] w-full rounded-t-[6px] bg-ink" />
+            <div className="h-[9px] w-full bg-ink-soft shadow-[inset_0_-6px_10px_rgba(0,0,0,0.6)]" />
+          </div>
+          <div className="relative overflow-hidden rounded-[2px] border border-[color:var(--color-line)] bg-paper-bright" style={{ width: winW, height: winH }}>
+            <div
+              className={done ? "anim-quiet-confirm" : !printStarted ? "anim-fade-up" : "print-tremor"}
+              style={{
+                clipPath: printStarted ? `inset(0 0 ${(1 - ease) * 100}% 0)` : undefined,
+                filter: printStarted
+                  ? `drop-shadow(0 ${16 * ease}px ${30 * ease}px rgba(0,0,0,${0.2 * ease}))`
+                  : "drop-shadow(0 20px 44px rgba(0,0,0,0.16))",
+              }}
+            >
               <div style={{ width: 640, transformOrigin: "top center" }}>
                 <MagazineCover {...filmProps} />
               </div>
-            ) : (
-              <div
-                style={{
-                  width: BOARDING_W,
-                  height: BOARDING_H,
-                  transform: `scale(${passScale})`,
-                  transformOrigin: "top left",
-                }}
-              >
-                <BoardingPass
-                  frames={frames}
-                  scent={scent}
-                  serial={serial}
-                  date={issuedDate}
-                  time={issuedTime}
-                />
-              </div>
+            </div>
+            {!printStarted && !done && (
+              <div className="pointer-events-none absolute inset-0 border border-[color:var(--color-line)] opacity-70" />
+            )}
+            {printStarted && !done && (
+              <>
+                <div className="printing-scan pointer-events-none absolute inset-x-0 top-0 h-px bg-ink/35" />
+                <div className="print-noise pointer-events-none absolute inset-0 opacity-[0.035] mix-blend-multiply" />
+              </>
             )}
           </div>
-
-          {!printStarted && !done && (
-            <div className="pointer-events-none absolute inset-0 border border-[color:var(--color-line)] opacity-70" />
-          )}
-
-          {printStarted && !done && (
-            <>
-              <div className="printing-scan pointer-events-none absolute inset-x-0 top-0 h-px bg-ink/35" />
-              <div className="print-noise pointer-events-none absolute inset-0 opacity-[0.035] mix-blend-multiply" />
-            </>
-          )}
         </div>
-      </div>
+      ) : !printStarted ? (
+        /* PASS review — the full ticket, centred, no printer slot */
+        <div className="flex flex-1 items-center justify-center px-[40px]">
+          <div
+            className="anim-fade-up relative overflow-hidden rounded-[2px] border border-[color:var(--color-line)] bg-paper-bright shadow-[0_28px_60px_-36px_rgba(0,0,0,0.5)]"
+            style={{ width: winW, height: winH }}
+          >
+            <div style={{ width: BOARDING_W, height: BOARDING_H, transform: `scale(${passScale})`, transformOrigin: "top left" }}>
+              <BoardingPass frames={frames} scent={scent} serial={serial} date={issuedDate} time={issuedTime} />
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* PASS printing / done — a vertical printer slot at the screen's right
+           edge; the ticket feeds out of it toward the left. */
+        <div className="relative flex-1">
+          <div
+            className="absolute right-0 top-1/2 -translate-y-1/2"
+            style={{ width: winW + PASS_SLOT_W - 28, height: winH + 44 }}
+          >
+            {/* the ticket window, sitting to the left of the slot */}
+            <div
+              className={`absolute left-0 top-1/2 -translate-y-1/2 overflow-hidden rounded-l-[2px] border border-[color:var(--color-line)] bg-paper-bright ${done ? "anim-quiet-confirm" : "print-tremor"}`}
+              style={{
+                width: winW,
+                height: winH,
+                clipPath: reducedMotion ? undefined : `inset(0 0 0 ${(1 - ease) * 100}%)`,
+                filter: `drop-shadow(-14px 0 30px rgba(0,0,0,${0.16 * ease}))`,
+              }}
+            >
+              <div style={{ width: BOARDING_W, height: BOARDING_H, transform: `scale(${passScale})`, transformOrigin: "top left" }}>
+                <BoardingPass frames={frames} scent={scent} serial={serial} date={issuedDate} time={issuedTime} />
+              </div>
+              {!done && (
+                <div className="print-noise pointer-events-none absolute inset-0 opacity-[0.03] mix-blend-multiply" />
+              )}
+            </div>
+            {/* right-edge printer slot — quiet, machined, minimal */}
+            <div
+              className="absolute right-0 top-1/2 z-[10] -translate-y-1/2 rounded-[8px] bg-ink shadow-[0_20px_40px_-26px_rgba(0,0,0,0.5)]"
+              style={{ width: PASS_SLOT_W, height: winH + 44 }}
+            >
+              <div className="absolute left-1/2 top-1/2 h-[calc(100%-26px)] w-[9px] -translate-x-1/2 -translate-y-1/2 rounded-[3px] bg-[#050505] shadow-[inset_0_0_6px_rgba(0,0,0,0.9)]" />
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="px-[80px] pb-[80px] pt-[10px]">
         {!printStarted ? (
