@@ -205,9 +205,15 @@ export default function CaptureScreen({
                   }`}
                 >
                   {done ? (
-                    <Portrait seed={i} />
+                    <>
+                      <Portrait seed={i} />
+                      <RegMark className="left-[6px] top-[6px]" />
+                      <RegMark className="right-[6px] top-[6px] rotate-90" />
+                      <RegMark className="bottom-[6px] right-[6px] rotate-180" />
+                      <RegMark className="bottom-[6px] left-[6px] -rotate-90" />
+                    </>
                   ) : (
-                    <div className="flex h-full items-center justify-center">
+                    <div className="flex h-full flex-col items-center justify-center gap-[6px] border border-dashed border-[color:var(--color-line)]">
                       <span className="font-display text-[64px] italic text-silver/50">
                         {i + 1}
                       </span>
@@ -215,7 +221,7 @@ export default function CaptureScreen({
                   )}
                 </div>
                 <span className="mt-[8px] block font-mono text-[11px] tracking-[0.24em] text-silver-dim">
-                  {String(i + 1).padStart(2, "0")}
+                  FRAME {String(i + 1).padStart(2, "0")} · {done ? "REGISTERED" : "OPEN"}
                 </span>
               </div>
             );
@@ -239,6 +245,16 @@ function Corner({ className = "" }: { className?: string }) {
   return (
     <span
       className={`pointer-events-none absolute h-[40px] w-[40px] border-l-2 border-t-2 border-paper ${className}`}
+    />
+  );
+}
+
+/** Small registration crop-mark shown on a locked contact-sheet frame. */
+function RegMark({ className = "" }: { className?: string }) {
+  return (
+    <span
+      className={`proof-lock-mark pointer-events-none absolute h-[12px] w-[12px] border-l border-t border-[color:var(--color-ink)] ${className}`}
+      aria-hidden="true"
     />
   );
 }

@@ -66,6 +66,12 @@
   --touch-min: 96px;
   --z-overlay: 40;
   --z-toggle: 60;
+
+  /* ISSUE CORE + Proof Lock — printing-only motion family */
+  --ease-metal: cubic-bezier(0.22, 1.06, 0.36, 1);
+  --ease-register: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --z-issue-core: 30;
+  --z-modal: 90;
 }
 
 * {
@@ -773,4 +779,70 @@ body {
   .scent-scene .scene-inner { opacity: 1; transform: none; transition: none; }
   .scent-hint { animation: none; }
   .scent-select::after { transition: none; }
+}
+
+/* ------------------------------------------------------------
+   ISSUE CORE — the printing-signature object
+   ------------------------------------------------------------ */
+.issue-core {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.issue-core__label {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-silver-dim);
+  white-space: nowrap;
+}
+@keyframes issueCoreSweep {
+  0% { transform: translateX(0); opacity: 0; }
+  40% { opacity: 0.6; }
+  100% { transform: translateX(260%); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .issue-core rect[fill*="issueCoreSweep"],
+  .issue-core [style*="issueCoreSweep"] {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+}
+
+/* ------------------------------------------------------------
+   PROOF LOCK — the review→printing commit ritual
+   ------------------------------------------------------------ */
+@keyframes proofMarkConverge {
+  from { opacity: 0; transform: scale(1.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+.proof-lock-mark {
+  animation: proofMarkConverge var(--motion-standard) var(--ease-register) both;
+}
+@keyframes paperCutWipe {
+  from { clip-path: inset(0 0 0 0); }
+  to { clip-path: inset(0 0 100% 0); }
+}
+.paper-cut-exit {
+  animation: paperCutWipe var(--motion-fast) var(--ease-exit) both;
+}
+
+/* ------------------------------------------------------------
+   Inactivity / Staff Mode overlays
+   ------------------------------------------------------------ */
+.kiosk-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  animation: fadeIn var(--motion-standard) ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .proof-lock-mark, .paper-cut-exit, .kiosk-overlay { animation-duration: 120ms; }
 }

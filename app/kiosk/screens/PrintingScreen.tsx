@@ -1,16 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import BoardingPass, { BOARDING_W, BOARDING_H, BOARDING_SCREEN_W, PASS_SLOT_W } from "@/app/components/BoardingPass";
 import MagazineCover from "@/app/components/MagazineCover";
+import IssueCore, { type IssueCoreState } from "@/app/components/motion/IssueCore";
 import { type Scent } from "@/app/lib/edition";
 import { type FilmArtifactProps } from "@/app/lib/film";
 import { useLang } from "@/app/lib/i18n";
 import { usePrintStyle } from "@/app/lib/printStyle";
+import { type ErrorKind } from "@/app/lib/errors";
 
 const COVER_DURATION = 3900;
 const PASS_DURATION = 4100;
 const REDUCED_MOTION_DURATION = 120;
+
+// Proof Lock + ISSUE CORE ritual timings (ms). Full-motion vs reduced-motion
+// pairs — reduced motion shortens each step, it never skips a state.
+const PROOF_LOCK_MS = { full: 620, reduced: 220 };
+const CALIBRATE_MS = { full: 300, reduced: 140 };
+const REGISTER_MS = { full: 360, reduced: 140 };
+const RELEASE_MS = { full: 260, reduced: 140 };
 
 // Stepper-motor feed curve: progress (0-1) -> eject fraction (0-1).
 // Mirrors the `receiptOut` keyframe in globals.css — brief catches (holds)
@@ -54,6 +63,24 @@ function mechanicalFeed(progress: number) {
   return 1;
 }
 
+// Printing state machine — one-directional, shared by PASS and FILM.
+// review -> proofLock -> preparing -> registered -> issuing -> completing -> ready
+type Stage =
+  | "review"
+  | "proofLock"
+  | "preparing"
+  | "registered"
+  | "issuing"
+  | "completing"
+  | "ready";
+
+const ISSUE_CORE_STATE: Partial<Record<Stage, IssueCoreState>> = {
+  preparing: "calibrate",
+  registered: "register",
+  issuing: "issue",
+  completing: "release",
+};
+
 export default function PrintingScreen({
   frames,
   scent,
@@ -63,6 +90,8 @@ export default function PrintingScreen({
   filmProps,
   onRetake,
   onClaim,
+  onPrintError,
+  simulateFailure = null,
 }: {
   frames: number[];
   scent: Scent;
@@ -72,20 +101,26 @@ export default function PrintingScreen({
   filmProps: FilmArtifactProps;
   onRetake: () => void;
   onClaim: () => void;
+  onPrintError?: (kind: ErrorKind) => void;
+  /** Staff Mode / QA only — forces the issuing phase to fail partway through. */
+  simulateFailure?: ErrorKind | null;
 }) {
   const { t, sub } = useLang();
   const { style } = usePrintStyle();
+  const [stage, setStage] = useState<Stage>("review");
   const [pct, setPct] = useState(0);
-  const [done, setDone] = useState(false);
-  const [printStarted, setPrintStarted] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const isCover = style === "cover";
+  const printStarted = stage !== "review" && stage !== "proofLock";
+  const done = stage === "ready";
   const duration = reducedMotion
     ? REDUCED_MOTION_DURATION
     : isCover
       ? COVER_DURATION
       : PASS_DURATION;
+  const ms = reducedMotion ? "reduced" : "full";
   // PASS is now a horizontal boarding ticket, shown wide on screen.
   const passWinW = BOARDING_SCREEN_W;
   const passScale = passWinW / BOARDING_W;
@@ -101,8 +136,52 @@ export default function PrintingScreen({
     return () => media.removeEventListener("change", updatePreference);
   }, []);
 
+  const clearTimers = useCallback(() => {
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
+  }, []);
+  useEffect(() => clearTimers, [clearTimers]);
+
+  // Proof Lock -> Preparing -> Registered handoff. Two-tap-proof: once
+  // stage leaves "review" the print button no longer exists, so a second
+  // tap cannot start a second job.
+  const startPrintRitual = useCallback(() => {
+    if (stage !== "review") return;
+    setStage("proofLock");
+    const t1 = setTimeout(() => setStage("preparing"), PROOF_LOCK_MS[ms]);
+    timers.current.push(t1);
+  }, [stage, ms]);
+
   useEffect(() => {
-    if (!printStarted) return;
+    if (stage === "preparing") {
+      const t1 = setTimeout(() => setStage("registered"), CALIBRATE_MS[ms]);
+      timers.current.push(t1);
+      return () => clearTimeout(t1);
+    }
+    if (stage === "registered") {
+      const t1 = setTimeout(() => {
+        setPct(0);
+        setStage("issuing");
+      }, REGISTER_MS[ms]);
+      timers.current.push(t1);
+      return () => clearTimeout(t1);
+    }
+    if (stage === "completing") {
+      const t1 = setTimeout(() => setStage("ready"), RELEASE_MS[ms]);
+      timers.current.push(t1);
+      return () => clearTimeout(t1);
+    }
+  }, [stage, ms]);
+
+  // ISSUING — paper feed progress, synced 1:1 with ISSUE CORE's phase.
+  // The fail trigger (Staff Mode / QA only) is scheduled on its own timer
+  // rather than decided inside the rAF tick: browsers throttle or suspend
+  // requestAnimationFrame for a backgrounded/inactive tab, and a
+  // correctness-critical event like "the print failed" must not depend on
+  // paint frames actually being delivered. rAF here only drives the visual
+  // feed animation.
+  useEffect(() => {
+    if (stage !== "issuing") return;
 
     const start = performance.now();
     let raf = 0;
@@ -111,7 +190,12 @@ export default function PrintingScreen({
       if (finished) return;
       finished = true;
       setPct(1);
-      setDone(true);
+      setStage("completing");
+    };
+    const fail = () => {
+      if (finished) return;
+      finished = true;
+      onPrintError?.(simulateFailure ?? "print-failed");
     };
     const tick = (now: number) => {
       const p = Math.min(1, (now - start) / duration);
@@ -121,11 +205,15 @@ export default function PrintingScreen({
     };
     raf = requestAnimationFrame(tick);
     const guard = setTimeout(finish, duration + 700);
+    const failTimer = simulateFailure
+      ? setTimeout(fail, duration * (0.35 + Math.random() * 0.2))
+      : null;
     return () => {
       cancelAnimationFrame(raf);
       clearTimeout(guard);
+      if (failTimer) clearTimeout(failTimer);
     };
-  }, [duration, printStarted]);
+  }, [duration, stage, simulateFailure, onPrintError]);
 
   const ease = mechanicalFeed(pct);
   const title = isCover
@@ -150,8 +238,21 @@ export default function PrintingScreen({
           ? "フォトフィルムを印刷しています"
           : sub?.print.title;
 
+  const issueCoreState = ISSUE_CORE_STATE[stage];
+  // FILM's slit sits at the top; PASS's slot sits at the right edge — the
+  // core stays anchored to whichever printer mouth is physically in frame,
+  // never overlapping paper, photos, QR, or stub.
+  const issueCore = issueCoreState && (
+    <div
+      className={isCover ? "absolute left-1/2 top-[168px] z-[30] -translate-x-1/2" : "absolute right-[64px] top-[calc(50%-190px)] z-[30]"}
+      style={{ opacity: stage === "completing" ? 1 : 1 }}
+    >
+      <IssueCore state={issueCoreState} progress={pct} size={96} />
+    </div>
+  );
+
   return (
-    <div className="flex h-full flex-col">
+    <div className="relative flex h-full flex-col">
       {/* Scoped, reduced-motion-aware micro paper tremor — a hair of
           mechanical judder while the artefact is actively feeding. Kept
           local to this screen; globals.css is not touched. */}
@@ -182,7 +283,8 @@ export default function PrintingScreen({
 
       {isCover ? (
         /* FILM — feeds from a top slit, top-down reveal (unchanged) */
-        <div className="flex flex-1 flex-col items-center justify-start px-[40px] pt-[230px]">
+        <div className="relative flex flex-1 flex-col items-center justify-start px-[40px] pt-[230px]">
+          {issueCore}
           <div className="relative z-[20]" style={{ width: slitW }}>
             <div className="h-[22px] w-full rounded-t-[6px] bg-ink" />
             <div className="h-[9px] w-full bg-ink-soft shadow-[inset_0_-6px_10px_rgba(0,0,0,0.6)]" />
@@ -204,7 +306,7 @@ export default function PrintingScreen({
             {!printStarted && !done && (
               <div className="pointer-events-none absolute inset-0 border border-[color:var(--color-line)] opacity-70" />
             )}
-            {printStarted && !done && (
+            {stage === "issuing" && (
               <>
                 <div className="printing-scan pointer-events-none absolute inset-x-0 top-0 h-px bg-ink/35" />
                 <div className="print-noise pointer-events-none absolute inset-0 opacity-[0.035] mix-blend-multiply" />
@@ -212,22 +314,33 @@ export default function PrintingScreen({
             )}
           </div>
         </div>
-      ) : !printStarted ? (
-        /* PASS review — the full ticket, centred, no printer slot */
-        <div className="flex flex-1 items-center justify-center px-[40px]">
+      ) : stage === "review" || stage === "proofLock" ? (
+        /* PASS review + Proof Lock — the full ticket, centred, no printer slot */
+        <div className="relative flex flex-1 items-center justify-center px-[40px]">
           <div
-            className="anim-fade-up relative overflow-hidden rounded-[2px] border border-[color:var(--color-line)] bg-paper-bright shadow-[0_28px_60px_-36px_rgba(0,0,0,0.5)]"
+            className={`relative overflow-hidden rounded-[2px] border bg-paper-bright shadow-[0_28px_60px_-36px_rgba(0,0,0,0.5)] ${
+              stage === "proofLock" ? "border-[color:var(--color-ink)]" : "border-[color:var(--color-line)]"
+            } ${stage === "review" ? "anim-fade-up" : ""}`}
             style={{ width: winW, height: winH }}
           >
             <div style={{ width: BOARDING_W, height: BOARDING_H, transform: `scale(${passScale})`, transformOrigin: "top left" }}>
               <BoardingPass frames={frames} scent={scent} serial={serial} date={issuedDate} time={issuedTime} />
             </div>
+            {stage === "proofLock" && (
+              <>
+                <ProofLockMark className="left-[18px] top-[18px]" />
+                <ProofLockMark className="right-[18px] top-[18px] rotate-90" />
+                <ProofLockMark className="bottom-[18px] right-[18px] rotate-180" />
+                <ProofLockMark className="bottom-[18px] left-[18px] -rotate-90" />
+              </>
+            )}
           </div>
         </div>
       ) : (
         /* PASS printing / done — a vertical printer slot at the screen's right
            edge; the ticket feeds out of it toward the left. */
         <div className="relative flex-1">
+          {issueCore}
           <div
             className="absolute right-0 top-1/2 -translate-y-1/2"
             style={{ width: winW + PASS_SLOT_W - 28, height: winH + 44 }}
@@ -261,7 +374,7 @@ export default function PrintingScreen({
       )}
 
       <div className="px-[80px] pb-[80px] pt-[10px]">
-        {!printStarted ? (
+        {stage === "review" ? (
           <div className="grid grid-cols-[1fr_1.45fr] gap-[24px]">
             <button
               onClick={onRetake}
@@ -276,11 +389,7 @@ export default function PrintingScreen({
               )}
             </button>
             <button
-              onClick={() => {
-                setPct(0);
-                setDone(false);
-                setPrintStarted(true);
-              }}
+              onClick={startPrintRitual}
               className="press flex min-h-[90px] items-center justify-center border border-[color:var(--color-ink)] bg-ink px-[24px] py-[24px] text-paper"
               style={{ cursor: "pointer" }}
             >
@@ -294,18 +403,32 @@ export default function PrintingScreen({
               </span>
             </button>
           </div>
-        ) : !done ? (
+        ) : stage === "proofLock" ? (
+          <div className="anim-fade-up flex min-h-[90px] flex-col items-center justify-center gap-[6px] border border-[color:var(--color-ink)] px-[24px] py-[20px]">
+            <span className="font-mono text-[18px] uppercase tracking-[0.32em]">
+              {edition_label(serial)} · {issuedDate} {issuedTime}
+            </span>
+            <span className="font-mono text-[13px] uppercase tracking-[0.4em] text-silver-dim">
+              READY TO ISSUE
+            </span>
+          </div>
+        ) : stage !== "ready" ? (
           <>
             <div className="flex items-center justify-between font-mono text-[18px] uppercase tracking-[0.3em] text-silver-dim">
               <span>
                 {scent.mood.en} · {isCover ? "printing film" : t.print.progress}
               </span>
-              <span className="text-ink-soft">{feedStage(pct)}</span>
+              <span className="text-ink-soft">
+                {stage === "preparing" || stage === "registered" ? "Registering" : feedStage(pct)}
+              </span>
             </div>
             <div className="mt-[16px] h-px w-full bg-[color:var(--color-line-soft)]">
               <div
                 className="h-full bg-[color:var(--color-line)]"
-                style={{ width: `${pct * 100}%`, transition: "width 80ms linear" }}
+                style={{
+                  width: `${stage === "issuing" ? pct * 100 : stage === "completing" ? 100 : 0}%`,
+                  transition: "width 80ms linear",
+                }}
               />
             </div>
           </>
@@ -341,5 +464,18 @@ export default function PrintingScreen({
         )}
       </div>
     </div>
+  );
+}
+
+function edition_label(serial: string) {
+  return `SERIAL ${serial}`;
+}
+
+function ProofLockMark({ className = "" }: { className?: string }) {
+  return (
+    <span
+      className={`proof-lock-mark pointer-events-none absolute h-[28px] w-[28px] border-l-2 border-t-2 border-[color:var(--color-ink)] ${className}`}
+      aria-hidden="true"
+    />
   );
 }
