@@ -86,3 +86,24 @@ See `ORIGINKIT_USAGE.md` — SVGs are byte-identical to the existing
 `public/assets/chrome/` library (single embedded rasters; not fragmentable);
 the mp4 was profiled and re-encoded 6.5MB→63KB and used once in FRAME CORE's
 `registering` state.
+
+## 2026-07-16 · pc。lips.mp4 (ACUSE_v)
+
+- Audit: `cmp` byte-identical to the already-shipped Idle hero loop
+  `public/assets/chrome/silver-lips.mp4` (2,336,090 bytes, h264,
+  2880×2880, 32fps, 5.375s, 3.48Mbps)
+- Classification: **F (already shipped)** — no action; the Idle silver-lips
+  ritual is a protected design element and its asset is already in place
+- Performance note for a future, explicitly-approved pass: the Idle loop
+  decodes 2880×2880@32fps continuously while displayed at 850×600. A
+  ~1152px re-encode would cut Pi decode cost roughly 6× with no visible
+  difference at display size — **not applied**, because the Idle hero and
+  its source assets are on the do-not-touch list
+
+## 2026-07-16 · Re-supply of Draggable Sticker / Round Carousel / Box Carousel
+
+The same three sources were re-sent in full. Diffed against the versions
+audited above — no new code paths, props, or behaviors beyond what was
+already classified and integrated in Loop 1 (`AUTONOMOUS_DESIGN_LOG.md`).
+Per the no-repeat rule, no re-implementation; entries above remain the
+record.

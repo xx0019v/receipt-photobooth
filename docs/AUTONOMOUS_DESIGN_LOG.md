@@ -35,3 +35,21 @@ repeats a failed approach. Newest last.
   screenshots, don't assume a hang. React flush is async: assert DOM state
   in a `setTimeout`, never synchronously after dispatching events.
 - **Result:** 合格 (pass) — committed.
+
+## Loop 2 — 2026-07-16 · Re-supplied sources audit (no code change)
+
+- **Input:** Draggable Sticker / Round Carousel / Box Carousel re-sent in
+  full, plus `ACUSE/` (12 SVGs) and `ACUSE_v/` (2 mp4s).
+- **Audit:** the three carousel/sticker sources diff-checked against Loop 1's
+  audit — identical, already classified C/D/E and integrated; SVGs already
+  established as byte-identical to `public/assets/chrome/`. The one new
+  item, `pc。lips.mp4`, is byte-identical (`cmp`) to the shipped Idle hero
+  loop `silver-lips.mp4` → classification F (already shipped).
+- **Decision:** no re-implementation (no-repeat rule; Select screen is
+  frozen as passed). One performance finding logged for a future approved
+  pass: the Idle loop's 2880×2880@32fps decode is the heaviest ongoing cost
+  on a Pi and could be re-encoded ~1152px with no visible change — not
+  applied because the Idle hero asset is protected.
+- **Verify:** working tree clean (only third-party untracked `AGENTS.md`),
+  preview HTTP 200 on the Loop 1 build, no code delta → no rebuild needed.
+- **Result:** 合格 (registry update only) — committed.
