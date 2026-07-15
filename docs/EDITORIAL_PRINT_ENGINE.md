@@ -60,7 +60,31 @@ vertical scroll-snap sequence (no four-up menu):
 
 ## Status
 
-Foundation shipped on branch `ui/editorial-print-engine`: design/motion
-tokens, the Edition adapter + full customer-facing de-perfuming, and docs.
-Per-screen ritual polish (Capture paper-cut, Issuing registration-lock
-sequence, Frame/Pose) is the next implementation phase — see UI_QA_REPORT.md.
+**Phase 1** (shipped earlier on this branch): design/motion tokens, the
+Edition adapter + full customer-facing de-perfuming, docs.
+
+**Phase 2** (this pass) — the printing ritual and kiosk operability:
+
+- **ISSUE CORE** — a four-blade metal sculpture, the machine's signature
+  object, visible only during Printing and driven entirely by real print
+  state (never a decorative loop). See `ISSUE_CORE.md`.
+- **Proof Lock** — Review → Printing is now a short, deliberate commit
+  ritual (button removed, registration marks converge, serial/edition
+  confirmed) instead of an instant cut, preventing double-tap/double-print.
+- **Capture registration** — the 3-frame contact sheet now reads as
+  print-position registration (`FRAME 01 · REGISTERED` + crop marks) rather
+  than a plain numbered grid.
+- **Printing state machine** — `review → proofLock → preparing → registered →
+  issuing → completing → ready`, one direction, shared by PASS and FILM,
+  implemented in `PrintingScreen.tsx`.
+- **Error recovery** — CAMERA UNAVAILABLE / PRINTER OFFLINE / PAPER EMPTY /
+  PRINTING PAUSED, session state preserved across retry. See
+  `ERROR_RECOVERY.md`.
+- **Staff Mode** — hidden long-press + PIN, machine status, one working test
+  action. See `STAFF_MODE.md`.
+- **Inactivity** — a shared warning ("Session still active?") before an
+  auto-reset, excluded during Printing/Capture/Error. See `app/lib/inactivity.ts`.
+
+PASS/FILM paper geometry, photo sizes, crop, print-slot dimensions and feed
+direction are unchanged by this phase — see `UI_QA_REPORT.md` for the
+regression check.

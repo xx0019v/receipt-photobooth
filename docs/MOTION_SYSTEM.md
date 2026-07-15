@@ -4,16 +4,23 @@ One motion language for the whole machine. Every animation belongs to exactly
 one of **four families**; nothing floats, bounces, glows, or loops for
 decoration.
 
-## Four families
+## Six families (Printing phase adds two)
 
 1. **TYPE SET** — letter-spacing / weight / position settling as type is
    composed. Used for headings, edition names, step labels.
-2. **PAPER CUT** — `clip-path` / `mask` reveal of a sheet or panel. Used for
-   screen and artefact reveals.
-3. **REGISTRATION LOCK** — hairlines, numbers and marks snapping into their
-   printed position. Used for metadata, edition number, proof marks.
-4. **PAPER FEED** — mechanical stepped travel of paper being printed / ejected.
-   Used only in Issuing.
+2. **REGISTRATION LOCK** — hairlines, numbers and marks snapping into their
+   printed position. Used for metadata, edition number, proof marks, Proof
+   Lock's four corner marks, and Capture's per-frame crop marks.
+3. **PAPER CUT** — `clip-path` / `mask` reveal of a sheet or panel. Used for
+   screen and artefact reveals, and the Proof Lock → Printing transition.
+4. **ISSUE CORE** — the four-blade printing sculpture's own
+   calibrate/register/issue/release motion. See `ISSUE_CORE.md`. Used only
+   in Printing.
+5. **PAPER FEED** — mechanical stepped travel of paper being printed / ejected.
+   PASS: right→left. FILM: existing top-down direction. Used only in Issuing,
+   and always in phase with ISSUE CORE's `issue` state (same `progress` value).
+6. **COLLECT SETTLE** — a 1–2px settle + single opacity fade as Printing exits
+   to Done; no loop, nothing lingers on the Done screen.
 
 ## Tokens (single source — `app/globals.css :root`)
 
@@ -30,10 +37,15 @@ decoration.
 | `--stagger-type` | 42ms | per-letter / per-line type set |
 | `--stagger-photo` | 90ms | per-frame reveal |
 
+| `--ease-metal` | cubic-bezier(0.22,1.06,0.36,1) | ISSUE CORE register (small overshoot) |
+| `--ease-register` | cubic-bezier(0.22,0.61,0.36,1) | ISSUE CORE calibrate/release, Proof Lock marks |
+
 Screens must reference these variables, not hardcode durations. Existing
 custom keyframes (`fadeUp`, `reveal`, `scan`, `receiptOut`, `screenIn`,
-`quietConfirm`, scent-scroll reveal) already map onto these four families and
-are kept as the independent implementation.
+`quietConfirm`, scent-scroll reveal) already map onto these families and are
+kept as the independent implementation. Proof Lock / ISSUE CORE add
+`proofMarkConverge` and `paperCutWipe` (both in `globals.css`), scoped to the
+Printing screen and Capture's registration marks.
 
 ## Rules
 

@@ -37,7 +37,21 @@ If, later, specific OriginKit components are confirmed as Copy-Code /
 commercially-licensed, they will be added under `app/motion/originkit/` or
 `app/components/motion/` with a header recording: component name, original URL,
 license, modifications, and the screen(s) that use them — and folded into one
-of the four motion families, capped at 3 signature + 2 micro (max 5 total).
+of the motion families, capped at 3 signature + 2 micro (max 5 total).
+
+## Phase 2 (ISSUE CORE + Proof Lock) — re-checked, decision unchanged
+
+The same license-confirmability gap applies to this phase's work. ISSUE CORE
+(`app/components/motion/IssueCore.tsx`) — a four-blade radial-registration
+sculpture — and Proof Lock (corner marks converging, paper-cut exit) were
+each evaluated against OriginKit's catalog for a matching signature animation
+or micro-interaction; nothing on originkit.dev matches the specific
+"scattered blades registering into a seal, timed to real print progress"
+mechanic, and the generic reveal/lock interactions that *are* present there
+still carry the same unconfirmed reuse license from Phase 1. **0 additional
+components adopted.** Both are original implementations built directly from
+the four/six motion-family principles already documented above — no OriginKit
+DOM, class names, or dependency were copied.
 
 ## Adopted list
 
