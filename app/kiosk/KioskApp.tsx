@@ -9,7 +9,7 @@ import { LangProvider } from "@/app/lib/i18n";
 import { PrintStyleProvider } from "@/app/lib/printStyle";
 import { useInactivity } from "@/app/lib/inactivity";
 import { type ErrorKind } from "@/app/lib/errors";
-import { editionDate, editionTime, issueNo, scentById, serialNo, TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
+import { CAPTURE_TOTAL, editionDate, editionTime, issueNo, scentById, serialNo, TOTAL_SHOTS, type Scent } from "@/app/lib/edition";
 import { QUOTES, type Quote } from "@/app/lib/quotes";
 import { COVER_MOTIF_ASSETS, type ChromeAsset } from "@/app/lib/chromeAssets";
 import { ChromeArtworkProvider } from "@/app/lib/chromeArtwork";
@@ -24,6 +24,8 @@ import ScentScreen from "./screens/ScentScreen";
 import FormatSelectScreen from "./screens/FormatSelectScreen";
 import PoseScreen from "./screens/PoseScreen";
 import CaptureScreen from "./screens/CaptureScreen";
+import RegisteringFramesScreen from "./screens/RegisteringFramesScreen";
+import SelectFramesScreen from "./screens/SelectFramesScreen";
 import PrintingScreen from "./screens/PrintingScreen";
 import DoneScreen from "./screens/DoneScreen";
 import ErrorScreen from "./screens/ErrorScreen";
@@ -34,6 +36,8 @@ export type Phase =
   | "format"
   | "pose"
   | "capture"
+  | "registeringFrames"
+  | "selectFrames"
   | "printing"
   | "error"
   | "done";
@@ -51,6 +55,10 @@ export default function KioskApp({
 } = {}) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [frames, setFrames] = useState<number[]>([]);
+  // The 6 raw captures for the current session; never reordered. `frames`
+  // (above) becomes the 3 selected from this set, in the guest's chosen
+  // print order, once Select confirms.
+  const [capturedFrames, setCapturedFrames] = useState<number[]>([]);
   const [selectedScent, setSelectedScent] = useState<Scent>(() => scentById("nocturne"));
   const [serial, setSerial] = useState("0000-0000");
   const [issuedDate, setIssuedDate] = useState("");
@@ -90,13 +98,28 @@ export default function KioskApp({
     setPhase("scent");
   }, [externalSelectedScent]);
 
-  const retake = useCallback(() => {
+  // RETAKE ALL — from Proof or from Select: back to Capture for a fresh set
+  // of 6, discarding whatever was captured/selected before. Edition, format,
+  // serial, and issueDate are session-level and stay untouched.
+  const retakeAll = useCallback(() => {
     setFrames([]);
-    setPhase("pose");
+    setCapturedFrames([]);
+    setPhase("capture");
   }, []);
 
+  // Capture finishes with 6 raw frames — no serial/print state is touched
+  // yet; that only happens once Select confirms 3 of them.
   const finishCapture = useCallback((captured: number[]) => {
-    setFrames(captured);
+    setCapturedFrames(captured);
+    setPhase("registeringFrames");
+  }, []);
+
+  const framesRegistered = useCallback(() => {
+    setPhase("selectFrames");
+  }, []);
+
+  const confirmSelectedFrames = useCallback((selected: number[]) => {
+    setFrames(selected);
     if (serial === "0000-0000") {
       const issuedAt = new Date();
       setSerial(serialNo());
@@ -110,6 +133,7 @@ export default function KioskApp({
 
   const reset = useCallback(() => {
     setFrames([]);
+    setCapturedFrames([]);
     setSelectedScent(scentById("nocturne"));
     setSerial("0000-0000");
     setIssuedDate("");
@@ -196,9 +220,19 @@ export default function KioskApp({
         )}
         {phase === "capture" && (
           <CaptureScreen
-            total={TOTAL_SHOTS}
+            total={CAPTURE_TOTAL}
             scent={selectedScent}
             onComplete={finishCapture}
+          />
+        )}
+        {phase === "registeringFrames" && (
+          <RegisteringFramesScreen onDone={framesRegistered} />
+        )}
+        {phase === "selectFrames" && (
+          <SelectFramesScreen
+            capturedFrames={capturedFrames}
+            onConfirm={confirmSelectedFrames}
+            onRetakeAll={retakeAll}
           />
         )}
         {phase === "printing" && (
@@ -210,7 +244,7 @@ export default function KioskApp({
             issuedDate={issuedDate}
             issuedTime={issuedTime}
             filmProps={filmProps}
-            onRetake={retake}
+            onRetake={retakeAll}
             onClaim={claim}
             onPrintError={handlePrintError}
             simulateFailure={staffForceFailure ? "print-failed" : null}

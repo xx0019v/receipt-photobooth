@@ -66,14 +66,14 @@ const en = {
     hold: "Hold",
   },
   review: {
-    step: "Step IV · The Proof",
+    step: "Step V · The Proof",
     title: ["Your pass", "at a glance."],
     subTail: "Review the boarding pass before it is printed.",
     retake: "Retake",
     print: "Print my pass",
   },
   print: {
-    step: "Step V · Boarding",
+    step: "Step VI · Boarding",
     title: ["Printing your", "pass"],
     progress: "printing pass",
   },
@@ -158,14 +158,14 @@ const jp: Dict = {
     hold: "そのまま",
   },
   review: {
-    step: "STEP IV · 確認",
+    step: "STEP V · 確認",
     title: ["搭乗券を", "確認"],
     subTail: "印刷前に内容を確認してください。",
     retake: "撮り直す",
     print: "搭乗券を発券",
   },
   print: {
-    step: "STEP V · 搭乗手続き",
+    step: "STEP VI · 搭乗手続き",
     title: ["チケットを", "発券しています"],
     progress: "搭乗券",
   },
