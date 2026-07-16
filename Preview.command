@@ -1,51 +1,45 @@
 #!/bin/zsh
-# ダブルクリックで THE RECEIPT キオスクをプレビュー起動します。
-# 開発サーバーを立ち上げ、ブラウザで縦型キオスク画面を開きます。
-# 止めるときはこのターミナルウィンドウを閉じるか Ctrl+C。
 
-cd "$(dirname "$0")" || exit 1
-export PATH="/opt/homebrew/bin:$PATH"
+set -u
 
-echo "▲ THE RECEIPT — preview"
-echo "  作業ディレクトリ: $(pwd)"
+ROOT="/Users/exx/receipt-photobooth"
+LABEL="jp.xx0019v.receipt-photobooth-preview"
+PLIST_SOURCE="$ROOT/scripts/$LABEL.plist"
+PLIST_TARGET="$HOME/Library/LaunchAgents/$LABEL.plist"
+URL="http://localhost:3090"
 
-# Node の確認
-if ! command -v npm >/dev/null 2>&1; then
-  echo "✗ npm が見つかりません。'brew install node' を実行してください。"
-  read "?Enter で閉じます"
-  exit 1
-fi
+mkdir -p "$HOME/Library/LaunchAgents" "$HOME/Library/Logs"
+cp "$PLIST_SOURCE" "$PLIST_TARGET"
+chmod +x "$ROOT/scripts/preview-daemon.sh"
 
-# 最新版を取得（git リポジトリのときだけ・失敗しても続行）
-if [ -d .git ]; then
-  echo "• GitHub から最新を取得中..."
-  git pull --ff-only 2>&1 | sed 's/^/    /' || \
-    echo "    （ローカルに変更あり → 自動取得スキップ。今あるコードで起動）"
-fi
+launchctl bootout "gui/$UID/$LABEL" >/dev/null 2>&1 || true
+launchctl bootstrap "gui/$UID" "$PLIST_TARGET"
+launchctl enable "gui/$UID/$LABEL"
+launchctl kickstart -k "gui/$UID/$LABEL"
 
-# 依存関係（初回 or package.json 更新時）
-if [ ! -d node_modules ]; then
-  echo "• 初回セットアップ: npm install ..."
-  npm install || { echo "✗ install 失敗"; read "?Enter で閉じます"; exit 1; }
-fi
+print "▲ THE RECEIPT production preview"
+print "  GitHubの最新版を確認し、production buildを起動しています。"
 
-URL="http://localhost:3080"
+for _ in {1..180}; do
+  if curl -fsS -o /dev/null "$URL"; then
+    LOCAL_IP="$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || true)"
+    open "$URL"
+    print ""
+    print "✓ このMac: $URL"
+    if [[ -n "$LOCAL_IP" ]]; then
+      print "✓ 同じWi-FiのPC: http://${LOCAL_IP}:3090"
+    fi
+    print "✓ GitHub更新確認: 約60秒ごと"
+    print "✓ Macログイン時に自動起動"
+    print ""
+    print "ログ: $HOME/Library/Logs/receipt-photobooth-preview.log"
+    read "?Enterで閉じます"
+    exit 0
+  fi
+  sleep 1
+done
 
-# 既に別ウィンドウで起動中なら、その最新を開くだけ
-if curl -s -o /dev/null "$URL"; then
-  echo "• 既に起動中のサーバーを開きます ($URL)"
-  open "$URL"
-  echo "  ※最新コードを反映するには、古い起動ウィンドウを閉じてから開き直してください。"
-  read "?Enter で閉じます"
-  exit 0
-fi
-
-# サーバーが立ち上がったらブラウザを開く
-( for i in {1..60}; do
-    if curl -s -o /dev/null "$URL"; then open "$URL"; break; fi
-    sleep 0.5
-  done ) &
-
-echo "• 起動中... 数秒でブラウザが開きます ($URL)"
-echo "  縦型フル表示は、ブラウザで F11（全画面）+ ウィンドウを縦長に。"
-npm run dev -- -p 3080
+print "✗ 起動を確認できませんでした。"
+print "ログ: $HOME/Library/Logs/receipt-photobooth-preview-error.log"
+read "?Enterで閉じます"
+exit 1

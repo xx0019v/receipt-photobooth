@@ -21,19 +21,19 @@
 ⑦ DONE      お礼画面 + QR
 ```
 
-## PC でプレビュー（いつでも確認）
+## PCで最新版を常時確認
 
-**いちばん簡単**: プロジェクト内の **`Preview.command` をダブルクリック**。
-開発サーバーが起動し、数秒でブラウザが `http://localhost:3080` を開きます。
-- 縦型キオスク表示: ブラウザで **F11（全画面）**＋ウィンドウを縦長に。画面は自動で 1080×1920 にスケールします。
-- 止めるとき: 開いたターミナルを閉じるか `Ctrl+C`。
+プロジェクト内の **`Preview.command` を一度ダブルクリック**してください。
 
-**コマンドで起動する場合**:
+- production buildが `http://localhost:3090` で常時起動
+- Macログイン時に自動起動
+- `ui/editorial-print-engine` のGitHub更新を約60秒ごとに確認
+- 更新があればfast-forward、再build、preview再起動
+- 同じWi-FiのPCには `http://MacのIPアドレス:3090` を表示
+- 作業中の追跡済み差分がある場合、自動pullは安全のため保留
 
-```bash
-npm install      # 初回のみ
-npm run dev      # http://localhost:3080
-```
+縦型表示はブラウザを縦長にするか、開発者ツールで1080×1920を指定します。
+常駐ログは `~/Library/Logs/receipt-photobooth-preview.log` です。
 
 ### Raspberry Pi キオスク運用（後日）
 
