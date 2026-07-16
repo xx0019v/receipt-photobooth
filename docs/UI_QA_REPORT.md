@@ -209,3 +209,22 @@ regeneration), console clean throughout.
   live in the interactive Browser pane and is recorded here as the QA
   artifact instead of image files.
 clean.
+
+## Autonomous loop - Done collection boundary - 2026-07-16
+
+- Production source: `next build` then `next start -p 3090`.
+- Viewport: 1080x1920 portrait, zoom 100%.
+- PASS and FILM were each run from Idle through six-frame Capture, selection,
+  Proof, Printing, Claim, and Done.
+- The Done background and paper are no longer interactive reset surfaces.
+  NEW SESSION is the only manual reset control; the 12-second automatic return
+  is unchanged.
+- PASS maintains right-edge collection and right-to-left paper direction.
+- FILM maintains the existing vertical paper and below-collection direction.
+- PASS NEW SESSION: 920x92 at y=1762. FILM NEW SESSION: 920x82 at y=1800.
+- FILM collection rail: 920x88 at y=1398.
+- Document geometry remained exactly 1080x1920 with no scroll overflow.
+- `npx tsc --noEmit`, `git diff --check`, and production build passed.
+- Browser console errors 0; warnings 0; HTTP 200.
+- `npm run lint` is not automation-ready because it launches the initial
+  interactive ESLint setup prompt. No configuration file was generated.

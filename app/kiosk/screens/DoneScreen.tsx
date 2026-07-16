@@ -50,12 +50,7 @@ export default function DoneScreen({
 
   if (!isCover) {
     return (
-      <button
-        onClick={onReset}
-        aria-label={t.done.next}
-        className="absolute inset-0 h-full w-full text-left"
-        style={{ cursor: "pointer" }}
-      >
+      <div className="absolute inset-0 h-full w-full text-left">
         <div className="flex h-full flex-col">
           <Masthead />
           <div className="flex flex-1 flex-col px-[80px] pt-[66px]">
@@ -74,7 +69,7 @@ export default function DoneScreen({
             {/* the finished ticket, resting in the right-edge printer slot */}
             <div className="anim-fade-up delay-2 relative mt-[50px] flex-1">
               <div
-                className="absolute right-[-80px] top-1/2 -translate-y-1/2"
+                className="absolute right-[-80px] top-[36%] -translate-y-1/2"
                 style={{ width: BOARDING_SCREEN_W + PASS_SLOT_W - 28, height: PASS_DONE_H + 44 }}
               >
                 <div
@@ -109,7 +104,7 @@ export default function DoneScreen({
               {/* collection direction as a full instruction rail, not a
                   footnote — the guest's next physical action is the second
                   hero of this screen */}
-              <div className="anim-fade-up delay-3 absolute bottom-[340px] left-0 right-0 flex min-h-[88px] items-center justify-between border-t border-[color:var(--color-ink)] pt-[20px]">
+              <div className="anim-fade-up delay-3 absolute bottom-[340px] left-0 right-0 z-[20] flex min-h-[88px] items-center justify-between border-t border-[color:var(--color-ink)] pt-[20px]">
                 <span className="flex flex-col gap-[4px]">
                   <span className="font-mono text-[26px] uppercase tracking-[.32em]">Collect from the right</span>
                   {sub && <span className="jp-sub text-[17px] text-silver-dim">右側からお受け取りください</span>}
@@ -121,33 +116,39 @@ export default function DoneScreen({
             </div>
           </div>
 
-          <div className="anim-fade-up delay-4 px-[80px] pb-[86px]">
+          <div className="anim-fade-up delay-4 relative z-[30] px-[80px] pb-[66px]">
             <div className="relative h-px overflow-hidden bg-[color:var(--color-line-soft)]">
               <div className="absolute inset-y-0 left-0 bg-ink transition-[width] duration-1000 ease-linear" style={{ width: `${returnPct}%` }} />
             </div>
-            <div className="mt-[26px] flex items-center justify-between font-mono text-[16px] uppercase tracking-[.25em]">
-              <span className="text-silver-dim">{t.done.next}</span>
-              <span className="tabular-nums">{t.done.countdown(left)}</span>
-            </div>
+            <button
+              type="button"
+              onClick={onReset}
+              aria-label={t.done.next}
+              className="press mt-[20px] flex min-h-[92px] w-full items-center justify-between bg-ink px-[34px] text-paper"
+              style={{ cursor: "pointer" }}
+            >
+              <span className="flex flex-col gap-[5px] text-left">
+                <span className="font-mono text-[22px] uppercase tracking-[.32em]">{t.done.next}</span>
+                {sub && <span className="jp-sub text-[15px] text-paper/60">{sub.done.next}</span>}
+              </span>
+              <span className="font-mono text-[17px] uppercase tracking-[.22em] text-paper/72 tabular-nums">
+                {t.done.countdown(left)}
+              </span>
+            </button>
           </div>
         </div>
-      </button>
+      </div>
     );
   }
 
   return (
-    <button
-      onClick={onReset}
-      aria-label={t.done.next}
-      className="absolute inset-0 h-full w-full text-left"
-      style={{ cursor: "pointer" }}
-    >
+    <div className="absolute inset-0 h-full w-full text-left">
       <div className="flex h-full flex-col">
         <Masthead />
 
         <div className="flex flex-1 flex-col items-center px-[80px] pt-[32px] text-center">
           <p className="kicker anim-fade-up">
-            {scent.mood.en} — {scent.name} · {scent.code}
+            {scent.mood.en} / {scent.name} · {scent.code}
           </p>
 
           <h2 className="anim-fade-up delay-1 mt-[12px] font-display text-[72px] font-semibold leading-[0.92] tracking-[-0.02em]">
@@ -182,26 +183,30 @@ export default function DoneScreen({
           </div>
         </div>
 
-        <div className="anim-fade-up delay-4 px-[80px] pb-[48px]">
+        <div className="anim-fade-up delay-4 relative z-[30] px-[80px] pb-[38px]">
           <div className="relative h-px overflow-hidden bg-[color:var(--color-line-soft)]">
             <div
               className="absolute inset-y-0 left-0 bg-[color:var(--color-ink)] transition-[width] duration-1000 ease-linear"
               style={{ width: `${returnPct}%` }}
             />
           </div>
-          <div className="mt-[20px] flex items-center justify-between font-mono text-[16px] uppercase tracking-[0.28em]">
-            <span className="text-silver-dim">
-              {t.done.next}
-              {sub && (
-                <span className="jp-sub ml-[14px] normal-case text-[15px]">
-                  {sub.done.next}
-                </span>
-              )}
+          <button
+            type="button"
+            onClick={onReset}
+            aria-label={t.done.next}
+            className="press mt-[16px] flex min-h-[82px] w-full items-center justify-between bg-ink px-[32px] text-paper"
+            style={{ cursor: "pointer" }}
+          >
+            <span className="flex flex-col gap-[4px] text-left">
+              <span className="font-mono text-[20px] uppercase tracking-[0.3em]">{t.done.next}</span>
+              {sub && <span className="jp-sub text-[14px] text-paper/60">{sub.done.next}</span>}
             </span>
-            <span className="tabular-nums text-ink-soft">{t.done.countdown(left)}</span>
-          </div>
+            <span className="font-mono text-[16px] uppercase tracking-[.2em] text-paper/72 tabular-nums">
+              {t.done.countdown(left)}
+            </span>
+          </button>
         </div>
       </div>
-    </button>
+    </div>
   );
 }

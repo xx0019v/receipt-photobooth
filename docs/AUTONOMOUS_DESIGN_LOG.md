@@ -53,3 +53,28 @@ repeats a failed approach. Newest last.
 - **Verify:** working tree clean (only third-party untracked `AGENTS.md`),
   preview HTTP 200 on the Loop 1 build, no code delta → no rebuild needed.
 - **Result:** 合格 (registry update only) — committed.
+
+## Loop 3 - 2026-07-16 - Done collection and reset separation
+
+- **Start HEAD:** `51fd01e`
+- **Target:** PASS Done and FILM Done.
+- **Problem:** the entire Done surface was a button. Reaching toward the paper
+  could trigger a destructive session reset, and NEW SESSION had no bounded
+  touch target of its own.
+- **Direction:** preserve the editorial paper-first composition while
+  separating the physical collection zone from the next-session control.
+- **Changes:** replaced the full-screen button with a non-interactive screen
+  surface; added one 920px-wide NEW SESSION action with the existing live
+  countdown; kept the 12-second automatic return; raised the PASS ticket and
+  established explicit paper, collection-rail, and action-layer stacking;
+  removed the visible em dash from the FILM Done kicker.
+- **QA:** `git diff --check` pass; `npx tsc --noEmit` pass; production build
+  pass in 13s; HTTP 200; PASS and FILM executed from Idle through Done at
+  1080x1920; PASS action 920x92 at y=1762; FILM action 920x82 at y=1800;
+  document 1080x1920 with no overflow; FILM collection rail 920x88 at y=1398;
+  browser errors/warnings 0.
+- **Lint note:** the repository's `npm run lint` opens Next.js's first-time
+  ESLint configuration prompt, so it is not a non-interactive lint command.
+  Next build's lint/type validation, TypeScript, diff check, and the current
+  Web Interface Guidelines review were used instead.
+- **Result:** 合格 (pass).
