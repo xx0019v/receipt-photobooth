@@ -2,7 +2,7 @@
 
 ## Current HEAD
 
-`51fd01ecc4f5442908eefb8bd7d3498a1e629f35`
+`d99e66267273d0f07ca0ab393c832db4b8874a5b`
 
 ## Current Preview
 
@@ -10,63 +10,57 @@ Production build at `http://localhost:3090`, 1080x1920 portrait, HTTP 200.
 
 ## Current Quality Status
 
-PASS and FILM complete successfully, but Done currently treats the entire
-screen as the NEW SESSION button. That couples the physical collection area
-to a destructive session reset.
+Format presents PASS or FILM at dominant scale and has a large edge switch,
+but it does not implement the swipe path called for by the interaction brief.
 
 ## Remaining Problems
 
-- Collecting the paper can accidentally reset the session.
-- NEW SESSION is visually described in the footer but has no bounded control.
-- The collection instruction needs stronger spatial connection to the printer
-  outlet without reducing the paper hero.
+- PASS and FILM cannot be changed with a direct paper swipe.
+- The edge switch always points right, even when returning from FILM to PASS.
+- Selection changes should be announced as state changes.
 
 ## Selected Priority
 
-P1: separate paper collection from session reset on PASS Done and FILM Done.
+P1: add a robust horizontal swipe alternative to Format selection.
 
 ## Why This Is Next
 
-Done is the final physical handoff. An accidental reset at the moment the
-guest reaches for the print is a higher risk than further decorative polish.
+Format is the second-highest priority surface after Done. A visible button
+must remain, but the large paper surface should also support the natural
+gesture promised by the interaction direction.
 
 ## Files Likely Involved
 
-- `app/kiosk/screens/DoneScreen.tsx`
+- `app/kiosk/screens/FormatSelectScreen.tsx`
 - `docs/UI_QA_REPORT.md`
 - `docs/AUTONOMOUS_DESIGN_LOG.md`
 
 ## Acceptance Criteria
 
-- The screen background and paper area do not reset the session.
-- A clear NEW SESSION control remains available and includes the countdown.
-- PASS still directs collection to the right.
-- FILM still directs collection below.
-- Automatic return remains 12 seconds.
-- EN and JP remain legible at 1080x1920.
-- Reduced motion, cleanup, serial, issue date, and artefact geometry regressions
-  are not introduced.
+- Swipe left selects FILM and swipe right selects PASS.
+- Vertical movement and short taps do not change the format.
+- The existing edge button remains at least 88px wide and works by tap.
+- The edge label communicates the correct direction.
+- The selected format is exposed through an aria-live status.
+- PASS/FILM paper size, Continue action, EN/JP, and downstream mapping remain.
 
 ## Regression Risks
 
-- Removing the full-screen button could reduce the manual reset touch target.
-- Footer recomposition could clip at 1920px.
-- Nested interactive controls must not be introduced.
+- Pointer capture could interfere with the edge switch.
+- A small movement could cause an accidental format change.
+- Selection might toggle twice if button events bubble into the swipe region.
 
 ## Verification Plan
 
-- TypeScript and production build.
-- Production preview at 1080x1920.
-- PASS Done and FILM Done visual inspection.
-- Confirm only NEW SESSION triggers reset.
-- Confirm 12-second automatic reset and clean timer teardown.
-- Check console, overflow, and asset requests.
+- TypeScript, diff check, and production build.
+- 1080x1920 tap, left swipe, right swipe, short tap, and vertical gesture.
+- Confirm selected state and downstream PASS/FILM Proof mapping.
+- Check console, pointer errors, overflow, and reduced-motion behavior.
 
 ## Completion Result
 
-PASS. Done no longer resets from the paper or background surface. PASS and
-FILM expose one bounded NEW SESSION control with the live countdown, while the
-12-second automatic return remains unchanged. PASS paper was raised above the
-action layer and the collection/action rails now have explicit stacking.
-Production build, TypeScript, 1080x1920 PASS/FILM flows, HTTP, overflow, and
-console checks passed.
+PASS. A 140px controlled horizontal gesture selected FILM to the left and
+PASS to the right. A tap and a 180px vertical gesture left FILM unchanged.
+The edge control remained 88x320 and selected FILM by tap. Selection status is
+announced through aria-live. Production build, TypeScript, 1080x1920 overflow,
+pointer, and console checks passed.

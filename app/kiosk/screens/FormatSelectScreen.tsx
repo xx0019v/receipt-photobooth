@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from "react";
 import Masthead from "@/app/components/Masthead";
 import { useLang } from "@/app/lib/i18n";
 import { usePrintStyle } from "@/app/lib/printStyle";
@@ -19,6 +19,7 @@ const PASS_PREVIEW_W = 940;
 const PASS_SCALE = PASS_PREVIEW_W / BOARDING_W;
 const FILM_PREVIEW_H = 1000;
 const FILM_SCALE = FILM_PREVIEW_H / 1280;
+const SWIPE_THRESHOLD = 72;
 
 export default function FormatSelectScreen({
   scent,
@@ -31,12 +32,36 @@ export default function FormatSelectScreen({
 }) {
   const { t, sub } = useLang();
   const { style, setStyle } = usePrintStyle();
+  const swipeStart = useRef<{ pointerId: number; x: number; y: number } | null>(null);
 
   useEffect(() => {
     setStyle("pass");
   }, [setStyle]);
 
   const isPass = style === "pass";
+
+  const startSwipe = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if ((event.target as HTMLElement).closest("button")) return;
+    swipeStart.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {}
+  };
+
+  const finishSwipe = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const start = swipeStart.current;
+    if (!start || start.pointerId !== event.pointerId) return;
+    swipeStart.current = null;
+    try {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    } catch {}
+    if (event.type === "pointercancel") return;
+
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    if (Math.abs(dx) < SWIPE_THRESHOLD || Math.abs(dx) <= Math.abs(dy)) return;
+    setStyle(dx < 0 ? "cover" : "pass");
+  };
 
   return (
     <div className="flex h-full flex-col">
@@ -50,7 +75,13 @@ export default function FormatSelectScreen({
       </div>
 
       {/* The paper itself is the hero — the live artefact at near-print scale */}
-      <div className="relative flex flex-1 items-center justify-center overflow-hidden">
+      <div
+        className="relative flex flex-1 items-center justify-center overflow-hidden"
+        style={{ touchAction: "pan-y" }}
+        onPointerDown={startSwipe}
+        onPointerUp={finishSwipe}
+        onPointerCancel={finishSwipe}
+      >
         {isPass ? (
           <div className="anim-fade-up delay-2 relative">
             <div
@@ -93,7 +124,7 @@ export default function FormatSelectScreen({
         >
           <span className="flex flex-col items-center gap-[16px] border-y border-l border-[color:var(--color-line)] bg-paper-bright py-[36px] pl-[18px] pr-[10px] shadow-[-14px_0_30px_-24px_rgba(0,0,0,0.4)]">
             <span className="font-mono text-[13px] uppercase tracking-[0.3em] text-silver-dim" style={{ writingMode: "vertical-rl" }}>
-              {isPass ? t.format.coverName : t.format.passName} →
+              {isPass ? `${t.format.coverName} →` : `← ${t.format.passName}`}
             </span>
           </span>
         </button>
@@ -102,7 +133,7 @@ export default function FormatSelectScreen({
       {/* action rail */}
       <div className="flex items-stretch gap-[24px] px-[80px] pb-[80px] pt-[8px]">
         <div className="flex flex-1 flex-col justify-center border-t border-[color:var(--color-line)] pt-[16px]">
-          <span className="font-mono text-[15px] uppercase tracking-[0.28em] text-silver-dim">
+          <span aria-live="polite" className="font-mono text-[15px] uppercase tracking-[0.28em] text-silver-dim">
             {t.format.selected}: <span className="text-ink">{isPass ? t.format.passName : t.format.coverName}</span>
           </span>
           {sub && (

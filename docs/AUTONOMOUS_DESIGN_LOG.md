@@ -78,3 +78,24 @@ repeats a failed approach. Newest last.
   Next build's lint/type validation, TypeScript, diff check, and the current
   Web Interface Guidelines review were used instead.
 - **Result:** 合格 (pass).
+
+## Loop 4 - 2026-07-16 - Format paper swipe
+
+- **Start HEAD:** `d99e662`
+- **Target:** `FormatSelectScreen`.
+- **Problem:** the large paper preview only changed through the 88px edge
+  button; the promised direct swipe path did not exist.
+- **Direction:** make the paper itself gesture-aware without replacing the
+  visible, accessible tap control.
+- **Changes:** added single-pointer horizontal gesture recognition with a
+  72px threshold and vertical-intent rejection; left selects FILM, right
+  selects PASS; pointer capture is defensive; button-origin gestures are
+  ignored; the reverse edge label now points left; selected state uses an
+  aria-live region.
+- **QA:** TypeScript, diff check, and production build pass in 13s; controlled
+  140px left/right swipes pass; short tap and 180px vertical drag do not
+  change selection; 88x320 edge button remains functional; document remains
+  1080x1920; console and pointer errors 0.
+- **Performance:** no continuous listener, rAF, timer, or React update during
+  idle; one ref record per active pointer only.
+- **Result:** 合格 (pass).

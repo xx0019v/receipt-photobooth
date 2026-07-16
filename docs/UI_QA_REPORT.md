@@ -228,3 +228,16 @@ clean.
 - Browser console errors 0; warnings 0; HTTP 200.
 - `npm run lint` is not automation-ready because it launches the initial
   interactive ESLint setup prompt. No configuration file was generated.
+
+## Autonomous loop - Format paper swipe - 2026-07-16
+
+- Production source: clean `next build`, `next start -p 3090`, HTTP 200.
+- Viewport and document: 1080x1920, no horizontal or vertical overflow.
+- PASS to FILM: controlled 140px left swipe passed.
+- FILM to PASS: controlled 140px right swipe passed.
+- A short tap did not change FILM.
+- A 180px vertical drag did not change FILM.
+- The edge switch remains 88x320 and selected FILM by tap.
+- Reverse label rendered as `← Boarding Pass`; selected status is aria-live.
+- No pointer-capture exception, console error, or console warning.
+- Gesture implementation creates no idle timer, event listener, or rAF work.
