@@ -291,3 +291,24 @@ clean.
 - Document stayed 1080x1920 with no horizontal or vertical overflow.
 - `npx tsc --noEmit`, `git diff --check`, and `npm run build` passed.
 - Browser console errors 0; warnings 0; hydration warnings 0; HTTP 200.
+
+## Autonomous loop - Timed full-screen Session Hold - 2026-07-16
+
+- Start HEAD and remote HEAD: `7af0b29`.
+- Final production source: clean `next build`, `next start -p 3090`, PID 79546,
+  HTTP 200. Final build compiled in 4.5s; route 26.1KB / 128KB first load.
+- Warning triggered on Edition after the configured 45-second quiet period.
+- Counter visibly decremented inside the existing 15-second warning window.
+- Automatic timeout returned to Idle without error.
+- In a single timed interaction, Continue at warning entry dismissed the
+  overlay and preserved the Edition screen.
+- A second timed interaction selected End session and returned to Idle.
+- Overlay pointerdown no longer bubbles to the Stage activity handler, so its
+  buttons complete their own action before the warning unmounts.
+- Japanese support copy rendered in the full-screen composition.
+- Changed controls are 104px high with semantic buttons and focus-visible
+  outlines; the dialog has `aria-modal` and a labelled heading.
+- Dialog-wide assertive live updates were removed after independent critique
+  to avoid announcing the changing number every second.
+- Document geometry remained 1080x1920; console errors 0; warnings 0;
+  hydration warnings 0; `npx tsc --noEmit` and `git diff --check` passed.

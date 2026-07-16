@@ -168,3 +168,31 @@ repeats a failed approach. Newest last.
 - **Commit / push / PR:** `clarify done reset timing and action`; normal push
   to PR #7, which remains open.
 - **Result:** 合格 (pass).
+
+## Loop 8 - 2026-07-16 - Timed full-screen Session Hold
+
+- **Start HEAD:** `7af0b29`
+- **Target:** inactivity warning and its Continue / End session boundary.
+- **Priority:** P1 timeout recovery plus P2 system coherence.
+- **Problem:** the warning was a small generic modal with no visible deadline;
+  its pointerdown also bubbled to the Stage activity handler, which could hide
+  the warning before its button click completed.
+- **Direction:** treat inactivity as a full-screen SESSION HOLD issued by the
+  machine, with the real deadline as the dominant typographic object.
+- **Changes:** replaced the card with a full 1080x1920 editorial composition;
+  added a live 15-to-0 counter; made Continue the dominant action; retained a
+  quiet End session action; stopped overlay pointerdown propagation; added
+  modal semantics, specific labels, large touch targets, and focus treatment.
+- **Performance:** one 1-second local interval, cleared on unmount; no rAF,
+  media, asset, listener, or continuous layout read added.
+- **QA:** warning trigger and countdown passed; automatic reset passed;
+  timed Continue preserved Edition; a second timed warning followed by End
+  session returned to Idle; JP support copy passed; 1080x1920 overflow 0;
+  browser console/hydration warnings 0. Final build after removing repetitive
+  assertive live-region behavior compiled in 4.5s and returned HTTP 200.
+- **Independent critique:** initial implementation failed the screen-reader
+  cadence review because dialog-wide assertive live updates could repeat every
+  second. Removed that attribute while retaining alertdialog semantics.
+- **Commit / push / PR:** `turn inactivity into a timed session hold`; normal
+  push to PR #7, which remains open.
+- **Result:** 合格 (pass).

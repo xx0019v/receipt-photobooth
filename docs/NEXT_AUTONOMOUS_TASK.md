@@ -2,85 +2,93 @@
 
 ## Loop Number
 
-7
+8
 
 ## Current HEAD
 
-`0ce0783828756e2e2341cf20ea8aea5a55f86f35`
+`7af0b29d346f928d01942e74a34c4173b0e20c32`
 
 ## Remote HEAD
 
-`0ce0783828756e2e2341cf20ea8aea5a55f86f35`
+`7af0b29d346f928d01942e74a34c4173b0e20c32`
 
 ## Current Preview
 
-Production build at `http://localhost:3090`, PID 74018, 1080x1920 portrait,
+Production build at `http://localhost:3090`, PID 75876, 1080x1920 portrait,
 HTTP 200. Preview source matches current HEAD.
 
 ## Current Quality Status
 
-PASS Done keeps the ticket dominant and clearly connects it to the right-side
-collection slot. Manual reset is safely bounded to one button. During live QA,
-only 4 seconds remained by the time the completed artifact was visually
-reviewed, and the button still said Tap anywhere although the full surface is
-intentionally non-interactive.
+Inactivity protection correctly warns 15 seconds before reset and excludes
+Capture, Printing, Error, and Done. Its current visual is a small centered card
+with no remaining-time display, unlike the full-screen editorial machinery used
+by the rest of the kiosk.
 
 ## Remaining Problems
 
-- The 12-second reset gives little time to inspect and physically collect the
-  artifact before the next guest screen appears.
-- The English action label contradicts the bounded-button interaction.
-- The countdown says New edition although the event is a privacy reset.
+- Guests cannot see how long remains before privacy reset.
+- The generic modal/card composition weakens the print-engine identity.
+- Continue and End session have equal visual weight despite different intent.
 
 ## Selected Priority
 
-P1: align Done reset timing and copy with the physical collection interaction.
+P1/P2: turn inactivity warning into a full-screen, timed session-hold surface.
 
 ## Why This Task Is Next
 
-The mismatch is visible on every completed session and can rush collection or
-mislead a guest into tapping the artifact. It is higher impact than decorative
-refinement and does not alter backend or print contracts.
+An unexpected reset can discard a guest's in-progress choices. Showing the real
+15-second deadline improves recovery and transforms a generic overlay into a
+coherent part of the kiosk's issuing system.
 
 ## User Impact
 
-Guests receive a calmer 20-second collection window and an exact Start next
-session action. The countdown clearly explains the automatic reset.
+Guests can immediately understand the deadline, continue with one dominant
+action, or deliberately clear the session with a quieter secondary action.
 
 ## Files Likely Involved
 
-- `app/kiosk/screens/DoneScreen.tsx`
-- `app/lib/i18n.ts`
+- `app/components/InactivityWarning.tsx`
 - `docs/UI_QA_REPORT.md`
 - `docs/AUTONOMOUS_DESIGN_LOG.md`
 
 ## Acceptance Criteria
 
-- Automatic reset occurs at 20 seconds for PASS and FILM.
-- The button says Start next session, not Tap anywhere.
-- EN and JP countdowns state that an automatic reset will occur.
-- The progress line starts full and reaches zero with the countdown.
-- Manual reset remains restricted to the bounded button.
-- Artifact, collection direction, privacy cleanup, and 1080x1920 geometry stay.
+- The overlay displays a live 15-to-0 second countdown.
+- Continue is dominant; End session remains clear but secondary.
+- Buttons are at least 80px high with visible focus and exact labels.
+- Continue closes the warning and rearms inactivity.
+- End session clears state and returns to Idle.
+- Interval cleanup is guaranteed on unmount.
+- EN/JP, reduced motion, 1080x1920, and underlying flow remain intact.
 
 ## Regression Risks
 
-- A longer timeout could retain session imagery longer than intended.
-- Copy could wrap in JP or compete with the countdown.
-- Interval and timeout cleanup could diverge.
+- A local interval could outlive the warning.
+- Pointer activity on the overlay could rearm before the chosen action runs.
+- The large counter could crowd Japanese support copy.
 
 ## Verification Plan
 
-- TypeScript, diff check, copy audit, production build.
-- PASS and FILM Done entry, 20-second countdown, manual and automatic reset.
-- EN/JP layout, button geometry, artifact hierarchy, overflow, console, network.
-- Confirm previous-session photos clear on reset.
+- TypeScript, diff check, production build, current guideline audit.
+- Wait for warning in production and observe countdown decrement.
+- Test Continue, re-trigger, then End session and privacy cleanup.
+- Check EN/JP, focus, overflow, console, hydration, and HTTP.
 
 ## Completion Result
 
-PASS. FILM reached Done through the complete production flow with its 3-frame
-order and serial intact. Done initially announced Start next session and Auto
-reset in 20s, retained 1080x1920 geometry, and returned to Idle automatically.
-The completed artifact and prior-session frame content were absent after reset.
-TypeScript, diff check, production build, console, hydration, and overflow
-checks passed.
+PASS. The warning now occupies the full 1080x1920 surface, presents a live
+15-second session-hold counter, and gives Continue visual priority over End
+session. Production timing reached the warning, counted down, and auto-reset.
+In separate timed passes, Continue dismissed the warning while preserving the
+Edition screen, and End session returned to Idle. Stopping pointer propagation
+kept the Stage activity handler from unmounting the dialog before button click.
+The interval cleans up on unmount. Final TypeScript, production build, HTTP,
+overflow, console, and hydration checks passed.
+
+## Stop Condition
+
+Historical autonomous Loop 8 is complete. No additional P0-P2 issue was found
+that can be improved safely without repeating already-passed visual work. The
+remaining validation requires Raspberry Pi camera, printer, paper, and thermal
+load hardware. Resume from real-device integration evidence, not another
+speculative layout pass.
