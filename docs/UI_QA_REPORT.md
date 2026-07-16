@@ -253,3 +253,23 @@ clean.
   is replaced by `auto` when `prefers-reduced-motion: reduce` matches.
 - Selecting RAW after returning to the first page still opened Format.
 - `npx tsc --noEmit`, `git diff --check`, and production build passed.
+
+## Autonomous loop - Explicit Frame registration - 2026-07-16
+
+- Start HEAD and remote HEAD: `5ba20c8`.
+- Production source: clean `next build`, `next start -p 3090`, PID 74018,
+  HTTP 200. Build compiled in 3.5s; route bundle 25.7KB / 128KB first load.
+- Viewport and document: 1080x1920, no horizontal or vertical overflow.
+- New action rail: 660x60, frame-specific accessible name, `aria-pressed`,
+  focus-visible outline, and live Register / Remove state.
+- Explicit register and remove passed; a double activation changed state once.
+- Thumbnail navigation updated the action from Frame 01 to Frame 02.
+- Three selections produced print order 01, 02, 03 and enabled Use these 3.
+- A fourth explicit selection remained rejected with the existing notice.
+- PASS Proof retained order and serial, reached Printing and PASS Done, and
+  kept right-side collection direction.
+- Current Web Interface Guidelines review: the changed action has semantic
+  button markup, specific label, sufficient touch size, focus treatment, and
+  no new non-compositor animation.
+- `npx tsc --noEmit`, `git diff --check`, and `npm run build` passed.
+- Browser console errors 0; warnings 0; hydration warnings 0.

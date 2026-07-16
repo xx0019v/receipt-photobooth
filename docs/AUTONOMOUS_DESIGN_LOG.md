@@ -117,3 +117,29 @@ repeats a failed approach. Newest last.
 - **Performance:** no new listener, timer, rAF, or idle render work; page lookup
   and reduced-motion detection occur only on a page-turn activation.
 - **Result:** 合格 (pass).
+
+## Loop 6 - 2026-07-16 - Explicit Frame registration
+
+- **Start HEAD:** `5ba20c8`
+- **Target:** `FrameSelectionCarousel` active-proof action.
+- **Priority:** P1 interaction and accessibility.
+- **Problem:** the main proof could be selected only through its pointer
+  gesture; thumbnail buttons navigate but do not register a frame, leaving no
+  explicit keyboard or assistive-technology selection path.
+- **Direction:** preserve the proof as the visual hero and add one thin,
+  machine-like registration rail instead of another card or large CTA.
+- **Changes:** added a 660x60 Register frame / Remove from print action with
+  frame and print-order state, `aria-pressed`, descriptive accessible names,
+  and visible focus. Photo tap and the new control share one rapid-tap lock.
+- **Interaction:** explicit select/deselect, thumbnail navigation, existing
+  tap, swipe, peel/drop, fourth-frame rejection, and print order remain.
+- **Performance:** no listener, timer, rAF, or idle render work was added.
+- **QA:** TypeScript, diff check, production build, 1080x1920 overflow,
+  explicit select/deselect, double activation, thumbnail navigation, 3-frame
+  order, fourth selection rejection, PASS Proof, Printing, and Done passed;
+  browser errors/warnings 0.
+- **Independent critique:** pass. The rail clarifies the action without
+  competing with the 660px proof or making the screen resemble a web form.
+- **Commit / push / PR:** `add explicit frame registration action`; normal
+  push to PR #7, which remains open.
+- **Result:** 合格 (pass).

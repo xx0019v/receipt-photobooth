@@ -106,6 +106,13 @@ export default function FrameSelectionCarousel({
     [frameIds.length, onActiveChange],
   );
 
+  const toggleActive = useCallback(() => {
+    const now = performance.now();
+    if (now - lastTapRef.current < RAPID_TAP_LOCK_MS) return;
+    lastTapRef.current = now;
+    onToggleSelect(frameIds[activeIndexRef.current]);
+  }, [frameIds, onToggleSelect]);
+
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (dragState.current) return; // one pointer at a time — no multi-touch races
     try {
@@ -176,17 +183,14 @@ export default function FrameSelectionCarousel({
         return;
       }
       if (moved < TAP_MOVE_TOLERANCE) {
-        // Rapid-tap lock — a second tap inside the window is ignored so a
-        // double-fire can never select-then-deselect in one gesture.
-        const now = performance.now();
-        if (now - lastTapRef.current < RAPID_TAP_LOCK_MS) return;
-        lastTapRef.current = now;
-        onToggleSelect(frameIds[activeIndexRef.current]);
+        // The photo surface and explicit action share one rapid-tap lock, so
+        // mixed input can never select then immediately deselect one proof.
+        toggleActive();
         return;
       }
       if (mode === "swipe") commitDrag(dx);
     },
-    [dragX, frameIds, onToggleSelect, onPeelDrop, commitDrag],
+    [dragX, frameIds, onPeelDrop, commitDrag, toggleActive],
   );
 
   const trackX = (VIEWPORT_W - ITEM_W) / 2 - activeIndex * STEP + (dragging && !peel ? dragX : 0);
@@ -279,12 +283,25 @@ export default function FrameSelectionCarousel({
         </div>
       </div>
 
-      <p className="mt-[18px] font-mono text-[15px] uppercase tracking-[0.32em] text-silver-dim">
-        {activeSelected ? "Selected — tap to deselect" : "Tap to select · drag down to place"}
-      </p>
+      <button
+        type="button"
+        onClick={toggleActive}
+        aria-pressed={activeSelected}
+        aria-label={`${activeSelected ? "Remove" : "Register"} frame ${activeIndex + 1} ${activeSelected ? "from" : "in"} print order`}
+        className="press mt-[14px] flex min-h-[60px] w-[660px] items-center justify-between border-y border-[color:var(--color-line)] px-[18px] font-mono uppercase focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--color-ink)]"
+        style={{ cursor: "pointer" }}
+      >
+        <span className="text-[15px] tracking-[0.3em] text-ink">
+          {activeSelected ? "Remove from print" : "Register frame"}
+        </span>
+        <span className="text-[13px] tracking-[0.24em] text-silver-dim tabular-nums">
+          {`Frame ${String(activeIndex + 1).padStart(2, "0")}`}
+          {activeSelected ? ` / Print ${String(selectedIds.indexOf(frameIds[activeIndex]) + 1).padStart(2, "0")}` : " / Open"}
+        </span>
+      </button>
 
       {/* Arc thumbnail rail — parabolic lift from distance-to-active */}
-      <div className="mt-[26px] flex items-start justify-center" style={{ gap: 10 }}>
+      <div className="mt-[18px] flex items-start justify-center" style={{ gap: 10 }}>
         {frameIds.map((id, i) => {
           const dist = Math.min(2, Math.abs(i - activeIndex));
           const visSize = THUMB_SIZE[dist];

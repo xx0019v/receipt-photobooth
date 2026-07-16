@@ -1,68 +1,85 @@
 # NEXT AUTONOMOUS TASK
 
+## Loop Number
+
+6
+
 ## Current HEAD
 
-`9581fd6a769b39a37686a1e02a1b70a6c34c5b70`
+`5ba20c84941588ed3bb2aefa123fe53be56d0081`
+
+## Remote HEAD
+
+`5ba20c84941588ed3bb2aefa123fe53be56d0081`
 
 ## Current Preview
 
-Production build at `http://localhost:3090`, 1080x1920 portrait, HTTP 200.
+Production build at `http://localhost:3090`, PID 68119, 1080x1920 portrait,
+HTTP 200. The build was produced from the current source before commit.
 
 ## Current Quality Status
 
-Edition already uses one full-screen edition per scroll-snap scene. The bottom
-hint only says Scroll, provides no destination, and is not actionable.
+Idle, Edition, Format, Pose, Capture, Registering Frames, and Frame Selection
+run in production without overflow. The active Frame Selection proof supports
+tap, swipe, and peel, but its selection action exists only on the gesture
+surface. Thumbnail buttons only navigate between frames.
 
 ## Remaining Problems
 
-- Guests cannot see which edition is next.
-- There is no touch alternative for moving between edition pages.
-- The final page has no direct return to the first edition.
+- The primary register/deselect action has no explicit bounded control.
+- Keyboard and assistive-technology users cannot register the active proof.
+- The text hint describes a gesture but does not expose current selection state
+  as an actionable control.
 
 ## Selected Priority
 
-P2: replace the generic scroll cue with contextual edition navigation.
+P1: add an explicit active-proof register/deselect action while preserving all
+existing gestures.
 
-## Why This Is Next
+## Why This Task Is Next
 
-The edition catalogue is visually strong but its navigation is less explicit
-than Format and Frame Selection. A bounded page-turn control improves clarity
-without turning the screen into a conventional menu.
+This is the first functional accessibility gap found during the required full
+flow. It has greater user impact than another Done or Format visual adjustment.
+
+## User Impact
+
+Guests gain a clear, forgiving way to add or remove the current frame without
+having to discover the photo-surface gesture. Keyboard and assistive technology
+receive the same selection capability.
 
 ## Files Likely Involved
 
-- `app/kiosk/screens/ScentScreen.tsx`
+- `app/components/FrameSelectionCarousel.tsx`
 - `docs/UI_QA_REPORT.md`
 - `docs/AUTONOMOUS_DESIGN_LOG.md`
 
 ## Acceptance Criteria
 
-- Each non-final page names and opens the next edition.
-- The final page offers a direct return to the first edition.
-- Native scroll and scroll snap remain functional.
-- Page turns honor reduced motion.
-- Edition selection, EN/JP support, and 1080x1920 geometry remain unchanged.
-- Controls meet the 44px touch minimum and have clear accessible names.
+- A visible control registers or removes the active proof.
+- The control exposes `aria-pressed` and a frame-specific accessible name.
+- Rapid activation cannot immediately select then deselect.
+- Existing photo tap, horizontal swipe, peel/drop, thumbnail navigation,
+  3-frame limit, and print order remain unchanged.
+- The control is at least 44px high and does not create 1080x1920 overflow.
 
 ## Regression Risks
 
-- Programmatic scrolling could target the document instead of the kiosk rail.
-- Smooth scrolling could ignore reduced-motion preference.
-- The new control could compete visually with Select this edition.
+- A second activation path could bypass the rapid-tap guard.
+- Added height could crowd the thumbnail arc or bottom action rail.
+- Selection state could refer to a stale active frame after navigation.
 
 ## Verification Plan
 
-- TypeScript, diff check, and production build.
-- Tap through RAW, STILL, BOLD, AFTERIMAGE, then return to RAW.
-- Verify scrollTop increments by exactly one viewport.
-- Verify reduced-motion uses an instant page turn.
-- Check selection, overflow, console, and network.
+- TypeScript, diff check, current Web Interface Guidelines audit, and build.
+- Select/deselect with the explicit control and with the photo surface.
+- Navigate by thumbnail and swipe, then select the newly active frame.
+- Confirm 3-frame limit, order, Ready action, overflow, console, and network.
 
 ## Completion Result
 
-PASS. The bounded page-turn control moved RAW to STILL, BOLD, and AFTERIMAGE
-at exact 1920px viewport increments, then returned to RAW at scrollTop 0.
-Native scroll snap remains in place, controls are 96px high with descriptive
-accessible names, and the reduced-motion branch changes smooth movement to an
-instant page turn. RAW selection still opened Format. Production build,
-TypeScript, diff check, and 1080x1920 overflow checks passed.
+PASS. The 660x60 action rail registers or removes the current proof, exposes
+frame-specific accessible names and `aria-pressed`, and shares the existing
+220ms rapid-activation lock with the photo gesture. Explicit selection,
+deselection, thumbnail navigation, 3-frame order, fourth-frame rejection, and
+PASS Proof through Done passed in the production build. The document remained
+1080x1920 with no overflow and browser error/warning logs remained empty.
