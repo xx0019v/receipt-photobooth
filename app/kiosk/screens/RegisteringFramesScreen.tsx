@@ -84,7 +84,7 @@ export default function RegisteringFramesScreen({ onDone }: { onDone: () => void
             src={POSTER_SRC}
             alt=""
             aria-hidden="true"
-            className="absolute h-[220px] w-[220px] opacity-25 grayscale"
+            className="absolute h-[440px] w-[440px] opacity-25 grayscale"
             style={{ mixBlendMode: "multiply" }}
           />
         ) : null
@@ -96,7 +96,7 @@ export default function RegisteringFramesScreen({ onDone }: { onDone: () => void
           muted
           playsInline
           preload="auto"
-          className="absolute h-[220px] w-[220px] opacity-0 grayscale transition-opacity duration-300"
+          className="absolute h-[440px] w-[440px] opacity-0 grayscale transition-opacity duration-300"
           style={{
             mixBlendMode: "multiply",
             opacity: state === "registering" ? 0.3 : 0,
@@ -104,8 +104,15 @@ export default function RegisteringFramesScreen({ onDone }: { onDone: () => void
           aria-hidden="true"
         />
       )}
-      <FrameCore state={state} registeredCount={registeredCount} size={140} showLabel={false} />
-      <p className="kicker mt-[30px]">REGISTERING FRAMES</p>
+      {/* FRAME CORE at installation scale — the machine's registration organ,
+          not a corner loader */}
+      <FrameCore state={state} registeredCount={registeredCount} size={420} showLabel={false} />
+      <p className="mt-[46px] font-mono text-[22px] uppercase tracking-[0.44em] text-ink">
+        Registering frames
+      </p>
+      <p className="mt-[10px] font-mono text-[14px] uppercase tracking-[0.3em] text-silver-dim">
+        {Math.min(registeredCount, CAPTURE_TOTAL).toString().padStart(2, "0")} / {String(CAPTURE_TOTAL).padStart(2, "0")}
+      </p>
       {sub && <p className="jp-sub mt-[8px] text-[15px] text-silver-dim">フレームを登録しています</p>}
     </div>
   );

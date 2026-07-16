@@ -93,6 +93,53 @@ still progressed through the full `review → proofLock → … → ready` seque
 (state transitions preserved, only the visual motion suppressed), console
 clean.
 
+## Visual overhaul handoff completion — 2026-07-16
+
+Claude's uncommitted visual-overhaul work was preserved and verified in a
+fresh production build at `http://localhost:3090` with a 1080×1920 viewport.
+The preview was rebuilt and its project-local server restarted after each
+final layout correction so the running chunks match the working tree.
+
+### Live geometry
+
+- Capture camera: 940×1020.
+- Frame Selection active proof: 660×660; carousel viewport: 940 wide;
+  thumbnail hit areas: 88×144; selected counter and print-order renumbering
+  verified with a non-linear selection order.
+- PASS Proof / Printing / Done artefact: 1000×295; CTA: 90 high; Done collect
+  rail: 88 high. The right-edge printer slot and right-to-left feed remain
+  unchanged.
+- FILM Proof / Printing artefact: 600×1200; Done artefact: 544×1088; Done
+  collect rail: 920×88. All are inside the 1050–1250px target band and the
+  page remains 1080×1920 with no horizontal or vertical document overflow.
+- FRAME CORE: 420; registering reflection: 440×440; ISSUE CORE: PASS 240,
+  FILM 200.
+
+### Full-flow verification
+
+- PASS: Idle → Edition → Format → Pose → six-frame Capture → Registering →
+  Select 3 → Proof → Proof Lock → Printing → Claim → Done → automatic reset.
+- FILM: the same full flow through Done after the final 600×1200 Proof /
+  Printing correction and 544×1088 Done correction.
+- Selection order, serial, issue date, edition, three chosen photos, print
+  direction, 12-second return, and session cleanup stayed intact.
+- Final production browser log: zero errors and zero warnings. Final
+  `npm run build`: clean, including TypeScript validation and static page
+  generation. `git diff --check`: clean.
+
+### Idle asset audit
+
+- Original: `public/assets/chrome/silver-lips.mp4`, H.264, 2880×2880,
+  32fps, 5.375s, 2,336,090 bytes, 3.48Mbps.
+- Kiosk encode: `public/assets/chrome/silver-lips-kiosk.mp4`, H.264,
+  1152×1152, 30fps, 5.433s, 314,198 bytes, 463Kbps.
+- Poster: `public/assets/chrome/silver-lips-kiosk-poster.jpg`, 850×850,
+  27KB. The original file remains untouched.
+
+Before images remain in `docs/ui-before-claude/`. The final states were
+checked live in the browser pane; no new screenshot files were written in
+this pass, so DOM geometry above is the after evidence.
+
 ## Phase 2/3 — 6-frame capture + FrameSelectionCarousel
 
 Full PASS run verified live in production preview (`npm run build` +

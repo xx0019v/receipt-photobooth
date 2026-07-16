@@ -124,9 +124,10 @@ export default function PrintingScreen({
   // PASS is now a horizontal boarding ticket, shown wide on screen.
   const passWinW = BOARDING_SCREEN_W;
   const passScale = passWinW / BOARDING_W;
+  const coverScale = 1200 / 1280;
   const slitW = isCover ? 680 : passWinW + 40;
-  const winW = isCover ? 640 : passWinW;
-  const winH = isCover ? 1280 : Math.round(BOARDING_H * passScale);
+  const winW = isCover ? 600 : passWinW;
+  const winH = isCover ? 1200 : Math.round(BOARDING_H * passScale);
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -242,12 +243,15 @@ export default function PrintingScreen({
   // FILM's slit sits at the top; PASS's slot sits at the right edge — the
   // core stays anchored to whichever printer mouth is physically in frame,
   // never overlapping paper, photos, QR, or stub.
+  // Instrument scale (190–270px band): the core reads as the machine's
+  // registration organ above the printer mouth, not a corner loader. PASS:
+  // centred over the right-edge slot, clear of the paper path. FILM: centred
+  // over the top slit.
   const issueCore = issueCoreState && (
     <div
-      className={isCover ? "absolute left-1/2 top-[168px] z-[30] -translate-x-1/2" : "absolute right-[64px] top-[calc(50%-190px)] z-[30]"}
-      style={{ opacity: stage === "completing" ? 1 : 1 }}
+      className={isCover ? "absolute left-1/2 top-[4px] z-[30] -translate-x-1/2" : "absolute right-[16px] top-[calc(50%-470px)] z-[30]"}
     >
-      <IssueCore state={issueCoreState} progress={pct} size={96} />
+      <IssueCore state={issueCoreState} progress={pct} size={isCover ? 200 : 240} />
     </div>
   );
 
@@ -270,14 +274,15 @@ export default function PrintingScreen({
           .printing-scan { animation: none !important; opacity: 0; }
         }
       `}</style>
-      <div className="px-[80px] pt-[64px]">
+      {/* compact header — the artefact below is the hero, so the title sets
+          on one line and gives its vertical space back to the paper */}
+      <div className="px-[80px] pt-[42px]">
         <p className="kicker">{kicker}</p>
-        <h2 className="mt-[16px] font-display text-[82px] font-semibold leading-[0.9] tracking-[-0.02em]">
-          <span className="block">{title[0]}</span>
-          <span className="mt-[6px] block italic">{title[1]}</span>
+        <h2 className="mt-[12px] font-display text-[72px] font-semibold leading-[0.9] tracking-[-0.02em]">
+          {title[0]} <span className="italic">{title[1]}</span>
         </h2>
         {subLine && (
-          <p className="jp-sub mt-[12px] text-[21px] text-silver-dim">{subLine}</p>
+          <p className="jp-sub mt-[8px] text-[19px] text-silver-dim">{subLine}</p>
         )}
       </div>
 
@@ -299,7 +304,14 @@ export default function PrintingScreen({
                   : "drop-shadow(0 20px 44px rgba(0,0,0,0.16))",
               }}
             >
-              <div style={{ width: 640, transformOrigin: "top center" }}>
+              <div
+                style={{
+                  width: 640,
+                  height: 1280,
+                  transform: `scale(${coverScale})`,
+                  transformOrigin: "top left",
+                }}
+              >
                 <MagazineCover {...filmProps} />
               </div>
             </div>

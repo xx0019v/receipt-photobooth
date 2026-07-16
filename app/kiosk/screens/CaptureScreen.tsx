@@ -83,22 +83,21 @@ export default function CaptureScreen({
         }
       `}</style>
 
-      {/* status bar — quiet: frame count, one instruction, the scent's mark */}
-      <div className="flex items-center justify-between px-[80px] pt-[64px]">
-        <div className="flex items-center gap-[16px]">
+      {/* status bar — the frame count IS the headline: an oversized
+          typographic counter, not a quiet label */}
+      <div className="flex items-end justify-between px-[80px] pt-[34px]">
+        <div className="flex items-baseline gap-[20px]">
           <span
-            className="h-[10px] w-[10px] rounded-full bg-ink"
+            className="mb-[14px] h-[12px] w-[12px] rounded-full bg-ink"
             style={{ animation: "blink 1s step-end infinite" }}
             aria-hidden="true"
           />
-          <span className="kicker">
-            {t.capture.frameLabel(
-              String(shot + 1).padStart(2, "0"),
-              String(total).padStart(2, "0"),
-            )}
+          <span className="font-display text-[96px] font-semibold leading-[0.8] tracking-[-0.03em]">
+            {String(shot + 1).padStart(2, "0")}
           </span>
+          <span className="font-display text-[40px] italic text-silver-dim">/ {String(total).padStart(2, "0")}</span>
           {sub && (
-            <span className="jp-sub text-[15px] text-silver-dim">
+            <span className="jp-sub mb-[8px] text-[15px] text-silver-dim">
               {sub.capture.frameLabel(
                 String(shot + 1).padStart(2, "0"),
                 String(total).padStart(2, "0"),
@@ -107,7 +106,7 @@ export default function CaptureScreen({
           )}
         </div>
 
-        <div className="flex items-center gap-[14px]">
+        <div className="mb-[10px] flex items-center gap-[14px]">
           <span className="kicker">{scent.mood.en}</span>
           <img
             src={seal.path}
@@ -118,11 +117,11 @@ export default function CaptureScreen({
         </div>
       </div>
 
-      <div className="rule-hair mx-[80px] mt-[22px]" />
+      <div className="rule-hair mx-[80px] mt-[16px]" />
 
-      {/* camera viewport */}
-      <div className="flex flex-1 items-center justify-center px-[80px]">
-        <div className="relative h-[800px] w-[720px] overflow-hidden bg-ink">
+      {/* camera viewport — the dominant surface of the screen */}
+      <div className="flex flex-1 items-center justify-center px-[70px]">
+        <div className="relative h-[1020px] w-[940px] overflow-hidden bg-ink">
           <Portrait seed={shot} className="opacity-95" />
 
           {/* rule-of-thirds grid — camera, not decoration */}
@@ -188,44 +187,37 @@ export default function CaptureScreen({
         </div>
       </div>
 
-      {/* contact sheet — quiet strip, not a card grid */}
-      <div className="px-[80px] pb-[80px] pt-[40px]">
-        <div className="flex items-center justify-between border-b border-[color:var(--color-ink)] pb-[10px] font-mono text-[12px] uppercase tracking-[0.32em] text-silver-dim">
+      {/* contact strip — one thin film row of 6, never competing with the
+          camera; each registered frame locks in with its crop marks */}
+      <div className="px-[80px] pb-[64px] pt-[26px]">
+        <div className="flex items-center justify-between border-b border-[color:var(--color-ink)] pb-[8px] font-mono text-[12px] uppercase tracking-[0.32em] text-silver-dim">
           <span>Contact</span>
           <span>{scent.code}</span>
         </div>
-        <div className="grid grid-cols-3 gap-x-[24px] gap-y-[18px]">
+        <div className="mt-[14px] flex gap-[14px]">
           {Array.from({ length: total }).map((_, i) => {
             const done = frames.includes(i + 1);
-            const colEnd = (i + 1) % 3 === 0;
             return (
-              <div
-                key={i}
-                className={`pr-[24px] ${colEnd ? "" : "border-r border-[color:var(--color-line)]"}`}
-              >
+              <div key={i} className="flex-1">
                 <div
-                  className={`relative mt-[10px] aspect-square overflow-hidden bg-paper-bright ${
+                  className={`relative aspect-square overflow-hidden bg-paper-bright ${
                     done ? "anim-quiet-confirm" : ""
                   }`}
                 >
                   {done ? (
                     <>
                       <Portrait seed={i} />
-                      <RegMark className="left-[6px] top-[6px]" />
-                      <RegMark className="right-[6px] top-[6px] rotate-90" />
-                      <RegMark className="bottom-[6px] right-[6px] rotate-180" />
-                      <RegMark className="bottom-[6px] left-[6px] -rotate-90" />
+                      <RegMark className="left-[5px] top-[5px]" />
+                      <RegMark className="bottom-[5px] right-[5px] rotate-180" />
                     </>
                   ) : (
-                    <div className="flex h-full flex-col items-center justify-center gap-[6px] border border-dashed border-[color:var(--color-line)]">
-                      <span className="font-display text-[64px] italic text-silver/50">
-                        {i + 1}
-                      </span>
+                    <div className="flex h-full items-center justify-center border border-dashed border-[color:var(--color-line)]">
+                      <span className="font-display text-[40px] italic text-silver/50">{i + 1}</span>
                     </div>
                   )}
                 </div>
-                <span className="mt-[8px] block font-mono text-[11px] tracking-[0.24em] text-silver-dim">
-                  FRAME {String(i + 1).padStart(2, "0")} · {done ? "REGISTERED" : "OPEN"}
+                <span className="mt-[6px] block text-center font-mono text-[10px] tracking-[0.2em] text-silver-dim">
+                  {String(i + 1).padStart(2, "0")} · {done ? "REG" : "OPEN"}
                 </span>
               </div>
             );

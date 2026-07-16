@@ -6,6 +6,12 @@ import { CAPTURE_TOTAL, type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
 import { useChromeArtwork } from "@/app/lib/chromeArtwork";
 
+/**
+ * POSE — not a tutorial page: the framing stage. The viewfinder dominates,
+ * the session's frame count is set as an oversized numeral inside the
+ * machine's margin, and a single instruction line replaces explanatory copy.
+ * START CAPTURE is a fixed, full-width rail at the bottom.
+ */
 export default function PoseScreen({
   scent,
   onBegin,
@@ -20,21 +26,32 @@ export default function PoseScreen({
     <div className="flex h-full flex-col">
       <Masthead />
 
-      <div className="px-[80px] pt-[60px]">
-        <p className="kicker anim-fade-up">{t.pose.step}</p>
-        <h2 className="anim-fade-up delay-1 mt-[22px] font-display text-[92px] font-semibold leading-[0.86] tracking-[-0.025em]">
-          {t.pose.title}
-        </h2>
-        {sub && (
-          <p className="jp-sub anim-fade-up delay-2 mt-[16px] text-[22px] text-silver-dim">
-            {sub.pose.title}
-          </p>
-        )}
+      {/* header row — step + the session's frame count as the typographic hero */}
+      <div className="flex items-end justify-between px-[80px] pt-[30px]">
+        <div>
+          <p className="kicker anim-fade-up">{t.pose.step}</p>
+          <h2 className="anim-fade-up delay-1 mt-[10px] font-display text-[64px] font-semibold leading-[0.9] tracking-[-0.02em]">
+            {t.pose.title}
+          </h2>
+          {sub && (
+            <p className="jp-sub anim-fade-up delay-2 mt-[8px] text-[18px] text-silver-dim">{sub.pose.title}</p>
+          )}
+        </div>
+        <div className="anim-fade-up delay-1 flex items-baseline gap-[14px]">
+          <span className="font-display font-semibold leading-[0.8] tracking-[-0.04em]" style={{ fontSize: 150 }}>
+            {CAPTURE_TOTAL}
+          </span>
+          <span className="mb-[10px] font-mono text-[16px] uppercase leading-[1.7] tracking-[0.3em] text-silver-dim">
+            {t.pose.frames}
+            <br />
+            {scent.mood.en}
+          </span>
+        </div>
       </div>
 
-      {/* viewfinder */}
-      <div className="flex flex-1 items-center justify-center px-[80px] py-[30px]">
-        <div className="anim-fade-up delay-2 relative h-full max-h-[880px] w-full overflow-hidden bg-ink">
+      {/* viewfinder — the screen's dominant surface */}
+      <div className="flex flex-1 items-center justify-center px-[60px] py-[20px]">
+        <div className="anim-fade-up delay-2 relative h-full max-h-[1080px] w-full overflow-hidden bg-ink">
           <div className="absolute inset-0 opacity-[0.5]">
             <Portrait seed={1} />
           </div>
@@ -64,10 +81,13 @@ export default function PoseScreen({
 
           <div className="absolute inset-x-[34px] top-[30px] flex items-center justify-between font-mono text-[17px] uppercase tracking-[0.34em] text-paper/80">
             <span>{t.pose.viewfinder}</span>
-            <span>{scent.mood.en}</span>
+            <span>
+              {scent.index} · {scent.name}
+            </span>
           </div>
 
-          <div className="absolute inset-x-0 bottom-[42px] flex items-center justify-center gap-[26px] font-mono text-[18px] uppercase tracking-[0.22em] text-paper/85">
+          {/* one instruction line, inside the frame where the guest looks */}
+          <div className="absolute inset-x-0 bottom-[42px] flex items-center justify-center gap-[26px] font-mono text-[19px] uppercase tracking-[0.22em] text-paper/85">
             {t.pose.cues.map((c, i) => (
               <span key={c} className="flex items-center gap-[26px]">
                 {c}
@@ -78,26 +98,16 @@ export default function PoseScreen({
         </div>
       </div>
 
-      {/* selected scent + begin */}
-      <div className="px-[80px] pb-[84px] pt-[16px]">
-        <div className="mb-[24px] flex items-center justify-between border-t border-[color:var(--color-line)] pt-[24px] font-mono text-[18px] uppercase tracking-[0.22em]">
-          <span className="text-silver-dim">{t.pose.yourScent}</span>
-          <span>
-            {scent.index} · {scent.mood.en} — {scent.name}
-          </span>
-        </div>
+      {/* fixed action rail */}
+      <div className="px-[80px] pb-[80px] pt-[6px]">
         <button
           onClick={onBegin}
-          className="card press flex w-full items-center justify-between bg-ink px-[56px] py-[42px] text-paper"
+          className="card press flex min-h-[100px] w-full items-center justify-between bg-ink px-[56px] text-paper"
           style={{ cursor: "pointer" }}
         >
           <span className="flex flex-col gap-[6px]">
-            <span className="font-mono text-[26px] uppercase tracking-[0.4em]">
-              {t.pose.start}
-            </span>
-            {sub && (
-              <span className="jp-sub text-[17px] text-paper/55">{sub.pose.start}</span>
-            )}
+            <span className="font-mono text-[26px] uppercase tracking-[0.4em]">{t.pose.start}</span>
+            {sub && <span className="jp-sub text-[16px] text-paper/55">{sub.pose.start}</span>}
           </span>
           <span className="font-mono text-[19px] uppercase tracking-[0.28em] text-paper/60">
             {CAPTURE_TOTAL} {t.pose.frames} →

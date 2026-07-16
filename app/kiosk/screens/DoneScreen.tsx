@@ -106,12 +106,17 @@ export default function DoneScreen({
                 </div>
               </div>
 
-              <div className="anim-fade-up delay-3 absolute bottom-[6px] left-0 flex items-center gap-[14px]">
-                <p className="font-mono text-[17px] uppercase tracking-[.3em]">Collect from the right</p>
-                <svg className="text-silver-dim" width="16" height="12" viewBox="0 0 16 12" fill="none" aria-hidden="true">
-                  <path d="M1 6H14M9 1l5 5-5 5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+              {/* collection direction as a full instruction rail, not a
+                  footnote — the guest's next physical action is the second
+                  hero of this screen */}
+              <div className="anim-fade-up delay-3 absolute bottom-[340px] left-0 right-0 flex min-h-[88px] items-center justify-between border-t border-[color:var(--color-ink)] pt-[20px]">
+                <span className="flex flex-col gap-[4px]">
+                  <span className="font-mono text-[26px] uppercase tracking-[.32em]">Collect from the right</span>
+                  {sub && <span className="jp-sub text-[17px] text-silver-dim">右側からお受け取りください</span>}
+                </span>
+                <svg className="text-ink" width="46" height="30" viewBox="0 0 16 12" fill="none" aria-hidden="true">
+                  <path d="M1 6H14M9 1l5 5-5 5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                {sub && <span className="jp-sub text-[16px] text-silver-dim">右側からお受け取りください</span>}
               </div>
             </div>
           </div>
@@ -140,17 +145,16 @@ export default function DoneScreen({
       <div className="flex h-full flex-col">
         <Masthead />
 
-        <div className="flex flex-1 flex-col items-center justify-center px-[80px] text-center">
+        <div className="flex flex-1 flex-col items-center px-[80px] pt-[32px] text-center">
           <p className="kicker anim-fade-up">
             {scent.mood.en} — {scent.name} · {scent.code}
           </p>
 
-          <h2 className="anim-fade-up delay-1 mt-[24px] font-display font-semibold leading-[0.86] tracking-[-0.02em]">
-            <span className="block text-[88px]">Your film</span>
-            <span className="block text-[88px] italic">is ready.</span>
+          <h2 className="anim-fade-up delay-1 mt-[12px] font-display text-[72px] font-semibold leading-[0.92] tracking-[-0.02em]">
+            Your film <span className="italic">is ready.</span>
           </h2>
           {sub && (
-            <p className="jp-sub anim-fade-up delay-1 mt-[14px] text-[19px] text-silver-dim">
+            <p className="jp-sub anim-fade-up delay-1 mt-[8px] text-[18px] text-silver-dim">
               フィルムの準備ができました
             </p>
           )}
@@ -158,60 +162,34 @@ export default function DoneScreen({
           {/* The artefact — same paper, same photos, same serial — is the
               hero of this screen; it follows the title directly rather than
               sitting beneath a block of copy. */}
-          <div className="anim-fade-up delay-2 mt-[34px] flex flex-col items-center">
-            <div className="h-[10px] w-[380px] rounded-t-[4px] bg-ink" />
-            <div className="h-[614px] w-[307px] overflow-hidden shadow-[0_28px_54px_-34px_rgba(0,0,0,.48)]">
-              <div className="origin-top-left scale-[.48]">
+          <div className="anim-fade-up delay-2 mt-[22px] flex flex-col items-center">
+            <div className="h-[10px] w-[620px] rounded-t-[4px] bg-ink" />
+            <div className="h-[1088px] w-[544px] overflow-hidden shadow-[0_28px_54px_-34px_rgba(0,0,0,.48)]">
+              <div className="origin-top-left scale-[.85]">
                 <MagazineCover {...filmProps} />
               </div>
             </div>
           </div>
 
-          {/* Quiet collection cue — draws the eye down, toward the printed
-              piece still resting in the slot beneath the screen. */}
-          <div
-            aria-hidden="true"
-            className="anim-fade-up delay-3 mt-[26px] flex flex-col items-center gap-[10px] text-silver-dim"
-          >
-            <span className="h-[26px] w-px bg-[color:var(--color-line)]" />
-            <svg width="15" height="9" viewBox="0 0 15 9" fill="none">
-              <path
-                d="M1 1L7.5 7.5L14 1"
-                stroke="currentColor"
-                strokeWidth="1.3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+          <div className="anim-fade-up delay-3 mt-[20px] flex min-h-[88px] w-full items-center justify-between border-t border-[color:var(--color-ink)] pt-[16px] text-left">
+            <span className="flex flex-col gap-[4px]">
+              <span className="font-mono text-[23px] uppercase tracking-[.3em]">Collect below</span>
+              {sub && <span className="jp-sub text-[16px] text-silver-dim">下の受取口からお受け取りください</span>}
+            </span>
+            <svg className="text-ink" width="38" height="24" viewBox="0 0 15 9" fill="none" aria-hidden="true">
+              <path d="M1 1L7.5 7.5L14 1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-
-          <p className="anim-fade-up delay-4 mt-[20px] max-w-[620px] text-[20px] font-light leading-[1.5] text-ink-soft">
-            {t.done.body}
-          </p>
-          {sub && (
-            <p className="jp-sub anim-fade-up delay-4 mt-[8px] text-[16px] text-silver-dim">
-              {sub.done.body}
-            </p>
-          )}
-
-          <p className="anim-fade-up delay-5 mt-[18px] font-display text-[26px] italic text-ink">
-            {t.done.closing}
-          </p>
-          {sub && (
-            <p className="jp-sub anim-fade-up delay-5 mt-[8px] text-[17px] text-silver-dim">
-              {sub.done.closing}
-            </p>
-          )}
         </div>
 
-        <div className="anim-fade-up delay-6 px-[80px] pb-[86px]">
+        <div className="anim-fade-up delay-4 px-[80px] pb-[48px]">
           <div className="relative h-px overflow-hidden bg-[color:var(--color-line-soft)]">
             <div
               className="absolute inset-y-0 left-0 bg-[color:var(--color-ink)] transition-[width] duration-1000 ease-linear"
               style={{ width: `${returnPct}%` }}
             />
           </div>
-          <div className="mt-[28px] flex items-center justify-between font-mono text-[18px] uppercase tracking-[0.3em]">
+          <div className="mt-[20px] flex items-center justify-between font-mono text-[16px] uppercase tracking-[0.28em]">
             <span className="text-silver-dim">
               {t.done.next}
               {sub && (

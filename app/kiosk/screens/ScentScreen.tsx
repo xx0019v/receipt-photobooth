@@ -64,6 +64,10 @@ export default function ScentScreen({
               </div>
 
               <div className="flex flex-1 flex-col justify-center">
+                {/* The edition as a printed folio page: an oversized issue
+                    numeral anchors the eye first, the name sets under it in
+                    display caps, one line of character copy — then a full-
+                    width issuing rail, not an inline text link. */}
                 <button
                   type="button"
                   onClick={() => onSelect(scent)}
@@ -71,36 +75,49 @@ export default function ScentScreen({
                   style={{ cursor: "pointer" }}
                   aria-label={`Select edition ${edition.code}`}
                 >
-                  <span className="block font-mono text-[15px] uppercase tracking-[0.34em] text-silver-dim">
-                    Edition {edition.no}
-                  </span>
-                  <h2 className="mt-[18px] font-display text-[172px] font-semibold uppercase leading-[0.82] tracking-[-0.03em]">
+                  <div className="flex items-start gap-[36px]">
+                    <span
+                      aria-hidden="true"
+                      className="font-display font-semibold leading-[0.78] tracking-[-0.04em] text-ink"
+                      style={{ fontSize: 210 }}
+                    >
+                      {edition.no}
+                    </span>
+                    <span className="mt-[26px] block h-[150px] w-px bg-[color:var(--color-line)]" aria-hidden="true" />
+                    <span className="mt-[30px] block font-mono text-[15px] uppercase leading-[2] tracking-[0.34em] text-silver-dim">
+                      Edition
+                      <br />
+                      {edition.no} / {total}
+                      <br />
+                      of the archive
+                    </span>
+                  </div>
+                  <h2 className="mt-[6px] font-display text-[150px] font-semibold uppercase leading-[0.84] tracking-[-0.03em]">
                     {edition.code}
                   </h2>
-                  <p className="mt-[34px] font-display text-[38px] italic leading-[1.05] text-ink-soft">
+                  <p className="mt-[26px] font-display text-[32px] italic leading-[1.1] text-ink-soft">
                     {edition.character.en}
                   </p>
                   {sub && (
-                    <p className="jp-sub mt-[10px] text-[19px] text-silver-dim">
+                    <p className="jp-sub mt-[8px] text-[18px] text-silver-dim">
                       {edition.character.jp}
                     </p>
                   )}
 
-                  <div className="mt-[52px] flex items-end border-t border-[color:var(--color-line)] pt-[26px]">
-                    <span className="font-mono text-[13px] uppercase tracking-[0.34em] text-silver-dim">
-                      Limited edition · 1 of the archive
-                    </span>
-                    <span className="scent-select ml-auto font-mono text-[16px] uppercase tracking-[0.34em] text-ink">
-                      Select this edition
-                    </span>
-                  </div>
-                  {sub && (
-                    <div className="mt-[8px] flex">
-                      <span className="jp-sub ml-auto text-[15px] text-silver-dim">
-                        このエディションにする
+                  {/* issuing rail — a machine control strip, minimum 96px */}
+                  <span className="mt-[54px] flex min-h-[96px] w-full items-center justify-between border border-[color:var(--color-ink)] bg-ink px-[44px] text-paper">
+                    <span className="flex flex-col gap-[3px]">
+                      <span className="font-mono text-[20px] uppercase tracking-[0.34em]">
+                        Select this edition
                       </span>
-                    </div>
-                  )}
+                      {sub && (
+                        <span className="jp-sub text-[14px] normal-case text-paper/55">
+                          このエディションにする
+                        </span>
+                      )}
+                    </span>
+                    <span className="font-display text-[38px]">→</span>
+                  </span>
                 </button>
               </div>
 

@@ -23,7 +23,10 @@ export const CHROME_ASSETS = {
   ribbon: asset("ribbon", "chrome-ribbon.svg", "Chrome Ribbon", "fashion", "Fashion-led COVER motif and format preview", true, true, false, true),
   bust: asset("bust", "chrome-bust.svg", "Chrome Bust", "fashion", "Editorial COVER motif", true, true, false, true),
   moons: asset("moons", "chrome-moons.svg", "Chrome Moons", "celestial", "Scent symbol or PASS security seal", true, true, true, true),
-  silverLipsMotion: asset("silver-lips-motion", "silver-lips.mp4", "Silver Lips Motion", "motion", "Primary Idle loop", false, true, false, false),
+  // Kiosk-optimized encode of the same clip (2880px/32fps/2.3MB →
+  // 1152px/30fps/307KB, visually identical at the 850×600 display size);
+  // the original silver-lips.mp4 is kept alongside untouched.
+  silverLipsMotion: asset("silver-lips-motion", "silver-lips-kiosk.mp4", "Silver Lips Motion", "motion", "Primary Idle loop", false, true, false, false),
 } as const satisfies Record<string, ChromeAsset>;
 
 export const ALL_CHROME_ASSETS = Object.values(CHROME_ASSETS);

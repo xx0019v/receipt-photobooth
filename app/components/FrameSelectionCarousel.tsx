@@ -3,10 +3,13 @@
 import { useCallback, useRef, useState } from "react";
 import Portrait from "@/app/components/Portrait";
 
-const ITEM_W = 620;
+// Stage geometry — the active proof is the screen's hero (660px, inside the
+// 640–700 acceptance band) and the 940px viewport leaves ~128px of the
+// previous/next proofs visible as physical slats at each edge.
+const ITEM_W = 660;
 const GAP = 24;
 const STEP = ITEM_W + GAP;
-const VIEWPORT_W = 700;
+const VIEWPORT_W = 940;
 const DRAG_THRESHOLD = 56;
 const TAP_MOVE_TOLERANCE = 8;
 const RAPID_TAP_LOCK_MS = 220;
@@ -21,7 +24,7 @@ const PEEL_MAX_TILT = 2.5; // degrees
 // to a 2D parabola: lift(dist) = ARC_K * dist^2. Max depth at dist=2 is
 // 14 * 4 = 56px (inside the 50–90px acceptance band).
 const ARC_K = 14;
-const THUMB_SIZE = [104, 84, 68] as const;
+const THUMB_SIZE = [108, 86, 68] as const;
 const THUMB_OPACITY = [1, 0.8, 0.55] as const;
 
 type PeelState = {

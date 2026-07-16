@@ -3,257 +3,125 @@
 import { useEffect } from "react";
 import Masthead from "@/app/components/Masthead";
 import { useLang } from "@/app/lib/i18n";
-import { usePrintStyle, type PrintStyle } from "@/app/lib/printStyle";
-import { BOARDING_H, BOARDING_W } from "@/app/components/BoardingPass";
-import { useChromeArtwork } from "@/app/lib/chromeArtwork";
+import { usePrintStyle } from "@/app/lib/printStyle";
+import BoardingPass, { BOARDING_H, BOARDING_W } from "@/app/components/BoardingPass";
+import MagazineCover from "@/app/components/MagazineCover";
+import { type Scent } from "@/app/lib/edition";
+import { type FilmArtifactProps } from "@/app/lib/film";
 
 /**
- * The ritual of choosing HOW the memory is kept — a boarding pass or film.
- * Two large editorial choices with a schematic of each artefact; a quiet
- * confirm; then Continue. No "template" language, no card-UI cheapness.
+ * FORMAT — no schematic cards. The artefact the guest will actually collect
+ * is shown at近-full print scale as the hero; the other format waits as a
+ * physical sliver at the screen edge (tap it, or the rail toggle, to swap).
+ * The eye starts on paper, not on UI.
  */
+const PASS_PREVIEW_W = 940;
+const PASS_SCALE = PASS_PREVIEW_W / BOARDING_W;
+const FILM_PREVIEW_H = 1000;
+const FILM_SCALE = FILM_PREVIEW_H / 1280;
+
 export default function FormatSelectScreen({
+  scent,
+  filmProps,
   onContinue,
 }: {
+  scent: Scent;
+  filmProps: FilmArtifactProps;
   onContinue: () => void;
 }) {
   const { t, sub } = useLang();
   const { style, setStyle } = usePrintStyle();
-  const motif = useChromeArtwork();
 
   useEffect(() => {
     setStyle("pass");
   }, [setStyle]);
 
-  const selectedName =
-    style === "pass" ? t.format.passName : t.format.coverName;
+  const isPass = style === "pass";
 
   return (
     <div className="flex h-full flex-col">
       <Masthead />
 
-      <div className="px-[80px] pt-[58px]">
-        {/* chapter emblem — the session's silver motif, drawn once here */}
-        <img
-          src={motif.path}
-          alt=""
-          aria-hidden="true"
-          className="anim-fade-up mb-[20px] h-[30px] w-[30px] object-contain opacity-40 grayscale"
-        />
+      <div className="px-[80px] pt-[40px]">
         <p className="kicker anim-fade-up">{t.format.step}</p>
-        <h2 className="anim-fade-up delay-1 mt-[20px] font-display text-[92px] font-semibold leading-[0.86] tracking-[-0.025em]">
-          {t.format.title[0]}
-          <br />
-          <span className="italic">{t.format.title[1]}</span>
+        <h2 className="anim-fade-up delay-1 mt-[14px] font-display text-[74px] font-semibold leading-[0.88] tracking-[-0.025em]">
+          {t.format.title[0]} <span className="italic">{t.format.title[1]}</span>
         </h2>
-        {sub && (
-          <p className="jp-sub anim-fade-up delay-2 mt-[16px] text-[22px] text-silver-dim">
-            {sub.format.title[0]}
-            {sub.format.title[1]}
-          </p>
+      </div>
+
+      {/* The paper itself is the hero — the live artefact at near-print scale */}
+      <div className="relative flex flex-1 items-center justify-center overflow-hidden">
+        {isPass ? (
+          <div className="anim-fade-up delay-2 relative">
+            <div
+              className="overflow-hidden border border-[color:var(--color-line)] bg-paper-bright shadow-[0_30px_60px_-42px_rgba(0,0,0,0.55)]"
+              style={{ width: PASS_PREVIEW_W, height: Math.round(BOARDING_H * PASS_SCALE) }}
+            >
+              <div style={{ width: BOARDING_W, height: BOARDING_H, transform: `scale(${PASS_SCALE})`, transformOrigin: "top left" }}>
+                <BoardingPass frames={[]} scent={scent} serial="0000-0000" />
+              </div>
+            </div>
+            <div className="mt-[22px] flex items-baseline justify-between font-mono uppercase">
+              <span className="text-[26px] tracking-[0.3em]">{t.format.passName}</span>
+              <span className="text-[13px] tracking-[0.24em] text-silver-dim">620 × 2100 · {t.format.passTag}</span>
+            </div>
+          </div>
+        ) : (
+          <div className="anim-fade-up delay-2 relative flex items-end gap-[36px]">
+            <div
+              className="overflow-hidden border border-[color:var(--color-line)] bg-paper-bright shadow-[0_30px_60px_-42px_rgba(0,0,0,0.55)]"
+              style={{ width: Math.round(640 * FILM_SCALE), height: FILM_PREVIEW_H }}
+            >
+              <div style={{ width: 640, transform: `scale(${FILM_SCALE})`, transformOrigin: "top left" }}>
+                <MagazineCover {...filmProps} />
+              </div>
+            </div>
+            <div className="mb-[8px] flex flex-col gap-[6px] font-mono uppercase" style={{ writingMode: "vertical-rl" }}>
+              <span className="text-[24px] tracking-[0.3em]">{t.format.coverName}</span>
+              <span className="text-[13px] tracking-[0.24em] text-silver-dim">640 × 1280 · {t.format.coverTag}</span>
+            </div>
+          </div>
         )}
+
+        {/* the other format waits at the screen edge — a physical sliver */}
+        <button
+          type="button"
+          onClick={() => setStyle(isPass ? "cover" : "pass")}
+          aria-label={isPass ? t.format.coverName : t.format.passName}
+          className="press absolute right-0 top-1/2 flex -translate-y-1/2 items-center"
+          style={{ cursor: "pointer", minHeight: 320, minWidth: 88 }}
+        >
+          <span className="flex flex-col items-center gap-[16px] border-y border-l border-[color:var(--color-line)] bg-paper-bright py-[36px] pl-[18px] pr-[10px] shadow-[-14px_0_30px_-24px_rgba(0,0,0,0.4)]">
+            <span className="font-mono text-[13px] uppercase tracking-[0.3em] text-silver-dim" style={{ writingMode: "vertical-rl" }}>
+              {isPass ? t.format.coverName : t.format.passName} →
+            </span>
+          </span>
+        </button>
       </div>
 
-      {/* the spread — two facing pages, the chosen one steps forward */}
-      <div className="anim-fade-up delay-2 relative flex flex-1 items-stretch px-[80px] py-[24px]">
-        <Page
-          id="pass"
-          side="left"
-          active={style === "pass"}
-          index="I"
-          name={t.format.passName}
-          tag={t.format.passTag}
-          jp={sub?.format.passTag}
-          selectedLabel={t.format.selected}
-          onPick={() => setStyle("pass")}
-          glyph={<PassGlyph />}
-        />
-        <span
-          aria-hidden="true"
-          className="relative z-[1] my-[10px] w-px shrink-0 bg-[color:var(--color-line)]"
-        />
-        <Page
-          id="cover"
-          side="right"
-          active={style === "cover"}
-          index="II"
-          name={t.format.coverName}
-          tag={t.format.coverTag}
-          jp={sub?.format.coverTag}
-          selectedLabel={t.format.selected}
-          onPick={() => setStyle("cover")}
-          glyph={<CoverGlyph />}
-        />
-      </div>
-
-      <div className="flex items-center justify-between gap-[24px] px-[80px] pb-[86px] pt-[10px]">
-        <p className="font-mono text-[18px] uppercase tracking-[0.28em] text-silver-dim">
-          {t.format.selected}:{" "}
-          <span className="text-ink">{selectedName}</span>
-        </p>
+      {/* action rail */}
+      <div className="flex items-stretch gap-[24px] px-[80px] pb-[80px] pt-[8px]">
+        <div className="flex flex-1 flex-col justify-center border-t border-[color:var(--color-line)] pt-[16px]">
+          <span className="font-mono text-[15px] uppercase tracking-[0.28em] text-silver-dim">
+            {t.format.selected}: <span className="text-ink">{isPass ? t.format.passName : t.format.coverName}</span>
+          </span>
+          {sub && (
+            <span className="jp-sub mt-[4px] text-[14px] text-silver-dim">
+              {isPass ? sub.format.passTag : sub.format.coverTag}
+            </span>
+          )}
+        </div>
         <button
           onClick={onContinue}
-          className="card press flex items-center gap-[22px] bg-ink px-[64px] py-[40px] text-paper"
+          className="card press flex min-h-[96px] items-center gap-[22px] bg-ink px-[64px] text-paper"
           style={{ cursor: "pointer" }}
         >
           <span className="flex flex-col items-start gap-[4px]">
-            <span className="font-mono text-[24px] uppercase tracking-[0.36em]">
-              {t.format.continue}
-            </span>
-            {sub && (
-              <span className="jp-sub text-[15px] text-paper/55">
-                {sub.format.continue}
-              </span>
-            )}
+            <span className="font-mono text-[22px] uppercase tracking-[0.36em]">{t.format.continue}</span>
+            {sub && <span className="jp-sub text-[14px] text-paper/55">{sub.format.continue}</span>}
           </span>
-          <span className="font-display text-[42px]">→</span>
+          <span className="font-display text-[38px]">→</span>
         </button>
-      </div>
-    </div>
-  );
-}
-
-function Page({
-  id,
-  side,
-  active,
-  index,
-  name,
-  tag,
-  jp,
-  selectedLabel,
-  onPick,
-  glyph,
-}: {
-  id: PrintStyle;
-  side: "left" | "right";
-  active: boolean;
-  index: string;
-  name: string;
-  tag: string;
-  jp?: string;
-  selectedLabel: string;
-  onPick: () => void;
-  glyph: React.ReactNode;
-}) {
-  const recede = side === "left" ? "-translate-x-[14px]" : "translate-x-[14px]";
-
-  return (
-    <button
-      onClick={onPick}
-      className={`card press relative z-[1] flex flex-1 flex-col items-center justify-center gap-[26px] px-[28px] py-[40px] text-center transition-[transform,opacity,filter] duration-[650ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
-        active
-          ? "scale-100 opacity-100"
-          : `scale-[0.94] opacity-40 grayscale ${recede}`
-      }`}
-      style={{ cursor: "pointer" }}
-      aria-pressed={active}
-      data-format={id}
-    >
-      <div className="flex items-center gap-[12px] font-mono text-[16px] tracking-[0.3em] text-silver-dim">
-        <span>{index}</span>
-        {active && (
-          <span
-            key="sel"
-            className="text-[13px] uppercase tracking-[0.3em] text-ink"
-            style={{ animation: "wordIn 0.4s ease both" }}
-          >
-            · {selectedLabel}
-          </span>
-        )}
-      </div>
-
-      {/* schematic of the artefact */}
-      <div
-        className={`flex shrink-0 items-center justify-center transition-transform duration-[650ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          active ? "scale-100" : "scale-[0.88]"
-        }`}
-      >
-        {glyph}
-      </div>
-
-      <div>
-        <h3
-          className={`font-display font-semibold uppercase leading-[0.9] tracking-[-0.01em] transition-all duration-500 ${
-            active ? "text-[50px]" : "text-[40px]"
-          }`}
-        >
-          {name}
-        </h3>
-        <p className="mt-[10px] font-display text-[22px] italic leading-tight text-silver-dim">
-          {tag}
-        </p>
-        {jp && <p className="jp-sub mt-[8px] text-[15px] text-silver-dim">{jp}</p>}
-      </div>
-    </button>
-  );
-}
-
-/** Horizontal boarding-ticket schematic — photo strip + detachable stub. */
-function PassGlyph() {
-  return (
-    <div
-      className="relative flex w-[192px] overflow-hidden border border-current"
-      style={{ aspectRatio: `${BOARDING_W} / ${BOARDING_H}` }}
-    >
-      {/* main : headline rule + three photos in a row */}
-      <div className="flex flex-1 flex-col justify-center gap-[4px] px-[8px] py-[6px]">
-        <span className="h-[4px] w-[64%] bg-current" />
-        <div className="flex gap-[4px]">
-          {[0, 1, 2].map((i) => (
-            <span key={i} className="h-[32px] w-[32px] bg-current" />
-          ))}
-        </div>
-        <span className="h-[3px] w-[82%] bg-current opacity-40" />
-      </div>
-      {/* perforation */}
-      <span className="my-[5px] w-px self-stretch border-l border-dashed border-current" />
-      {/* stub */}
-      <div className="flex w-[54px] flex-col gap-[3px] px-[7px] py-[6px]">
-        <span className="h-[3px] w-full bg-current opacity-70" />
-        <span className="h-[3px] w-[68%] bg-current opacity-40" />
-        <span className="h-[3px] w-[84%] bg-current opacity-40" />
-        <span className="h-[3px] w-[56%] bg-current opacity-40" />
-        <span className="mt-auto h-[10px] w-full bg-current opacity-75" />
-      </div>
-    </div>
-  );
-}
-
-/** Miniature of the FILM artefact — masthead, three squares slightly left, a
- *  vertical quote and cropped motif in the right margin, metadata + barcode.
- *  A faithful schematic (no photo mounts) so the preview stays Pi-light. */
-function CoverGlyph() {
-  return (
-    <div className="relative flex h-[176px] w-[110px] flex-col overflow-hidden border border-current px-[9px] pb-[8px] pt-[7px]">
-      {/* masthead */}
-      <span className="mx-auto h-[6px] w-[46%] bg-current" />
-      <span className="mx-auto mt-[3px] h-[2px] w-[30%] bg-current opacity-40" />
-
-      {/* photos (left) + quote / motif (right) */}
-      <div className="mt-[8px] flex flex-1 items-start gap-[7px]">
-        <div className="flex flex-col gap-[4px]">
-          {[0, 1, 2].map((i) => (
-            <span key={i} className="h-[26px] w-[26px] bg-current" />
-          ))}
-        </div>
-        <div className="relative flex-1 self-stretch">
-          <span className="absolute right-0 top-0 h-[12px] w-[12px] rounded-full border border-current opacity-70" />
-          <span className="absolute bottom-[6px] left-1/2 h-[52px] w-[3px] -translate-x-1/2 bg-current opacity-80" />
-        </div>
-      </div>
-
-      {/* footer rule + metadata + barcode */}
-      <span className="mt-[6px] h-px w-full bg-current opacity-30" />
-      <div className="mt-[5px] flex gap-[4px]">
-        {[0, 1, 2, 3].map((i) => (
-          <span key={i} className="h-[3px] flex-1 bg-current opacity-45" />
-        ))}
-      </div>
-      <div className="mt-[6px] flex h-[9px] items-stretch justify-center gap-[1.5px]">
-        {[3, 1, 2, 1, 3, 2, 1, 2].map((w, i) => (
-          <span key={i} className="bg-current" style={{ width: w }} />
-        ))}
       </div>
     </div>
   );

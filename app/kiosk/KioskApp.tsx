@@ -213,7 +213,7 @@ export default function KioskApp({
         {phase === "idle" && <IdleScreen onStart={startSession} />}
         {phase === "scent" && <ScentScreen onSelect={chooseScent} />}
         {phase === "format" && (
-          <FormatSelectScreen onContinue={() => go("pose")} />
+          <FormatSelectScreen scent={selectedScent} filmProps={filmProps} onContinue={() => go("pose")} />
         )}
         {phase === "pose" && (
           <PoseScreen scent={selectedScent} onBegin={() => go("capture")} />

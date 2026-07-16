@@ -92,19 +92,27 @@ export default function SelectFramesScreen({
     <div className="flex h-full flex-col">
       <Masthead />
 
-      <div className="px-[80px] pt-[46px]">
-        <p className="kicker">Step IV · Select</p>
-        <h2 className="mt-[16px] font-display text-[64px] font-semibold leading-[0.92] tracking-[-0.02em]">
-          Select your <span className="italic">frames</span>
-        </h2>
-        {sub && <p className="jp-sub mt-[10px] text-[19px] text-silver-dim">印刷する3枚を選んでください</p>}
-        <p className="mt-[14px] font-mono text-[16px] uppercase tracking-[0.28em] text-silver-dim">
-          {fullNotice ? (
-            <span className="text-ink">3 frames already registered</span>
-          ) : (
-            <>Selected {selectedIds.length} / {TOTAL_SHOTS}</>
-          )}
-        </p>
+      {/* header — the selection count is the screen's second-largest element,
+          set as a live counter opposite the title, not a caption under it */}
+      <div className="flex items-end justify-between px-[80px] pt-[36px]">
+        <div>
+          <p className="kicker">Step IV · Select</p>
+          <h2 className="mt-[12px] font-display text-[64px] font-semibold leading-[0.92] tracking-[-0.02em]">
+            Select your <span className="italic">frames</span>
+          </h2>
+          {sub && <p className="jp-sub mt-[8px] text-[18px] text-silver-dim">印刷する3枚を選んでください</p>}
+        </div>
+        <div className="flex flex-col items-end">
+          <span className="flex items-baseline gap-[10px]">
+            <span className="font-display text-[96px] font-semibold leading-[0.8] tracking-[-0.03em]">
+              {selectedIds.length}
+            </span>
+            <span className="font-display text-[38px] italic text-silver-dim">/ {TOTAL_SHOTS}</span>
+          </span>
+          <span className="mt-[4px] font-mono text-[13px] uppercase tracking-[0.3em] text-silver-dim">
+            {fullNotice ? <span className="text-ink">3 frames already registered</span> : "Selected"}
+          </span>
+        </div>
       </div>
 
       <div className="flex flex-1 items-center justify-center px-[40px] py-[20px]">
