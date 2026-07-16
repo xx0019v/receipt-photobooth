@@ -12,7 +12,7 @@ import { type FilmArtifactProps } from "@/app/lib/film";
 import { useLang } from "@/app/lib/i18n";
 import { usePrintStyle } from "@/app/lib/printStyle";
 
-const AUTO_RETURN = 12_000;
+const AUTO_RETURN = 20_000;
 
 export default function DoneScreen({
   frames,

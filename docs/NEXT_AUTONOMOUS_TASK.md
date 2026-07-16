@@ -2,84 +2,85 @@
 
 ## Loop Number
 
-6
+7
 
 ## Current HEAD
 
-`5ba20c84941588ed3bb2aefa123fe53be56d0081`
+`0ce0783828756e2e2341cf20ea8aea5a55f86f35`
 
 ## Remote HEAD
 
-`5ba20c84941588ed3bb2aefa123fe53be56d0081`
+`0ce0783828756e2e2341cf20ea8aea5a55f86f35`
 
 ## Current Preview
 
-Production build at `http://localhost:3090`, PID 68119, 1080x1920 portrait,
-HTTP 200. The build was produced from the current source before commit.
+Production build at `http://localhost:3090`, PID 74018, 1080x1920 portrait,
+HTTP 200. Preview source matches current HEAD.
 
 ## Current Quality Status
 
-Idle, Edition, Format, Pose, Capture, Registering Frames, and Frame Selection
-run in production without overflow. The active Frame Selection proof supports
-tap, swipe, and peel, but its selection action exists only on the gesture
-surface. Thumbnail buttons only navigate between frames.
+PASS Done keeps the ticket dominant and clearly connects it to the right-side
+collection slot. Manual reset is safely bounded to one button. During live QA,
+only 4 seconds remained by the time the completed artifact was visually
+reviewed, and the button still said Tap anywhere although the full surface is
+intentionally non-interactive.
 
 ## Remaining Problems
 
-- The primary register/deselect action has no explicit bounded control.
-- Keyboard and assistive-technology users cannot register the active proof.
-- The text hint describes a gesture but does not expose current selection state
-  as an actionable control.
+- The 12-second reset gives little time to inspect and physically collect the
+  artifact before the next guest screen appears.
+- The English action label contradicts the bounded-button interaction.
+- The countdown says New edition although the event is a privacy reset.
 
 ## Selected Priority
 
-P1: add an explicit active-proof register/deselect action while preserving all
-existing gestures.
+P1: align Done reset timing and copy with the physical collection interaction.
 
 ## Why This Task Is Next
 
-This is the first functional accessibility gap found during the required full
-flow. It has greater user impact than another Done or Format visual adjustment.
+The mismatch is visible on every completed session and can rush collection or
+mislead a guest into tapping the artifact. It is higher impact than decorative
+refinement and does not alter backend or print contracts.
 
 ## User Impact
 
-Guests gain a clear, forgiving way to add or remove the current frame without
-having to discover the photo-surface gesture. Keyboard and assistive technology
-receive the same selection capability.
+Guests receive a calmer 20-second collection window and an exact Start next
+session action. The countdown clearly explains the automatic reset.
 
 ## Files Likely Involved
 
-- `app/components/FrameSelectionCarousel.tsx`
+- `app/kiosk/screens/DoneScreen.tsx`
+- `app/lib/i18n.ts`
 - `docs/UI_QA_REPORT.md`
 - `docs/AUTONOMOUS_DESIGN_LOG.md`
 
 ## Acceptance Criteria
 
-- A visible control registers or removes the active proof.
-- The control exposes `aria-pressed` and a frame-specific accessible name.
-- Rapid activation cannot immediately select then deselect.
-- Existing photo tap, horizontal swipe, peel/drop, thumbnail navigation,
-  3-frame limit, and print order remain unchanged.
-- The control is at least 44px high and does not create 1080x1920 overflow.
+- Automatic reset occurs at 20 seconds for PASS and FILM.
+- The button says Start next session, not Tap anywhere.
+- EN and JP countdowns state that an automatic reset will occur.
+- The progress line starts full and reaches zero with the countdown.
+- Manual reset remains restricted to the bounded button.
+- Artifact, collection direction, privacy cleanup, and 1080x1920 geometry stay.
 
 ## Regression Risks
 
-- A second activation path could bypass the rapid-tap guard.
-- Added height could crowd the thumbnail arc or bottom action rail.
-- Selection state could refer to a stale active frame after navigation.
+- A longer timeout could retain session imagery longer than intended.
+- Copy could wrap in JP or compete with the countdown.
+- Interval and timeout cleanup could diverge.
 
 ## Verification Plan
 
-- TypeScript, diff check, current Web Interface Guidelines audit, and build.
-- Select/deselect with the explicit control and with the photo surface.
-- Navigate by thumbnail and swipe, then select the newly active frame.
-- Confirm 3-frame limit, order, Ready action, overflow, console, and network.
+- TypeScript, diff check, copy audit, production build.
+- PASS and FILM Done entry, 20-second countdown, manual and automatic reset.
+- EN/JP layout, button geometry, artifact hierarchy, overflow, console, network.
+- Confirm previous-session photos clear on reset.
 
 ## Completion Result
 
-PASS. The 660x60 action rail registers or removes the current proof, exposes
-frame-specific accessible names and `aria-pressed`, and shares the existing
-220ms rapid-activation lock with the photo gesture. Explicit selection,
-deselection, thumbnail navigation, 3-frame order, fourth-frame rejection, and
-PASS Proof through Done passed in the production build. The document remained
-1080x1920 with no overflow and browser error/warning logs remained empty.
+PASS. FILM reached Done through the complete production flow with its 3-frame
+order and serial intact. Done initially announced Start next session and Auto
+reset in 20s, retained 1080x1920 geometry, and returned to Idle automatically.
+The completed artifact and prior-session frame content were absent after reset.
+TypeScript, diff check, production build, console, hydration, and overflow
+checks passed.

@@ -273,3 +273,21 @@ clean.
   no new non-compositor animation.
 - `npx tsc --noEmit`, `git diff --check`, and `npm run build` passed.
 - Browser console errors 0; warnings 0; hydration warnings 0.
+
+## Autonomous loop - Done collection time and reset semantics - 2026-07-16
+
+- Start HEAD and remote HEAD: `0ce0783`.
+- Production source: clean `next build`, `next start -p 3090`, PID 75876,
+  HTTP 200. Build compiled in 3.7s; route bundle unchanged at 25.7KB / 128KB.
+- FILM ran from Idle through Edition, Format, Pose, Capture 6, Registering,
+  Frame Selection, Film Proof, Printing, and Film Done.
+- Photo-surface tap selected Frame 01; explicit actions selected Frames 02 and
+  03; print order and serial remained present in Film Proof and Done.
+- Film Done initial action: Start next session / Auto reset in 20s.
+- Automatic reset returned to Idle; prior film/artifact content was absent.
+- Manual reset remains bound only to the existing bounded button.
+- PASS uses the same shared Done timer/copy path and its right-side collection
+  geometry was verified in the immediately preceding production flow.
+- Document stayed 1080x1920 with no horizontal or vertical overflow.
+- `npx tsc --noEmit`, `git diff --check`, and `npm run build` passed.
+- Browser console errors 0; warnings 0; hydration warnings 0; HTTP 200.

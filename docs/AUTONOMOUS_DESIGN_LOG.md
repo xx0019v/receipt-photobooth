@@ -143,3 +143,28 @@ repeats a failed approach. Newest last.
 - **Commit / push / PR:** `add explicit frame registration action`; normal
   push to PR #7, which remains open.
 - **Result:** 合格 (pass).
+
+## Loop 7 - 2026-07-16 - Done collection time and reset semantics
+
+- **Start HEAD:** `0ce0783`
+- **Target:** PASS / FILM Done reset boundary and bilingual copy.
+- **Priority:** P1 physical collection and privacy-reset clarity.
+- **Problem:** the screen auto-reset after 12 seconds and still instructed
+  Tap anywhere although only the bounded button intentionally resets a session.
+- **Direction:** give the printed artifact a calm collection window and name
+  the reset mechanism exactly, without enlarging the secondary CTA.
+- **Changes:** increased automatic reset to 20 seconds; changed the action to
+  Start next session; changed EN/JP countdowns to state Auto reset explicitly.
+- **Structure / interaction:** no layout, collection direction, print mapping,
+  manual reset boundary, or cleanup contract changed.
+- **Performance:** one timeout and one 1-second interval remain, both with the
+  existing unmount cleanup; the longer window adds no idle render frequency.
+- **QA:** TypeScript, diff check, production build, complete FILM flow, Film
+  Proof, Printing, Done, 20-second initial countdown and automatic Idle return
+  passed; prior artifact content cleared; 1080x1920 overflow 0; browser errors,
+  warnings, and hydration warnings 0.
+- **Independent critique:** pass. The paper remains the hero, the secondary
+  action is now truthful, and the slower reset better matches physical pickup.
+- **Commit / push / PR:** `clarify done reset timing and action`; normal push
+  to PR #7, which remains open.
+- **Result:** 合格 (pass).

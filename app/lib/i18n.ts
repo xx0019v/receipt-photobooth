@@ -82,8 +82,8 @@ const en = {
     title: ["Your pass", "is ready."],
     body: "Collect your memory from below.",
     closing: "This moment was printed.",
-    next: "Tap anywhere for next guest",
-    countdown: (n: number) => `New edition in ${n}s`,
+    next: "Start next session",
+    countdown: (n: number) => `Auto reset in ${n}s`,
   },
   pass: {
     title: "BOARDING PASS",
@@ -174,8 +174,8 @@ const jp: Dict = {
     title: ["搭乗券は", "準備できました"],
     body: "下からお受け取りください",
     closing: "この瞬間を印字しました。",
-    next: "次の方はタップ",
-    countdown: (n: number) => `あと ${n} 秒で次へ`,
+    next: "次のセッションを開始",
+    countdown: (n: number) => `あと ${n} 秒で自動リセット`,
   },
   pass: {
     title: "搭乗券",
