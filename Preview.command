@@ -9,19 +9,40 @@ PLIST_TARGET="$HOME/Library/LaunchAgents/$LABEL.plist"
 URL="http://localhost:3090"
 
 mkdir -p "$HOME/Library/LaunchAgents" "$HOME/Library/Logs"
-cp "$PLIST_SOURCE" "$PLIST_TARGET"
 chmod +x "$ROOT/scripts/preview-daemon.sh"
 
-launchctl bootout "gui/$UID/$LABEL" >/dev/null 2>&1 || true
-launchctl bootstrap "gui/$UID" "$PLIST_TARGET"
-launchctl enable "gui/$UID/$LABEL"
-launchctl kickstart -k "gui/$UID/$LABEL"
-
 print "▲ THE RECEIPT production preview"
-print "  GitHubの最新版を確認し、production buildを起動しています。"
+print "  GitHubの最新版をproduction buildで開きます。"
 
-for _ in {1..180}; do
-  if curl -fsS -o /dev/null "$URL"; then
+# The resident service already polls GitHub. A healthy preview must open
+# immediately; restarting it here would create downtime and duplicate builds.
+if curl -fs -o /dev/null "$URL" 2>/dev/null; then
+  LOCAL_IP="$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || true)"
+  open "$URL"
+  print ""
+  print "✓ 最新previewを開きました: $URL"
+  if [[ -n "$LOCAL_IP" ]]; then
+    print "✓ 同じWi-FiのPC: http://${LOCAL_IP}:3090"
+  fi
+  print "✓ GitHub更新確認: 約60秒ごと"
+  read "?Enterで閉じます"
+  exit 0
+fi
+
+# Install on first use. If the service is already loaded but currently
+# building or recovering, kickstart without -k so the active build survives.
+if ! launchctl print "gui/$UID/$LABEL" >/dev/null 2>&1; then
+  cp "$PLIST_SOURCE" "$PLIST_TARGET"
+  launchctl bootstrap "gui/$UID" "$PLIST_TARGET"
+  launchctl enable "gui/$UID/$LABEL"
+else
+  launchctl kickstart "gui/$UID/$LABEL" >/dev/null 2>&1 || true
+fi
+
+print "  初回または復旧build中です。少しお待ちください…"
+
+for i in {1..180}; do
+  if curl -fs -o /dev/null "$URL" 2>/dev/null; then
     LOCAL_IP="$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || true)"
     open "$URL"
     print ""
@@ -35,6 +56,9 @@ for _ in {1..180}; do
     print "ログ: $HOME/Library/Logs/receipt-photobooth-preview.log"
     read "?Enterで閉じます"
     exit 0
+  fi
+  if (( i % 10 == 0 )); then
+    print "  … production buildを続行中 (${i}秒)"
   fi
   sleep 1
 done
