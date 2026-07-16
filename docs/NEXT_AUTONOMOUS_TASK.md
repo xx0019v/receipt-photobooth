@@ -2,7 +2,7 @@
 
 ## Current HEAD
 
-`d99e66267273d0f07ca0ab393c832db4b8874a5b`
+`9581fd6a769b39a37686a1e02a1b70a6c34c5b70`
 
 ## Current Preview
 
@@ -10,57 +10,59 @@ Production build at `http://localhost:3090`, 1080x1920 portrait, HTTP 200.
 
 ## Current Quality Status
 
-Format presents PASS or FILM at dominant scale and has a large edge switch,
-but it does not implement the swipe path called for by the interaction brief.
+Edition already uses one full-screen edition per scroll-snap scene. The bottom
+hint only says Scroll, provides no destination, and is not actionable.
 
 ## Remaining Problems
 
-- PASS and FILM cannot be changed with a direct paper swipe.
-- The edge switch always points right, even when returning from FILM to PASS.
-- Selection changes should be announced as state changes.
+- Guests cannot see which edition is next.
+- There is no touch alternative for moving between edition pages.
+- The final page has no direct return to the first edition.
 
 ## Selected Priority
 
-P1: add a robust horizontal swipe alternative to Format selection.
+P2: replace the generic scroll cue with contextual edition navigation.
 
 ## Why This Is Next
 
-Format is the second-highest priority surface after Done. A visible button
-must remain, but the large paper surface should also support the natural
-gesture promised by the interaction direction.
+The edition catalogue is visually strong but its navigation is less explicit
+than Format and Frame Selection. A bounded page-turn control improves clarity
+without turning the screen into a conventional menu.
 
 ## Files Likely Involved
 
-- `app/kiosk/screens/FormatSelectScreen.tsx`
+- `app/kiosk/screens/ScentScreen.tsx`
 - `docs/UI_QA_REPORT.md`
 - `docs/AUTONOMOUS_DESIGN_LOG.md`
 
 ## Acceptance Criteria
 
-- Swipe left selects FILM and swipe right selects PASS.
-- Vertical movement and short taps do not change the format.
-- The existing edge button remains at least 88px wide and works by tap.
-- The edge label communicates the correct direction.
-- The selected format is exposed through an aria-live status.
-- PASS/FILM paper size, Continue action, EN/JP, and downstream mapping remain.
+- Each non-final page names and opens the next edition.
+- The final page offers a direct return to the first edition.
+- Native scroll and scroll snap remain functional.
+- Page turns honor reduced motion.
+- Edition selection, EN/JP support, and 1080x1920 geometry remain unchanged.
+- Controls meet the 44px touch minimum and have clear accessible names.
 
 ## Regression Risks
 
-- Pointer capture could interfere with the edge switch.
-- A small movement could cause an accidental format change.
-- Selection might toggle twice if button events bubble into the swipe region.
+- Programmatic scrolling could target the document instead of the kiosk rail.
+- Smooth scrolling could ignore reduced-motion preference.
+- The new control could compete visually with Select this edition.
 
 ## Verification Plan
 
 - TypeScript, diff check, and production build.
-- 1080x1920 tap, left swipe, right swipe, short tap, and vertical gesture.
-- Confirm selected state and downstream PASS/FILM Proof mapping.
-- Check console, pointer errors, overflow, and reduced-motion behavior.
+- Tap through RAW, STILL, BOLD, AFTERIMAGE, then return to RAW.
+- Verify scrollTop increments by exactly one viewport.
+- Verify reduced-motion uses an instant page turn.
+- Check selection, overflow, console, and network.
 
 ## Completion Result
 
-PASS. A 140px controlled horizontal gesture selected FILM to the left and
-PASS to the right. A tap and a 180px vertical gesture left FILM unchanged.
-The edge control remained 88x320 and selected FILM by tap. Selection status is
-announced through aria-live. Production build, TypeScript, 1080x1920 overflow,
-pointer, and console checks passed.
+PASS. The bounded page-turn control moved RAW to STILL, BOLD, and AFTERIMAGE
+at exact 1920px viewport increments, then returned to RAW at scrollTop 0.
+Native scroll snap remains in place, controls are 96px high with descriptive
+accessible names, and the reduced-motion branch changes smooth movement to an
+instant page turn. RAW selection still opened Format. Production build,
+TypeScript, diff check, and 1080x1920 overflow checks passed.

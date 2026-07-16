@@ -38,6 +38,14 @@ export default function ScentScreen({
 
   const total = String(EDITIONS.length).padStart(2, "0");
 
+  const turnTo = (index: number) => {
+    const root = rootRef.current;
+    const scene = root?.querySelectorAll<HTMLElement>(".scent-scene")[index];
+    if (!scene) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    scene.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+  };
+
   return (
     <div ref={rootRef} className="scent-scroll">
       {EDITIONS.map((edition, i) => {
@@ -123,9 +131,20 @@ export default function ScentScreen({
 
               <div className="flex h-[150px] items-center justify-center">
                 {i < EDITIONS.length - 1 ? (
-                  <span className="scent-hint flex flex-col items-center gap-[8px] text-silver-dim">
-                    <span className="font-mono text-[13px] uppercase tracking-[0.4em]">Scroll</span>
-                    <svg width="15" height="9" viewBox="0 0 15 9" fill="none" aria-hidden="true">
+                  <button
+                    type="button"
+                    onClick={() => turnTo(i + 1)}
+                    aria-label={`Next edition: ${EDITIONS[i + 1].code}`}
+                    className="press scent-hint flex min-h-[96px] w-full items-center justify-between border-t border-[color:var(--color-line)] text-silver-dim"
+                    style={{ cursor: "pointer" }}
+                  >
+                    <span className="flex items-baseline gap-[18px] text-left">
+                      <span className="font-mono text-[13px] uppercase tracking-[0.34em]">Next edition</span>
+                      <span className="font-display text-[28px] font-semibold uppercase tracking-[-0.01em] text-ink">
+                        {EDITIONS[i + 1].code}
+                      </span>
+                    </span>
+                    <svg width="18" height="11" viewBox="0 0 15 9" fill="none" aria-hidden="true">
                       <path
                         d="M1 1L7.5 7.5L14 1"
                         stroke="currentColor"
@@ -134,11 +153,25 @@ export default function ScentScreen({
                         strokeLinejoin="round"
                       />
                     </svg>
-                  </span>
+                  </button>
                 ) : (
-                  <span className="font-mono text-[13px] uppercase tracking-[0.4em] text-silver-dim">
-                    {sub ? "見ているエディションをタップ" : "Tap an edition to choose"}
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => turnTo(0)}
+                    aria-label={`Return to first edition: ${EDITIONS[0].code}`}
+                    className="press flex min-h-[96px] w-full items-center justify-between border-t border-[color:var(--color-line)] text-silver-dim"
+                    style={{ cursor: "pointer" }}
+                  >
+                    <span className="flex items-baseline gap-[18px] text-left">
+                      <span className="font-mono text-[13px] uppercase tracking-[0.34em]">Back to first</span>
+                      <span className="font-display text-[28px] font-semibold uppercase tracking-[-0.01em] text-ink">
+                        {EDITIONS[0].code}
+                      </span>
+                    </span>
+                    <svg width="18" height="11" viewBox="0 0 15 9" fill="none" aria-hidden="true" className="rotate-180">
+                      <path d="M1 1L7.5 7.5L14 1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
                 )}
               </div>
             </div>

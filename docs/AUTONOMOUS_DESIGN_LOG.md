@@ -99,3 +99,21 @@ repeats a failed approach. Newest last.
 - **Performance:** no continuous listener, rAF, timer, or React update during
   idle; one ref record per active pointer only.
 - **Result:** 合格 (pass).
+
+## Loop 5 - 2026-07-16 - Contextual Edition page turns
+
+- **Start HEAD:** `9581fd6`
+- **Target:** `ScentScreen` Edition catalogue.
+- **Problem:** the bottom cue said only Scroll, did not name its destination,
+  and offered no bounded touch alternative to the native scroll gesture.
+- **Direction:** retain the full-viewport editorial catalogue and scroll snap,
+  while turning the quiet footer cue into a contextual page-turn control.
+- **Changes:** each non-final scene now names and opens the next edition; the
+  final scene returns directly to RAW; controls are 96px high, expose complete
+  accessible names, and use instant movement when reduced motion is preferred.
+- **QA:** TypeScript, diff check, and production build pass; RAW, STILL, BOLD,
+  AFTERIMAGE, and RAW again resolved to scrollTop 0, 1920, 3840, 5760, and 0;
+  RAW selection still opened Format; document remains exactly 1080x1920.
+- **Performance:** no new listener, timer, rAF, or idle render work; page lookup
+  and reduced-motion detection occur only on a page-turn activation.
+- **Result:** 合格 (pass).

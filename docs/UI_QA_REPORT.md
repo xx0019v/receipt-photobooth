@@ -241,3 +241,15 @@ clean.
 - Reverse label rendered as `← Boarding Pass`; selected status is aria-live.
 - No pointer-capture exception, console error, or console warning.
 - Gesture implementation creates no idle timer, event listener, or rAF work.
+
+## Autonomous loop - Contextual Edition page turns - 2026-07-16
+
+- Production source: clean `next build`, `next start -p 3090`, HTTP 200.
+- Viewport and document: 1080x1920, no horizontal or vertical overflow.
+- Page-turn controls resolved to scrollTop 0, 1920, 3840, 5760, then 0.
+- Every control is 96px high and names its destination for assistive tech.
+- Native scrolling and CSS scroll snap remain unchanged.
+- Reduced-motion handling is explicit in the activation path: smooth scrolling
+  is replaced by `auto` when `prefers-reduced-motion: reduce` matches.
+- Selecting RAW after returning to the first page still opened Format.
+- `npx tsc --noEmit`, `git diff --check`, and production build passed.
