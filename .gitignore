@@ -34,3 +34,6 @@ next-env.d.ts
 .vscode/*
 !.vscode/extensions.json
 .idea
+
+# preview daemon runtime stamp (which commit the running preview was built from)
+.preview-head

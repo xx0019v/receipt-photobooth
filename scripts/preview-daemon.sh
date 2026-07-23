@@ -3,10 +3,16 @@
 set -u
 
 ROOT="/Users/exx/receipt-photobooth"
-BRANCH="ui/editorial-print-engine"
+# Branch the preview mirrors. `main` is production: the preview always shows
+# what has actually shipped. Point this at a feature branch only while that
+# branch is being reviewed, and put it back to `main` when it merges.
+BRANCH="main"
 PORT="3090"
 CHECK_SECONDS="60"
 SERVER_PID=""
+# Commit the running preview was actually built from, so Preview.command can
+# tell "latest" from "stale" instead of trusting an HTTP 200.
+HEAD_STAMP="$ROOT/.preview-head"
 
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 export NEXT_TELEMETRY_DISABLED=1
@@ -23,6 +29,19 @@ stop_server() {
     wait "$SERVER_PID" 2>/dev/null || true
   fi
   SERVER_PID=""
+
+  # A server from a previous run — or a manual `next start` — can survive and
+  # keep holding this port. It answers HTTP 200 from an in-memory manifest of
+  # an OLD build while `.next` is replaced underneath it, so the HTML points at
+  # chunk hashes that no longer exist on disk and the page renders blank.
+  # Always clear the port before rebuilding.
+  local stale
+  stale="$(lsof -ti tcp:"$PORT" -sTCP:LISTEN 2>/dev/null || true)"
+  if [[ -n "$stale" ]]; then
+    log "Clearing stale listener(s) on ${PORT}: ${stale//$'\n'/ }"
+    print -r -- "$stale" | xargs kill -9 2>/dev/null || true
+    sleep 1
+  fi
 }
 
 cleanup() {
@@ -47,6 +66,21 @@ sync_latest() {
   if ! tracked_tree_is_clean; then
     log "Tracked working-tree changes detected; automatic fast-forward skipped."
     return 1
+  fi
+
+  # Follow the tracked branch explicitly. Without this the daemon builds
+  # whichever branch happens to be checked out, so the preview can silently
+  # mirror something other than the branch under review. Only runs when the
+  # tracked tree is clean, so no local work is discarded (untracked files are
+  # preserved by checkout).
+  if [[ "$(git rev-parse --abbrev-ref HEAD)" != "$BRANCH" ]]; then
+    log "Switching preview checkout to $BRANCH."
+    git checkout --quiet "$BRANCH" 2>/dev/null \
+      || git checkout --quiet -b "$BRANCH" --track "origin/$BRANCH" 2>/dev/null \
+      || {
+        log "Could not switch to $BRANCH; keeping the current branch."
+        return 1
+      }
   fi
 
   git merge --ff-only "origin/$BRANCH" >/dev/null || {
@@ -79,10 +113,12 @@ build_and_start() {
   if ! kill -0 "$SERVER_PID" 2>/dev/null; then
     log "Preview server failed to start."
     SERVER_PID=""
+    rm -f "$HEAD_STAMP"
     return 1
   fi
 
-  log "Preview ready at $(git rev-parse --short HEAD)."
+  print -r -- "$(git rev-parse HEAD)" > "$HEAD_STAMP"
+  log "Preview ready at $(git rev-parse --short HEAD) ($BRANCH)."
 }
 
 trap cleanup EXIT

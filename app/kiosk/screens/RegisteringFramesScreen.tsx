@@ -25,9 +25,11 @@ const VIDEO_SRC = "/assets/motion/frame-register-core.mp4";
 const POSTER_SRC = "/assets/motion/frame-register-core-poster.jpg";
 
 /**
- * A short, one-shot interstitial between Capture and Select. Not a spinner:
- * FRAME CORE indexes the six just-captured frames one by one, then settles —
- * clamped between MIN_MS and MAX_MS regardless of how fast that finishes.
+ * REGISTERING FRAMES — a registration bed, not a centered loader. The FRAME
+ * CORE is a fixed registration head straddling a vertical rule on the left;
+ * the six captured frames run as a horizontal film to its right and lock into
+ * alignment one at a time (left → right) as each is indexed. Continuous with
+ * Capture's contact-sheet language and Select's proof language on either side.
  */
 export default function RegisteringFramesScreen({ onDone }: { onDone: () => void }) {
   const { sub } = useLang();
@@ -56,12 +58,8 @@ export default function RegisteringFramesScreen({ onDone }: { onDone: () => void
     return () => timers.forEach(clearTimeout);
   }, [onDone]);
 
-  // Play the reflection exactly once, only during "registering". The clip
-  // is 63KB (see ORIGINKIT_USAGE.md), so preload="auto" lets the browser
-  // fetch/decode it during the ~1s of indexing that precedes "registering"
-  // — with preload="none" the fetch wouldn't start until .play() is called,
-  // which is too late for a state that only lasts ~500ms. Paused and
-  // released on unmount / state change either way.
+  // Play the reflection exactly once, only during "registering". Paused and
+  // released on unmount / state change either way. (See ORIGINKIT_USAGE.md.)
   useEffect(() => {
     const v = videoRef.current;
     if (!v || reducedMotion) return;
@@ -76,44 +74,98 @@ export default function RegisteringFramesScreen({ onDone }: { onDone: () => void
     };
   }, [state, reducedMotion]);
 
+  const shown = Math.min(registeredCount, CAPTURE_TOTAL);
+
   return (
-    <div className="relative flex h-full flex-col items-center justify-center bg-paper">
-      {reducedMotion ? (
-        state === "registering" || state === "ready" ? (
-          <img
-            src={POSTER_SRC}
-            alt=""
-            aria-hidden="true"
-            className="absolute h-[440px] w-[440px] opacity-25 grayscale"
-            style={{ mixBlendMode: "multiply" }}
-          />
-        ) : null
-      ) : (
-        <video
-          ref={videoRef}
-          src={VIDEO_SRC}
-          poster={POSTER_SRC}
-          muted
-          playsInline
-          preload="auto"
-          className="absolute h-[440px] w-[440px] opacity-0 grayscale transition-opacity duration-300"
-          style={{
-            mixBlendMode: "multiply",
-            opacity: state === "registering" ? 0.3 : 0,
-          }}
-          aria-hidden="true"
-        />
-      )}
-      {/* FRAME CORE at installation scale — the machine's registration organ,
-          not a corner loader */}
-      <FrameCore state={state} registeredCount={registeredCount} size={420} showLabel={false} />
-      <p className="mt-[46px] font-mono text-[22px] uppercase tracking-[0.44em] text-ink">
+    <div className="relative h-full w-full overflow-hidden bg-paper">
+      {/* running header — top-left */}
+      <p className="absolute left-[64px] top-[96px] font-mono text-[15px] uppercase tracking-[0.4em] text-silver-dim">
         Registering frames
       </p>
-      <p className="mt-[10px] font-mono text-[14px] uppercase tracking-[0.3em] text-silver-dim">
-        {Math.min(registeredCount, CAPTURE_TOTAL).toString().padStart(2, "0")} / {String(CAPTURE_TOTAL).padStart(2, "0")}
+
+      {/* oversized count anchor, upper-left */}
+      <div className="absolute left-[56px] top-[150px] flex items-baseline gap-[16px]">
+        <span className="font-display font-semibold leading-[0.78] tracking-[-0.04em]" style={{ fontSize: 190 }}>
+          {String(shown).padStart(2, "0")}
+        </span>
+        <span className="mb-[24px] font-display text-[46px] italic text-silver-dim">/ {String(CAPTURE_TOTAL).padStart(2, "0")}</span>
+      </div>
+      {sub && (
+        <p className="absolute left-[64px] top-[400px] jp-sub text-[16px] text-silver-dim">
+          フレームを登録しています
+        </p>
+      )}
+
+      {/* registration bed — vertical rule + FRAME CORE head + horizontal film */}
+      <div className="absolute inset-x-0 top-[900px] flex items-center pl-[56px]">
+        {/* the registration head: FRAME CORE straddling a vertical rule */}
+        <div className="relative flex h-[380px] w-[360px] shrink-0 items-center justify-center">
+          <span className="absolute right-[6px] top-1/2 h-[264px] w-px -translate-y-1/2 bg-[color:var(--color-ink)]" aria-hidden="true" />
+          {reducedMotion ? (
+            state === "registering" || state === "ready" ? (
+              <img
+                src={POSTER_SRC}
+                alt=""
+                aria-hidden="true"
+                className="absolute h-[280px] w-[280px] opacity-25 grayscale"
+                style={{ mixBlendMode: "multiply" }}
+              />
+            ) : null
+          ) : (
+            <video
+              ref={videoRef}
+              src={VIDEO_SRC}
+              poster={POSTER_SRC}
+              muted
+              playsInline
+              preload="auto"
+              className="absolute h-[280px] w-[280px] grayscale transition-opacity duration-300"
+              style={{ mixBlendMode: "multiply", opacity: state === "registering" ? 0.3 : 0 }}
+              aria-hidden="true"
+            />
+          )}
+          <FrameCore state={state} registeredCount={registeredCount} size={280} showLabel={false} />
+        </div>
+
+        {/* the film: six frames feeding past the head, locking left → right */}
+        <div className="flex items-center gap-[16px]" aria-hidden="true">
+          {Array.from({ length: CAPTURE_TOTAL }).map((_, i) => {
+            const locked = i < shown;
+            return (
+              <div
+                key={i}
+                className="relative h-[88px] w-[88px] shrink-0 border"
+                style={{
+                  borderColor: locked ? "var(--color-ink)" : "var(--color-line)",
+                  transform: reducedMotion ? "none" : locked ? "translateY(0)" : "translateY(22px)",
+                  opacity: locked ? 1 : 0.32,
+                  transition: reducedMotion
+                    ? "opacity 140ms linear"
+                    : "transform 220ms cubic-bezier(0.22,0.61,0.36,1), opacity 220ms linear, border-color 220ms linear",
+                }}
+              >
+                {locked && (
+                  <>
+                    <span className="absolute left-[6px] top-[6px] h-[14px] w-[14px] border-l-2 border-t-2 border-[color:var(--color-ink)]" />
+                    <span className="absolute bottom-[6px] right-[6px] h-[14px] w-[14px] rotate-180 border-l-2 border-t-2 border-[color:var(--color-ink)]" />
+                  </>
+                )}
+                <span
+                  className="absolute inset-0 flex items-center justify-center font-mono text-[15px] tracking-[0.2em]"
+                  style={{ color: locked ? "var(--color-ink)" : "var(--color-silver-dim)" }}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* status line along the bottom edge */}
+      <p className="absolute bottom-[80px] left-[64px] font-mono text-[14px] uppercase tracking-[0.3em] text-silver-dim">
+        {state === "ready" ? "Registered · composing proof" : "Indexing captured frames"}
       </p>
-      {sub && <p className="jp-sub mt-[8px] text-[15px] text-silver-dim">フレームを登録しています</p>}
     </div>
   );
 }
