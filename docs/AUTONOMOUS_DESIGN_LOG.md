@@ -196,3 +196,48 @@ repeats a failed approach. Newest last.
 - **Commit / push / PR:** `turn inactivity into a timed session hold`; normal
   push to PR #7, which remains open.
 - **Result:** 合格 (pass).
+
+## Loop 4 — 2026-07-24 · Premium Product Design skill + first from-the-DOM rebuilds
+
+- **Skill:** cloned `git@github.com:xx0019v/premium-product-design.git` (HEAD
+  `3e88c03`) read-only to `/Users/exx/premium-product-design`; read SKILL.md +
+  all 5 in-scope references; documented in `PREMIUM_PRODUCT_DESIGN_SKILL_AUDIT.md`,
+  `PREMIUM_PRODUCT_DESIGN_SKILL_USAGE.md`, `PREMIUM_DESIGN_DIRECTION.md`.
+- **Branch:** PR #7 was found MERGED and `main` is trunk, so a fresh branch
+  `ui/premium-product-design` was cut off `main` (never commit to `main`).
+- **Owner corrections applied:** (1) Idle hero video reverted from the kiosk
+  re-encode back to the original master `silver-lips.mp4` — the owner judged
+  the re-encode's silver-drip detail degraded; verified crisp again on Idle.
+  (2) Ran an independent audit subagent (general-purpose) that scored all 11
+  screens against the skill's anti-template gate.
+- **Audit verdict:** one master template (`Masthead → kicker → italic-last-word
+  H2 → centered hero → bottom black-CTA-with-→ rail`) worn by 8 screens; the
+  italic-final-word headline mannerism on 6+. Weakest guest-facing (rebuild
+  targets): Done (4/5 template), Registering (dressed spinner), Format.
+- **Rebuilds this loop (from the DOM/grid, not tweaks):**
+  - **DoneScreen** — dropped Masthead, centered headline, and full-width black
+    CTA. PASS is now a horizontal-band grid: oversized `COLLECT` anchor bled
+    top-left, `FROM THE RIGHT →`, the ticket bled into the right-edge slot as
+    hero, a mono receipt ledger (serial/edition/issued), and a bottom machine
+    status line (reset countdown). FILM is a distinct two-column spread: film
+    stands off the bottom edge on the right, `COLLECT / FROM BELOW ↓` + ledger
+    on the left. No two grids alike.
+  - **RegisteringFramesScreen** — dropped the centered icon→title→count stack.
+    Now a left-anchored registration bed: FRAME CORE as a fixed head straddling
+    a vertical rule, with six frames as a horizontal film locking in left→right
+    as each indexes; oversized count anchor upper-left. Continuous with
+    Capture's contact-sheet language.
+- **Verify:** typecheck clean; production build clean; Done PASS and Done FILM
+  verified live in the browser (screenshots) — both clearly distinct from the
+  old template and from each other. Idle/Capture/Select re-verified.
+- **Known gaps (honest):** Registering's live screenshot was not captured — it
+  is a ~1.8s transient and the browser pane's background-tab timer throttling +
+  tool latency kept skipping the window; it is build- and code-verified only.
+  PrintingScreen and the other screens (Edition, Pose, Capture, Select frame,
+  Proof, Format, Error, Staff) still carry template traits and are queued for
+  the next loops. The production preview on this machine intermittently serves
+  stale JS chunks after a rebuild (cache-bust / clean restart fixes it); dev
+  renders every build correctly. Codex's 3080 dev server was stopped during
+  process cleanup and not restarted (not ours to manage).
+- **Result:** 合格 for the two rebuilt screens; loop is a partial pass — the
+  full Edition→Done overhaul is NOT complete.
