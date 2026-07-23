@@ -8,7 +8,7 @@ PLIST_SOURCE="$ROOT/scripts/$LABEL.plist"
 PLIST_TARGET="$HOME/Library/LaunchAgents/$LABEL.plist"
 URL="http://localhost:3090"
 # Must match BRANCH in scripts/preview-daemon.sh.
-BRANCH="ui/premium-product-design"
+BRANCH="main"
 HEAD_STAMP="$ROOT/.preview-head"
 
 mkdir -p "$HOME/Library/LaunchAgents" "$HOME/Library/Logs"

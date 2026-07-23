@@ -3,9 +3,10 @@
 set -u
 
 ROOT="/Users/exx/receipt-photobooth"
-# Branch the preview mirrors. Point this at the branch currently under review;
-# `ui/editorial-print-engine` was merged into main (PR #7) and no longer moves.
-BRANCH="ui/premium-product-design"
+# Branch the preview mirrors. `main` is production: the preview always shows
+# what has actually shipped. Point this at a feature branch only while that
+# branch is being reviewed, and put it back to `main` when it merges.
+BRANCH="main"
 PORT="3090"
 CHECK_SECONDS="60"
 SERVER_PID=""
