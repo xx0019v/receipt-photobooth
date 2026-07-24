@@ -1,0 +1,22 @@
+# systemd *user* unit: Chromium fullscreen kiosk on the DSI touch panel.
+# Requires the labwc (Wayland) session; display rotation lives in
+# ~/.config/labwc/autostart (wlr-randr --output DSI-2 --transform 270).
+# Install:
+#   cp deploy/booth-kiosk.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now booth-kiosk
+[Unit]
+Description=THE RECEIPT kiosk browser
+After=booth-ui.service
+Wants=booth-ui.service
+
+[Service]
+Environment=WAYLAND_DISPLAY=wayland-0
+Environment=XDG_RUNTIME_DIR=/run/user/%U
+ExecStart=/usr/bin/chromium --kiosk --incognito --noerrdialogs --disable-infobars \
+  --disable-session-crashed-bubble --ozone-platform=wayland \
+  http://127.0.0.1:3000
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target

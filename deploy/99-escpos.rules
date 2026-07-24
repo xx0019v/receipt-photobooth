@@ -1,0 +1,7 @@
+# udev rule for the USB thermal printer (GDMicroelectronics micro-printer).
+# The kernel usblp driver exposes it as /dev/usb/lp0 (group `lp`); the
+# backend user just needs membership:  sudo usermod -aG lp chuo
+# This rule additionally tags the raw USB device for pyusb fallback use.
+#   sudo cp deploy/99-escpos.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload && sudo udevadm trigger
+SUBSYSTEM=="usb", ATTRS{idVendor}=="28e9", ATTRS{idProduct}=="0289", MODE="0664", GROUP="lp"
