@@ -68,7 +68,8 @@ booth/
   printer.py   PrinterDriver: MockPrinter(PNG出力) / EscposPrinter(usblp File / pyusb, バンド印字)
   receipt.py   ReceiptRenderer: PASS(横型→90°回転) / COVER(引用カード) の 2 スタイル（F-S ディザ）
   sessions.py  serial 採番（YYYY-NNNN 永続連番）+ フレーム保存 + TTL + serial→dir 解決
-  jobs.py      印刷ジョブキュー（直列 / queued→rendering→printing→done|error, style/meta 対応）
+  jobs.py      印刷ジョブキュー（直列 / queued→rendering→printing→done|error,
+               style/meta + frame_order: 撮影フレームの部分集合を印刷順で印字）
   main.py      FastAPI: health / preview.mjpg / sessions / capture / print /
                qr/{serial}.png / 配布ページ p/{serial}
 ```

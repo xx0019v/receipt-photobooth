@@ -2,7 +2,7 @@
 
 対象: Raspberry Pi 5 上で動作するフォトブース・バックエンド。Next.js キオスク UI（`app/`）に対して、カメラ撮影・レシート印刷・セッション管理・写真配布を提供する。
 
-**ステータス: 実装済み・実機検証済み（2026-07-13）。** 本書は要件と実装済み仕様を兼ねる。
+**ステータス: 実装済み・実機検証済み（2026-07-13 / 2026-07-24）。** 本書は要件と実装済み仕様を兼ねる。
 
 ## 1. システム構成
 
@@ -54,7 +54,7 @@ Base: `http://127.0.0.1:8000`（UI から）/ `http://<Pi の LAN IP>:8000`（�
 | POST | `/api/sessions` | セッション開始。`{session_id, serial}`（serial はバックエンド採番 `YYYY-NNNN` 永続連番） |
 | POST | `/api/sessions/{id}/capture` | 静止画 1 枚撮影。`{frame_id: "{serial}-{n}", url}` |
 | GET | `/api/frames/{serial}-{n}.jpg` | 撮影フレーム取得（UI 表示・配布ページ共用） |
-| POST | `/api/sessions/{id}/print` | 印刷ジョブ投入 → `{job_id}`。body `{style, scent, quote, ...}` は**疎結合**: `style` は自由文字列（未知スタイルは既定レイアウトで印字 + message で通知）、`motif` 等の追加フィールドはそのまま renderer へ透過。**同一セッションへの再 POST は冪等**（既存 job_id を返し二重印字しない。error 時のみ再試行可） |
+| POST | `/api/sessions/{id}/print` | 印刷ジョブ投入 → `{job_id}`。body `{style, scent, quote, frames, ...}` は**疎結合**: `style` は自由文字列（未知スタイルは既定レイアウトで印字 + message で通知）、`motif` 等の追加フィールドはそのまま renderer へ透過。`frames` は任意の **1-based インデックス配列（印刷順）**: 撮影した全フレームから印刷する部分集合と並び順を指定（例: 6 枚撮影 → `[5,2,3]` の 3 枚を印字）。省略時は全フレームを撮影順で印字、範囲外インデックスは 422。**同一セッションへの再 POST は冪等**（既存 job_id を返し二重印字しない。error 時のみ再試行可） |
 | GET | `/api/print-jobs/{job_id}` | `{state: queued\|rendering\|printing\|done\|error, progress, message}` |
 | GET | `/api/qr/{serial}.png` | 実 QR 画像（DONE 画面表示用。遷移先は下記配布ページ） |
 | GET | `/p/{serial}` | **写真配布ページ**（写真 + レシート画像の閲覧・保存。QR の着地先） |
@@ -65,7 +65,8 @@ Base: `http://127.0.0.1:8000`（UI から）/ `http://<Pi の LAN IP>:8000`（�
 - serial 採番はバックエンド（フロントの `serialNo()` はオフライン時フォールバック専用）
 - カウントダウンはフロント主導。フラッシュ開始と同時に `capture`（実測 157ms < 目標 500ms）
 - 印刷画面は固定アニメではなく `print-jobs` ポーリング（400ms）で実進捗に同期
-- **Retake はセッションを作り直す**（バックエンドはセッション内全フレームを印字対象とするため）
+- **撮影枚数と印字枚数は分離**（現行 UI: 6 枚撮影 → 3 枚選択・並べ替え → `frames` で指定して印字）
+- **Retake はセッションを作り直す**（フレーム番号を 1 起点にリセットするため。バックエンド側のセッションはフレームを蓄積し続ける）
 - バックエンド不在時、UI は自動でモック表示にフォールバック（UI 単体デモ可能）
 
 ## 5. 機能要件（実装済み）
@@ -114,7 +115,7 @@ Base: `http://127.0.0.1:8000`（UI から）/ `http://<Pi の LAN IP>:8000`（�
 - `deploy/booth-ui.service` — 静的 UI 配信（user unit, `python3 -m http.server 3000`）
 - `deploy/booth-kiosk.service` — Chromium kiosk（user unit, Wayland + `--incognito`）
 - `deploy/99-escpos.rules` — udev rule（`28e9:0289` → group `lp`）+ `usermod -aG lp chuo`
-- 画面回転: `~/.config/labwc/autostart` に `wlr-randr --output DSI-2 --transform 270 &`
+- `deploy/labwc/` — labwc 設定（`~/.config/labwc/` へ設置）。`autostart` が DSI-2 の 270° 回転、`rc.xml` がタッチデバイスの出力マッピング。**`mouseEmulation` は必ず `"no"`**: `"yes"`（RPi OS の設定ツールが書くことがある）だとタッチが全部マウスイベント化し、タップは効くのにスワイプスクロールが全滅する（2026-07-24 に実機で発生・修正）
 - 起動時 env: `QR_BASE_URL=http://<Pi の LAN IP>:8000/p`（QR の着地先。未設定だとデフォルト URL になるので必ず設定）
 
 ## 8. 検証結果（2026-07-13 実機）
@@ -126,6 +127,13 @@ Base: `http://127.0.0.1:8000`（UI から）/ `http://<Pi の LAN IP>:8000`（�
 - [ ] 印字 10 回連続の耐久確認（イベント前に実施）
 - [ ] 異常系: 印字中の用紙切れ / カメラケーブル抜け（イベント前に実施）
 - [ ] スマホ実機での QR スキャン → 配布ページ表示（同一 Wi-Fi で確認）
+
+### 追検証（2026-07-24, main の新 UI へ再配線後）
+
+- [x] API 通し: session → 実カメラ capture ×2 → QR / 配布ページ 200 → `frames: [2,1]`（逆順指定）で実印字 done
+- [x] `frames` 範囲外インデックスが 422 で拒否されること
+- [x] booth-ui / booth-kiosk user unit を実機に設置・起動（UI :3000 / Chromium kiosk）
+- [x] タッチスクロール不具合の原因特定と修正（labwc `mouseEmulation` — §7）
 
 ## 8.5 電源要件（実機検証で確定）
 
@@ -148,4 +156,4 @@ Base: `http://127.0.0.1:8000`（UI から）/ `http://<Pi の LAN IP>:8000`（�
 - [x] QR の遷移先: `/p/{serial}` 配布ページとして実装
 - [ ] 撮影データの保持期間（デフォルト無期限。イベント後の消去運用を決める）
 - [ ] 印字濃度・コントラストの最終チューニング（実写での見え方確認後）
-- [ ] systemd unit の本設置（現在は手動起動 + transient unit。`deploy/` を設置するだけ）
+- [ ] backend の systemd unit 本設置（booth-ui / booth-kiosk は 2026-07-24 設置済み。backend は手動起動のままなので `deploy/booth-backend.service` を設置する — Pi 再起動で backend だけ落ちる状態）
