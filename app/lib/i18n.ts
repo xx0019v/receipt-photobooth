@@ -67,8 +67,8 @@ const en = {
   },
   review: {
     step: "Step V · The Proof",
-    title: ["Your pass", "at a glance."],
-    subTail: "Review the boarding pass before it is printed.",
+    title: ["Ready to", "issue."],
+    subTail: "Confirm your frames and serial. The edition is composed as it is printed.",
     retake: "Retake",
     print: "Print my pass",
   },
@@ -159,8 +159,8 @@ const jp: Dict = {
   },
   review: {
     step: "STEP V · 確認",
-    title: ["搭乗券を", "確認"],
-    subTail: "印刷前に内容を確認してください。",
+    title: ["発行の", "準備"],
+    subTail: "写真とシリアルをご確認ください。仕上がりは発行と同時に印字されます。",
     retake: "撮り直す",
     print: "搭乗券を発券",
   },
