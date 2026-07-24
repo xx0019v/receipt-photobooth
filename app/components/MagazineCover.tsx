@@ -28,6 +28,7 @@ export default function MagazineCover({
   serial,
   issueDate,
   edition,
+  frameUrls,
 }: FilmArtifactProps) {
   const layout = getQuoteLayoutVariant(selectedQuote);
   const isLong = layout === "long";
@@ -61,7 +62,7 @@ export default function MagazineCover({
                 key={index}
                 className="relative h-[288px] w-[288px] shrink-0 overflow-hidden bg-ink"
               >
-                <Portrait seed={frame - 1} print />
+                <Portrait seed={frame - 1} print src={frameUrls?.[frame]} />
                 <span className="pointer-events-none absolute inset-0 border border-[color:var(--color-line)]" />
               </div>
             );

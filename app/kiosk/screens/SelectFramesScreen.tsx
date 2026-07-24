@@ -17,10 +17,13 @@ export default function SelectFramesScreen({
   capturedFrames,
   onConfirm,
   onRetakeAll,
+  frameUrls,
 }: {
   capturedFrames: number[];
   onConfirm: (selected: number[]) => void;
   onRetakeAll: () => void;
+  /** Real backend photo per captured frame id — absent falls back to Portrait. */
+  frameUrls?: Record<number, string>;
 }) {
   const { sub } = useLang();
   const [activeIndex, setActiveIndex] = useState(0);
@@ -101,6 +104,7 @@ export default function SelectFramesScreen({
           selectedIds={selectedIds}
           onToggleSelect={toggleSelect}
           reducedMotion={reducedMotion}
+          frameUrls={frameUrls}
         />
       </div>
 
@@ -127,7 +131,7 @@ export default function SelectFramesScreen({
               >
                 {id !== undefined ? (
                   <>
-                    <Portrait seed={id} />
+                    <Portrait seed={id} src={frameUrls?.[id]} />
                     <span className="absolute inset-x-0 bottom-0 bg-paper-bright/85 py-[2px] text-center font-mono text-[10px] tracking-[0.2em]">
                       {String(i + 1).padStart(2, "0")}
                     </span>

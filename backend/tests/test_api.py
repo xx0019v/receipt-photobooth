@@ -123,6 +123,30 @@ def test_duplicate_print_is_idempotent(client):
     assert third.json()["job_id"] == first.json()["job_id"]
 
 
+def test_print_frame_selection_reorders_and_subsets(client):
+    """Capture 6, print only 3 — in a print order that isn't capture order."""
+    sid = client.post("/api/sessions").json()["session_id"]
+    for _ in range(6):
+        client.post(f"/api/sessions/{sid}/capture")
+    res = client.post(
+        f"/api/sessions/{sid}/print",
+        json={"style": "pass", "frames": [4, 1, 6]},
+    )
+    assert res.status_code == 202
+    state = _wait_done(client, res.json()["job_id"])
+    assert state["state"] == "done"
+
+
+def test_print_frame_selection_out_of_range_rejected(client):
+    sid = client.post("/api/sessions").json()["session_id"]
+    client.post(f"/api/sessions/{sid}/capture")
+    res = client.post(
+        f"/api/sessions/{sid}/print",
+        json={"style": "pass", "frames": [1, 9]},
+    )
+    assert res.status_code == 422
+
+
 def test_unknown_session_404(client):
     assert client.post("/api/sessions/nope/capture").status_code == 404
     assert client.get("/api/frames/2099-9999-1.jpg").status_code == 404

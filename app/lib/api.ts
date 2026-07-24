@@ -50,12 +50,18 @@ export async function captureFrame(sessionId: string, n: number): Promise<Frame>
   return { n, url: `${API_BASE}${body.url}` };
 }
 
-/** Kick off the real print; the artefact copy travels with the request. */
+/**
+ * Kick off the real print; the artefact copy travels with the request.
+ * `frameOrder` is the 1-based, print-order subset of this session's captured
+ * frames (e.g. [4, 1, 6] out of 6 captured) — omit to print every captured
+ * frame in capture order.
+ */
 export async function startPrint(
   sessionId: string,
   style: PrintStyle,
   scent: Scent,
   quote: Quote,
+  frameOrder?: number[],
 ): Promise<string> {
   const body = await req<{ job_id: string }>(`/api/sessions/${sessionId}/print`, {
     method: "POST",
@@ -70,6 +76,7 @@ export async function startPrint(
         notes: scent.notes.map((n) => n.en),
       },
       quote: { text: quote.text, variant: quote.variant },
+      frames: frameOrder,
     }),
   });
   return body.job_id;
@@ -82,4 +89,9 @@ export function getPrintJob(jobId: string): Promise<PrintJob> {
 /** MJPEG live preview — use directly as an `<img src>`. */
 export function previewUrl(): string {
   return `${API_BASE}/api/preview.mjpg`;
+}
+
+/** Real, scannable QR for the DONE screen / printed stub — same landing page. */
+export function qrUrl(serial: string): string {
+  return `${API_BASE}/api/qr/${serial}.png`;
 }

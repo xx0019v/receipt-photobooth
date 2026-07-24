@@ -3,16 +3,42 @@
  * real camera feed is wired in. Off-centre, studio-lit, film-grained; `seed`
  * varies the composition across the three frames. `print` renders the
  * high-contrast, halftoned thermal-receipt version.
+ *
+ * When `src` is given (a real backend-captured frame), it renders that photo
+ * — grayscaled to match the strict monochrome design — instead of the mock
+ * silhouette, keeping the exact same box.
  */
 export default function Portrait({
   seed = 0,
   print = false,
   className = "",
+  src,
 }: {
   seed?: number;
   print?: boolean;
   className?: string;
+  src?: string | null;
 }) {
+  if (src) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt=""
+        className={className}
+        style={{
+          display: "block",
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          filter: print
+            ? "grayscale(1) contrast(1.08)"
+            : "grayscale(1) contrast(1.05) brightness(0.94)",
+        }}
+      />
+    );
+  }
+
   const turn = [-7, 4, -3][seed % 3];
   const shiftX = [-14, 16, 4][seed % 3];
   const scale = [1.02, 1.08, 1.0][seed % 3];

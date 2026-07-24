@@ -5,18 +5,25 @@ import Portrait from "@/app/components/Portrait";
 import { CAPTURE_TOTAL, type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
 import { useChromeArtwork } from "@/app/lib/chromeArtwork";
+import { previewUrl, type BoothSession } from "@/app/lib/api";
 
 /**
  * POSE — not a tutorial page: the framing stage. The viewfinder dominates,
  * the session's frame count is set as an oversized numeral inside the
  * machine's margin, and a single instruction line replaces explanatory copy.
  * START CAPTURE is a fixed, full-width rail at the bottom.
+ *
+ * The viewfinder shows the backend's live MJPEG preview once a session is
+ * connected; offline (no session) it falls back to the mock Portrait, so the
+ * screen is fully demoable without hardware.
  */
 export default function PoseScreen({
   scent,
+  session,
   onBegin,
 }: {
   scent: Scent;
+  session?: BoothSession | null;
   onBegin: () => void;
 }) {
   const { t, sub } = useLang();
@@ -52,9 +59,18 @@ export default function PoseScreen({
       {/* viewfinder — the screen's dominant surface */}
       <div className="flex flex-1 items-center justify-center px-[60px] py-[20px]">
         <div className="anim-fade-up delay-2 relative h-full max-h-[1080px] w-full overflow-hidden bg-ink">
-          <div className="absolute inset-0 opacity-[0.5]">
-            <Portrait seed={1} />
-          </div>
+          {session ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={previewUrl()}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover opacity-[0.85]"
+            />
+          ) : (
+            <div className="absolute inset-0 opacity-[0.5]">
+              <Portrait seed={1} />
+            </div>
+          )}
           <div className="absolute inset-0 bg-ink/35" />
 
           <Grid />

@@ -5,6 +5,7 @@ import Portrait from "@/app/components/Portrait";
 import { type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
 import { useChromeArtwork } from "@/app/lib/chromeArtwork";
+import { captureFrame, previewUrl, type BoothSession } from "@/app/lib/api";
 
 /**
  * Capture — the quietest page in the magazine. Camera frame, Shot n/3, one
@@ -13,14 +14,27 @@ import { useChromeArtwork } from "@/app/lib/chromeArtwork";
  * printed on the reverse of the paper and is showing through — soft, then
  * focused, gone. Capture is a single white flash and a one-shot silver
  * reflection; the strip below settles into a contact sheet, not an app grid.
+ *
+ * With a backend session, the flash fires a real capture (the viewport shows
+ * the live MJPEG feed) and each frame's URL is reported via
+ * `onFrameCaptured` for the contact strip and every later screen that shows
+ * this frame. Offline (no session) the mock timing and visuals are
+ * unchanged.
  */
 export default function CaptureScreen({
   total,
   scent,
+  session,
+  frameUrls,
+  onFrameCaptured,
   onComplete,
 }: {
   total: number;
   scent: Scent;
+  session?: BoothSession | null;
+  /** Real backend photo per already-captured frame id (this run). */
+  frameUrls?: Record<number, string>;
+  onFrameCaptured?: (n: number, url: string) => void;
   onComplete: (frames: number[]) => void;
 }) {
   const { t, sub } = useLang();
@@ -34,6 +48,18 @@ export default function CaptureScreen({
     let cancelled = false;
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+    // Real capture when a backend session exists; mock frame otherwise —
+    // fired the instant the flash starts so the shutter reads instantaneous.
+    const snap = async (n: number) => {
+      if (!session) return;
+      try {
+        const frame = await captureFrame(session.sessionId, n);
+        if (frame.url) onFrameCaptured?.(n, frame.url);
+      } catch {
+        /* offline mid-session — the mock visuals carry the rest of the run */
+      }
+    };
+
     (async () => {
       const captured: number[] = [];
       for (let s = 0; s < total; s++) {
@@ -45,8 +71,11 @@ export default function CaptureScreen({
           if (cancelled) return;
         }
         setCount(0);
+        const pending = snap(s + 1);
         setFlash(true);
         await wait(130);
+        await pending;
+        if (cancelled) return;
         captured.push(s + 1);
         setFrames([...captured]);
         await wait(230);
@@ -61,7 +90,7 @@ export default function CaptureScreen({
     return () => {
       cancelled = true;
     };
-  }, [total, onComplete]);
+  }, [total, session, onFrameCaptured, onComplete]);
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden">
@@ -122,7 +151,16 @@ export default function CaptureScreen({
       {/* camera viewport — the dominant surface of the screen */}
       <div className="flex flex-1 items-center justify-center px-[70px]">
         <div className="relative h-[1020px] w-[940px] overflow-hidden bg-ink">
-          <Portrait seed={shot} className="opacity-95" />
+          {session ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={previewUrl()}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover opacity-95"
+            />
+          ) : (
+            <Portrait seed={shot} className="opacity-95" />
+          )}
 
           {/* rule-of-thirds grid — camera, not decoration */}
           <div className="pointer-events-none absolute inset-0">
@@ -206,7 +244,7 @@ export default function CaptureScreen({
                 >
                   {done ? (
                     <>
-                      <Portrait seed={i} />
+                      <Portrait seed={i} src={frameUrls?.[i + 1]} />
                       <RegMark className="left-[5px] top-[5px]" />
                       <RegMark className="bottom-[5px] right-[5px] rotate-180" />
                     </>

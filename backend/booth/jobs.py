@@ -21,6 +21,10 @@ class PrintJob:
     session: Session
     style: str = "pass"  # "pass" | "cover"
     meta: dict = field(default_factory=dict)  # scent / quote from the UI
+    # 1-based indices into session.frames, in the guest's chosen print order.
+    # None (or empty) prints every captured frame in capture order — the
+    # pre-selection flow this backs is a frontend concern.
+    frame_order: list[int] | None = None
     state: str = "queued"  # queued | rendering | printing | done | error
     progress: float = 0.0
     message: str = ""
@@ -52,7 +56,13 @@ class PrintQueue:
         self._worker = threading.Thread(target=self._run, daemon=True)
         self._worker.start()
 
-    def submit(self, session: Session, style: str = "pass", meta: dict | None = None) -> PrintJob:
+    def submit(
+        self,
+        session: Session,
+        style: str = "pass",
+        meta: dict | None = None,
+        frame_order: list[int] | None = None,
+    ) -> PrintJob:
         """Idempotent per session: a repeat POST (double tap, client retry)
         returns the session's existing job instead of printing twice. Only a
         failed job frees the session for another attempt."""
@@ -61,7 +71,11 @@ class PrintQueue:
             if existing is not None and existing.snapshot()["state"] != "error":
                 return existing
             job = PrintJob(
-                id=uuid.uuid4().hex[:12], session=session, style=style, meta=meta or {}
+                id=uuid.uuid4().hex[:12],
+                session=session,
+                style=style,
+                meta=meta or {},
+                frame_order=frame_order or None,
             )
             self._jobs[job.id] = job
             self._by_session[session.id] = job
@@ -76,7 +90,12 @@ class PrintQueue:
             job = self._q.get()
             try:
                 job.update(state="rendering", progress=0.0)
-                frames = [p.read_bytes() for p in job.session.frames]
+                paths = job.session.frames
+                if job.frame_order:
+                    paths = [
+                        paths[i - 1] for i in job.frame_order if 1 <= i <= len(paths)
+                    ] or paths
+                frames = [p.read_bytes() for p in paths]
                 image = self.renderer.render(
                     frames, job.session.serial, style=job.style, meta=job.meta
                 )

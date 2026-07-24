@@ -48,12 +48,19 @@ export default function BoardingPass({
   serial,
   date,
   time,
+  frameUrls,
+  qrSrc,
 }: {
   frames: number[];
   scent: Scent;
   serial: string;
   date?: string;
   time?: string;
+  /** Real backend photo per captured frame id — absent falls back to Portrait. */
+  frameUrls?: Record<number, string>;
+  /** Real, scannable QR image (backend `/api/qr/{serial}.png`) — absent falls
+   *  back to the decorative placeholder. */
+  qrSrc?: string;
 }) {
   const { t } = useLang();
   const motif = useChromeArtwork();
@@ -116,7 +123,7 @@ export default function BoardingPass({
                 className="absolute inset-0"
                 style={i === 2 ? { transform: "translateX(-3px) scale(1.04)", transformOrigin: "center" } : undefined}
               >
-                <Portrait seed={frame - 1} print />
+                <Portrait seed={frame - 1} print src={frameUrls?.[frame]} />
               </div>
               <span className="pointer-events-none absolute inset-0 border border-[color:var(--color-line)]" />
             </figure>
@@ -266,7 +273,18 @@ export default function BoardingPass({
               Ed. {edition.no}
             </span>
             <div className="shrink-0 border border-[color:var(--color-ink)] p-[5px]">
-              <Qr cell={3} seed={hashSeed(serial)} />
+              {qrSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={qrSrc}
+                  alt=""
+                  width={63}
+                  height={63}
+                  style={{ display: "block", imageRendering: "pixelated" }}
+                />
+              ) : (
+                <Qr cell={3} seed={hashSeed(serial)} />
+              )}
             </div>
           </div>
         </div>

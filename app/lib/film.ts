@@ -15,6 +15,9 @@ export type FilmArtifactProps = {
   serial: string;
   issueDate: string;
   edition: string;
+  /** Real backend photo per captured frame id — absent (mock mode) falls
+   *  back to the Portrait placeholder wherever a frame is rendered. */
+  frameUrls?: Record<number, string>;
 };
 
 /** Pure word-count classification for Claude's future FILM layouts. */
@@ -37,6 +40,7 @@ export function createFilmArtifactProps({
   serial,
   issueDate,
   edition,
+  frameUrls,
 }: Omit<FilmArtifactProps, "scentNotes" | "scentMood" | "scentDestination">): FilmArtifactProps {
   return {
     frames,
@@ -49,5 +53,6 @@ export function createFilmArtifactProps({
     serial,
     issueDate,
     edition,
+    frameUrls,
   };
 }

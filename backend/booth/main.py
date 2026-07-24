@@ -120,6 +120,11 @@ class PrintRequest(BaseModel):
     vocabulary. `style` is a free string (unknown values print with the
     default layout rather than erroring), and any extra fields (`motif`,
     future additions) are passed through to the renderer untouched.
+
+    `frames` is optional: the guest may capture more frames than get printed
+    (e.g. 6 captured, 3 selected). When set, it is a 1-based, print-order
+    list of indices into the frames captured on this session; omitted means
+    "print every captured frame, in capture order".
     """
 
     model_config = ConfigDict(extra="allow")
@@ -127,6 +132,7 @@ class PrintRequest(BaseModel):
     style: str = "pass"
     scent: dict | None = None
     quote: dict | None = None
+    frames: list[int] | None = None
 
 
 @app.post("/api/sessions/{sid}/print", status_code=202)
@@ -137,9 +143,13 @@ def print_session(sid: str, req: PrintRequest | None = None) -> dict:
     if not session.frames:
         raise HTTPException(409, "session has no captured frames")
     req = req or PrintRequest()
+    if req.frames is not None and any(
+        n < 1 or n > len(session.frames) for n in req.frames
+    ):
+        raise HTTPException(422, "frame selection out of range")
     meta = {"scent": req.scent, "quote": req.quote, **(req.model_extra or {})}
     # Idempotent per session: a duplicate POST returns the same job.
-    job = print_queue.submit(session, style=req.style, meta=meta)
+    job = print_queue.submit(session, style=req.style, meta=meta, frame_order=req.frames)
     return {"job_id": job.id}
 
 

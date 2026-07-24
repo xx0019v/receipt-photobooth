@@ -36,6 +36,7 @@ export default function FrameSelectionCarousel({
   selectedIds,
   onToggleSelect,
   reducedMotion,
+  frameUrls,
 }: {
   frameIds: number[];
   activeIndex: number;
@@ -43,6 +44,8 @@ export default function FrameSelectionCarousel({
   selectedIds: number[];
   onToggleSelect: (id: number) => void;
   reducedMotion: boolean;
+  /** Real backend photo per captured frame id — absent falls back to Portrait. */
+  frameUrls?: Record<number, string>;
 }) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const activeIndexRef = useRef(activeIndex);
@@ -140,7 +143,7 @@ export default function FrameSelectionCarousel({
                   transition: reducedMotion ? "opacity 140ms linear" : "opacity 260ms ease",
                 }}
               >
-                <Portrait seed={id} />
+                <Portrait seed={id} src={frameUrls?.[id]} />
                 {isActive && (
                   <>
                     <RegMark className="left-[16px] top-[16px]" selected={isSelected} />
@@ -196,7 +199,7 @@ export default function FrameSelectionCarousel({
                     : "width 260ms ease, height 260ms ease, margin 260ms ease, opacity 260ms ease",
                 }}
               >
-                <Portrait seed={id} />
+                <Portrait seed={id} src={frameUrls?.[id]} />
                 {selected && (
                   <span className="absolute right-[3px] top-[3px] h-[6px] w-[6px] rounded-full bg-ink" aria-hidden="true" />
                 )}

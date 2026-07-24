@@ -10,6 +10,7 @@ import { type Scent } from "@/app/lib/edition";
 import { type FilmArtifactProps } from "@/app/lib/film";
 import { useLang } from "@/app/lib/i18n";
 import { usePrintStyle } from "@/app/lib/printStyle";
+import { qrUrl, type BoothSession } from "@/app/lib/api";
 
 const AUTO_RETURN = 20_000;
 
@@ -28,6 +29,7 @@ export default function DoneScreen({
   issuedDate,
   issuedTime,
   filmProps,
+  session,
   onReset,
 }: {
   frames: number[];
@@ -36,6 +38,9 @@ export default function DoneScreen({
   issuedDate: string;
   issuedTime: string;
   filmProps: FilmArtifactProps;
+  /** Real backend session — swaps the PASS stub's decorative QR for the real,
+   *  scannable one (same share page as the printed artefact). */
+  session?: BoothSession | null;
   onReset: () => void;
 }) {
   const { t, sub } = useLang();
@@ -124,7 +129,15 @@ export default function DoneScreen({
             style={{ width: BOARDING_SCREEN_W, height: PASS_DONE_H }}
           >
             <div style={{ width: BOARDING_W, height: BOARDING_H, transform: `scale(${BOARDING_SCREEN_W / BOARDING_W})`, transformOrigin: "top left" }}>
-              <BoardingPass frames={frames} scent={scent} serial={serial} date={issuedDate} time={issuedTime} />
+              <BoardingPass
+                frames={frames}
+                scent={scent}
+                serial={serial}
+                date={issuedDate}
+                time={issuedTime}
+                frameUrls={filmProps.frameUrls}
+                qrSrc={session ? qrUrl(serial) : undefined}
+              />
             </div>
           </div>
           <div

@@ -10,6 +10,7 @@ import { type FilmArtifactProps } from "@/app/lib/film";
 import { useLang } from "@/app/lib/i18n";
 import { usePrintStyle } from "@/app/lib/printStyle";
 import { type ErrorKind } from "@/app/lib/errors";
+import { getPrintJob, qrUrl, startPrint, type BoothSession } from "@/app/lib/api";
 
 const COVER_DURATION = 3900;
 const PASS_DURATION = 4100;
@@ -89,6 +90,7 @@ export default function PrintingScreen({
   issuedDate,
   issuedTime,
   filmProps,
+  session,
   onRetake,
   onClaim,
   onPrintError,
@@ -100,6 +102,10 @@ export default function PrintingScreen({
   issuedDate: string;
   issuedTime: string;
   filmProps: FilmArtifactProps;
+  /** Real backend session — issues an actual print job whose progress drives
+   *  this screen's feed animation. Offline (no session) keeps the original
+   *  fixed-duration mock animation. */
+  session?: BoothSession | null;
   onRetake: () => void;
   onClaim: () => void;
   onPrintError?: (kind: ErrorKind) => void;
@@ -176,14 +182,21 @@ export default function PrintingScreen({
   }, [stage, ms]);
 
   // ISSUING — paper feed progress, synced 1:1 with ISSUE CORE's phase.
-  // The fail trigger (Staff Mode / QA only) is scheduled on its own timer
-  // rather than decided inside the rAF tick: browsers throttle or suspend
+  // Two independent drivers, mutually exclusive:
+  //  - real session: submit the print job, then let the backend's actual
+  //    printer progress drive `pct` — the feed reads exactly as mechanical
+  //    as the mock version, just paced by the real printer instead of a timer.
+  //  - offline / Staff Mode QA (simulateFailure always takes this path, even
+  //    online, so a forced-failure test never depends on real hardware): the
+  //    original fixed-duration rAF animation.
+  // The fail trigger for the mock path is scheduled on its own timer rather
+  // than decided inside the rAF tick: browsers throttle or suspend
   // requestAnimationFrame for a backgrounded/inactive tab, and a
   // correctness-critical event like "the print failed" must not depend on
-  // paint frames actually being delivered. rAF here only drives the visual
-  // feed animation.
+  // paint frames actually being delivered.
   useEffect(() => {
     if (stage !== "issuing") return;
+    if (session && !simulateFailure) return; // real print effect (below) drives this stage
 
     const start = performance.now();
     let raf = 0;
@@ -215,7 +228,58 @@ export default function PrintingScreen({
       clearTimeout(guard);
       if (failTimer) clearTimeout(failTimer);
     };
-  }, [duration, stage, simulateFailure, onPrintError]);
+  }, [duration, stage, simulateFailure, onPrintError, session]);
+
+  // ISSUING — real print job: submit once, then poll and translate the
+  // backend's job state into the same `pct` (0-1) the mock path produces, so
+  // ISSUE CORE and the paper-feed curve read identically either way.
+  useEffect(() => {
+    if (stage !== "issuing" || !session || simulateFailure) return;
+    let stopped = false;
+    let poll: ReturnType<typeof setInterval> | null = null;
+
+    (async () => {
+      try {
+        const jobId = await startPrint(
+          session.sessionId,
+          style,
+          scent,
+          filmProps.selectedQuote,
+          frames,
+        );
+        poll = setInterval(async () => {
+          if (stopped) return;
+          try {
+            const job = await getPrintJob(jobId);
+            if (stopped) return;
+            if (job.state === "queued") setPct(0.03);
+            else if (job.state === "rendering") setPct(0.08);
+            else if (job.state === "printing") setPct(0.1 + job.progress * 0.9);
+            else if (job.state === "done") {
+              if (poll) clearInterval(poll);
+              setPct(1);
+              setStage("completing");
+            } else if (job.state === "error") {
+              if (poll) clearInterval(poll);
+              onPrintError?.(
+                /paper/i.test(job.message) ? "paper-empty" : "print-failed",
+              );
+            }
+          } catch {
+            /* transient poll failure — keep trying */
+          }
+        }, 400);
+      } catch {
+        if (!stopped) onPrintError?.("print-failed");
+      }
+    })();
+
+    return () => {
+      stopped = true;
+      if (poll) clearInterval(poll);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage, session, simulateFailure]);
 
   const ease = mechanicalFeed(pct);
   const title = isCover
@@ -295,6 +359,7 @@ export default function PrintingScreen({
            design arrives as the machine issues it rather than as a preview. */
         <SealedProof
           frames={frames}
+          frameUrls={filmProps.frameUrls}
           serial={serial}
           issuedDate={issuedDate}
           issuedTime={issuedTime}
@@ -364,7 +429,15 @@ export default function PrintingScreen({
               }}
             >
               <div style={{ width: BOARDING_W, height: BOARDING_H, transform: `scale(${passScale})`, transformOrigin: "top left" }}>
-                <BoardingPass frames={frames} scent={scent} serial={serial} date={issuedDate} time={issuedTime} />
+                <BoardingPass
+                  frames={frames}
+                  scent={scent}
+                  serial={serial}
+                  date={issuedDate}
+                  time={issuedTime}
+                  frameUrls={filmProps.frameUrls}
+                  qrSrc={session ? qrUrl(serial) : undefined}
+                />
               </div>
               {!done && (
                 <div className="print-noise pointer-events-none absolute inset-0 opacity-[0.03] mix-blend-multiply" />
@@ -487,6 +560,7 @@ function edition_label(serial: string) {
  */
 function SealedProof({
   frames,
+  frameUrls,
   serial,
   issuedDate,
   issuedTime,
@@ -497,6 +571,7 @@ function SealedProof({
   sub,
 }: {
   frames: number[];
+  frameUrls?: Record<number, string>;
   serial: string;
   issuedDate: string;
   issuedTime: string;
@@ -529,7 +604,7 @@ function SealedProof({
             return (
               <div key={i} className="flex-1">
                 <div className="relative aspect-square overflow-hidden border border-[color:var(--color-line)] bg-paper-bright">
-                  {id !== undefined && <Portrait seed={id} />}
+                  {id !== undefined && <Portrait seed={id} src={frameUrls?.[id]} />}
                   <ProofLockMark className="left-[8px] top-[8px]" />
                   <ProofLockMark className="bottom-[8px] right-[8px] rotate-180" />
                 </div>

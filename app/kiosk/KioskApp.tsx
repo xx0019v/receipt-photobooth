@@ -19,6 +19,7 @@ import {
   motifForScent,
   type SelectedScentInput,
 } from "@/app/lib/session";
+import { createSession, type BoothSession } from "@/app/lib/api";
 import IdleScreen from "./screens/IdleScreen";
 import ScentScreen from "./screens/ScentScreen";
 import FormatSelectScreen from "./screens/FormatSelectScreen";
@@ -70,6 +71,14 @@ export default function KioskApp({
   const [errorReturnPhase, setErrorReturnPhase] = useState<Phase>("printing");
   const [lastJob, setLastJob] = useState<LastJob>(null);
   const [staffForceFailure, setStaffForceFailure] = useState(false);
+  // Real booth backend session; null = offline mock mode (UI still fully
+  // works, unchanged visuals). Each fresh capture run (initial or a full
+  // retake) opens its own session so captured-frame indices always start at
+  // 1 — see retakeAll below.
+  const [session, setSession] = useState<BoothSession | null>(null);
+  // Real backend photo per captured frame id (1-based capture order), filled
+  // in as CaptureScreen reports each shot. Cleared alongside the session.
+  const [frameUrls, setFrameUrls] = useState<Record<number, string>>({});
   // Forces PrintingScreen to remount (and its internal ritual stage to reset
   // to "review") on every fresh attempt — including a Staff Mode retry
   // triggered while already on the printing phase, where `phase` alone
@@ -85,26 +94,55 @@ export default function KioskApp({
     setPhase("format");
   }, []);
 
+  // Kick off (or refresh) a real booth backend session. This also acts as
+  // the "are we online" probe: failure just leaves the kiosk in offline mock
+  // mode, and every screen below already degrades gracefully to its mock
+  // visuals when `session` is null. The backend owns serial numbering once
+  // connected — the printed artefact is always stamped with the backend's
+  // serial, so the on-screen one must match from the start, not just at
+  // confirmSelectedFrames.
+  const openSession = useCallback(async () => {
+    setSession(null);
+    setFrameUrls({});
+    try {
+      const s = await createSession();
+      setSession(s);
+      setSerial(s.serial);
+    } catch {
+      /* offline — mock mode */
+    }
+  }, []);
+
   const startSession = useCallback(() => {
-    const session = initializeSession(externalSelectedScent);
-    setFrames(session.frames);
-    setSerial(session.serial);
-    setIssuedDate(session.issueDate);
-    setIssuedTime(session.issueTime);
-    setEdition(session.edition);
-    setSelectedScent(session.identity.selectedScent);
-    setSelectedQuote(session.identity.selectedQuote);
-    setSelectedChromeMotif(session.identity.selectedChromeMotif);
+    const init = initializeSession(externalSelectedScent);
+    setFrames(init.frames);
+    setSerial(init.serial);
+    setIssuedDate(init.issueDate);
+    setIssuedTime(init.issueTime);
+    setEdition(init.edition);
+    setSelectedScent(init.identity.selectedScent);
+    setSelectedQuote(init.identity.selectedQuote);
+    setSelectedChromeMotif(init.identity.selectedChromeMotif);
     setPhase("scent");
-  }, [externalSelectedScent]);
+    void openSession();
+  }, [externalSelectedScent, openSession]);
 
   // RETAKE ALL — from Proof or from Select: back to Capture for a fresh set
   // of 6, discarding whatever was captured/selected before. Edition, format,
-  // serial, and issueDate are session-level and stay untouched.
+  // serial, and issueDate are session-level and stay untouched. The backend
+  // session is recreated so the new run's captured-frame indices start at 1
+  // again (a session's frames only ever accumulate on the backend side).
   const retakeAll = useCallback(() => {
     setFrames([]);
     setCapturedFrames([]);
     setPhase("capture");
+    void openSession();
+  }, [openSession]);
+
+  // Real backend photo for a just-captured frame — reported by CaptureScreen
+  // as each shot lands, so Select / Proof / Done can show it immediately.
+  const handleFrameCaptured = useCallback((n: number, url: string) => {
+    setFrameUrls((prev) => ({ ...prev, [n]: url }));
   }, []);
 
   // Capture finishes with 6 raw frames — no serial/print state is touched
@@ -120,16 +158,19 @@ export default function KioskApp({
 
   const confirmSelectedFrames = useCallback((selected: number[]) => {
     setFrames(selected);
-    if (serial === "0000-0000") {
+    // Issued once per session. Gated on issuedDate (not serial): a connected
+    // backend session already stamped the real serial back in openSession,
+    // and that must never be overwritten by the local mock generator.
+    if (!issuedDate) {
       const issuedAt = new Date();
-      setSerial(serialNo());
+      if (!session) setSerial(serialNo());
       setIssuedDate(editionDate(issuedAt));
       setIssuedTime(editionTime(issuedAt));
       setEdition(issueNo(issuedAt));
     }
     setPrintAttempt((n) => n + 1);
     setPhase("printing");
-  }, [serial]);
+  }, [issuedDate, session]);
 
   const reset = useCallback(() => {
     setFrames([]);
@@ -143,6 +184,8 @@ export default function KioskApp({
     setSelectedChromeMotif(COVER_MOTIF_ASSETS[0]);
     setErrorKind(null);
     setStaffForceFailure(false);
+    setSession(null);
+    setFrameUrls({});
     setPhase("idle");
   }, []);
 
@@ -183,10 +226,12 @@ export default function KioskApp({
         serial,
         issueDate: issuedDate,
         edition,
+        frameUrls,
       }),
     [
       edition,
       frames,
+      frameUrls,
       issuedDate,
       selectedChromeMotif,
       selectedQuote,
@@ -216,12 +261,15 @@ export default function KioskApp({
           <FormatSelectScreen scent={selectedScent} filmProps={filmProps} onContinue={() => go("pose")} />
         )}
         {phase === "pose" && (
-          <PoseScreen scent={selectedScent} onBegin={() => go("capture")} />
+          <PoseScreen scent={selectedScent} session={session} onBegin={() => go("capture")} />
         )}
         {phase === "capture" && (
           <CaptureScreen
             total={CAPTURE_TOTAL}
             scent={selectedScent}
+            session={session}
+            frameUrls={frameUrls}
+            onFrameCaptured={handleFrameCaptured}
             onComplete={finishCapture}
           />
         )}
@@ -233,6 +281,7 @@ export default function KioskApp({
             capturedFrames={capturedFrames}
             onConfirm={confirmSelectedFrames}
             onRetakeAll={retakeAll}
+            frameUrls={frameUrls}
           />
         )}
         {phase === "printing" && (
@@ -244,6 +293,7 @@ export default function KioskApp({
             issuedDate={issuedDate}
             issuedTime={issuedTime}
             filmProps={filmProps}
+            session={session}
             onRetake={retakeAll}
             onClaim={claim}
             onPrintError={handlePrintError}
@@ -265,6 +315,7 @@ export default function KioskApp({
             issuedDate={issuedDate}
             issuedTime={issuedTime}
             filmProps={filmProps}
+            session={session}
             onReset={reset}
           />
         )}
@@ -279,9 +330,9 @@ export default function KioskApp({
           onTestPrintFailure={() => {
             setStaffForceFailure(true);
             setFrames(frames.length ? frames : [1, 2, 3]);
-            if (serial === "0000-0000") {
+            if (!issuedDate) {
               const issuedAt = new Date();
-              setSerial(serialNo());
+              if (!session) setSerial(serialNo());
               setIssuedDate(editionDate(issuedAt));
               setIssuedTime(editionTime(issuedAt));
               setEdition(issueNo(issuedAt));
