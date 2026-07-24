@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import BoardingPass, { BOARDING_W, BOARDING_H, BOARDING_SCREEN_W, PASS_SLOT_W } from "@/app/components/BoardingPass";
 import MagazineCover from "@/app/components/MagazineCover";
 import IssueCore, { type IssueCoreState } from "@/app/components/motion/IssueCore";
-import { type Scent } from "@/app/lib/edition";
+import Portrait from "@/app/components/Portrait";
+import { editionForScent, type Scent } from "@/app/lib/edition";
 import { type FilmArtifactProps } from "@/app/lib/film";
 import { useLang } from "@/app/lib/i18n";
 import { usePrintStyle } from "@/app/lib/printStyle";
@@ -286,7 +287,24 @@ export default function PrintingScreen({
         )}
       </div>
 
-      {isCover ? (
+      {!printStarted ? (
+        /* PROOF — the composed artefact is deliberately NOT shown yet. Before
+           the guest commits, they confirm WHAT is being issued (their three
+           frames, in order, and the serial that will carry them) — not how it
+           is laid out. The edition itself is revealed as it is printed, so the
+           design arrives as the machine issues it rather than as a preview. */
+        <SealedProof
+          frames={frames}
+          serial={serial}
+          issuedDate={issuedDate}
+          issuedTime={issuedTime}
+          formatName={isCover ? "Photo Film" : "Boarding Pass"}
+          formatSize={isCover ? "640 × 1280" : "620 × 2100"}
+          edition={editionForScent(scent)}
+          locking={stage === "proofLock"}
+          sub={sub}
+        />
+      ) : isCover ? (
         /* FILM — feeds from a top slit, top-down reveal (unchanged) */
         <div className="relative flex flex-1 flex-col items-center justify-start px-[40px] pt-[230px]">
           {issueCore}
@@ -322,28 +340,6 @@ export default function PrintingScreen({
               <>
                 <div className="printing-scan pointer-events-none absolute inset-x-0 top-0 h-px bg-ink/35" />
                 <div className="print-noise pointer-events-none absolute inset-0 opacity-[0.035] mix-blend-multiply" />
-              </>
-            )}
-          </div>
-        </div>
-      ) : stage === "review" || stage === "proofLock" ? (
-        /* PASS review + Proof Lock — the full ticket, centred, no printer slot */
-        <div className="relative flex flex-1 items-center justify-center px-[40px]">
-          <div
-            className={`relative overflow-hidden rounded-[2px] border bg-paper-bright shadow-[0_28px_60px_-36px_rgba(0,0,0,0.5)] ${
-              stage === "proofLock" ? "border-[color:var(--color-ink)]" : "border-[color:var(--color-line)]"
-            } ${stage === "review" ? "anim-fade-up" : ""}`}
-            style={{ width: winW, height: winH }}
-          >
-            <div style={{ width: BOARDING_W, height: BOARDING_H, transform: `scale(${passScale})`, transformOrigin: "top left" }}>
-              <BoardingPass frames={frames} scent={scent} serial={serial} date={issuedDate} time={issuedTime} />
-            </div>
-            {stage === "proofLock" && (
-              <>
-                <ProofLockMark className="left-[18px] top-[18px]" />
-                <ProofLockMark className="right-[18px] top-[18px] rotate-90" />
-                <ProofLockMark className="bottom-[18px] right-[18px] rotate-180" />
-                <ProofLockMark className="bottom-[18px] left-[18px] -rotate-90" />
               </>
             )}
           </div>
@@ -481,6 +477,106 @@ export default function PrintingScreen({
 
 function edition_label(serial: string) {
   return `SERIAL ${serial}`;
+}
+
+/**
+ * SEALED PROOF — the pre-print confirmation. Shows what will be issued (the
+ * three chosen frames, in print order, and the serial that carries them)
+ * without revealing the composed artefact. The layout stays sealed until the
+ * guest presses the issue control.
+ */
+function SealedProof({
+  frames,
+  serial,
+  issuedDate,
+  issuedTime,
+  formatName,
+  formatSize,
+  edition,
+  locking,
+  sub,
+}: {
+  frames: number[];
+  serial: string;
+  issuedDate: string;
+  issuedTime: string;
+  formatName: string;
+  formatSize: string;
+  edition: { no: string; code: string };
+  locking: boolean;
+  sub: unknown;
+}) {
+  return (
+    <div className="relative flex flex-1 items-center justify-center px-[70px]">
+      <div
+        className={`relative w-full border bg-paper-bright px-[64px] py-[58px] ${
+          locking ? "border-[color:var(--color-ink)]" : "border-[color:var(--color-line)]"
+        }`}
+      >
+        <div className="flex items-baseline justify-between">
+          <span className="font-mono text-[15px] uppercase tracking-[0.32em] text-silver-dim">
+            {locking ? "Registering" : "Ready to issue"}
+          </span>
+          <span className="font-mono text-[15px] uppercase tracking-[0.26em] text-silver-dim">
+            {formatName} · {formatSize}
+          </span>
+        </div>
+
+        {/* the three chosen frames, in print order — content, not layout */}
+        <div className="mt-[42px] flex gap-[26px]">
+          {[0, 1, 2].map((i) => {
+            const id = frames[i];
+            return (
+              <div key={i} className="flex-1">
+                <div className="relative aspect-square overflow-hidden border border-[color:var(--color-line)] bg-paper-bright">
+                  {id !== undefined && <Portrait seed={id} />}
+                  <ProofLockMark className="left-[8px] top-[8px]" />
+                  <ProofLockMark className="bottom-[8px] right-[8px] rotate-180" />
+                </div>
+                <span className="mt-[12px] block font-mono text-[13px] uppercase tracking-[0.26em] text-silver-dim">
+                  Print {String(i + 1).padStart(2, "0")}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* the machine ledger */}
+        <dl className="mt-[52px] grid grid-cols-[auto_1fr_auto_1fr] gap-x-[26px] gap-y-[14px] border-t border-[color:var(--color-line)] pt-[30px] font-mono text-[16px] uppercase tracking-[0.22em]">
+          <dt className="text-silver-dim">Serial</dt>
+          <dd className="tabular-nums">{serial}</dd>
+          <dt className="text-silver-dim">Edition</dt>
+          <dd>
+            {edition.no} · {edition.code}
+          </dd>
+          <dt className="text-silver-dim">Issue</dt>
+          <dd className="tabular-nums">
+            {issuedDate} {issuedTime}
+          </dd>
+          <dt className="text-silver-dim">Frames</dt>
+          <dd className="tabular-nums">{frames.length} / 3</dd>
+        </dl>
+
+        <p className="mt-[34px] font-display text-[26px] italic text-ink-soft">
+          The edition is composed as it is issued.
+        </p>
+        {sub ? (
+          <p className="jp-sub mt-[8px] text-[16px] text-silver-dim">
+            仕上がりは発行と同時に印字されます
+          </p>
+        ) : null}
+
+        {locking && (
+          <>
+            <ProofLockMark className="left-[18px] top-[18px]" />
+            <ProofLockMark className="right-[18px] top-[18px] rotate-90" />
+            <ProofLockMark className="bottom-[18px] right-[18px] rotate-180" />
+            <ProofLockMark className="bottom-[18px] left-[18px] -rotate-90" />
+          </>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function ProofLockMark({ className = "" }: { className?: string }) {

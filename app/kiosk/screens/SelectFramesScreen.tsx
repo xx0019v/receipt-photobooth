@@ -10,8 +10,8 @@ import { useLang } from "@/app/lib/i18n";
 /**
  * SELECT YOUR FRAMES — pick TOTAL_SHOTS of the captured frames, in order.
  * capturedFrames never gets reordered; selectedIds is the only ordered list.
- * Two ways to register a frame: tap the active photo (appends to the next
- * open PRINT ORDER slot), or peel it — drag down — and drop it onto a slot.
+ * The strip scrolls sideways natively; tapping the centred proof adds it to
+ * the next open PRINT ORDER slot, and tapping a selected proof removes it.
  */
 export default function SelectFramesScreen({
   capturedFrames,
@@ -27,7 +27,7 @@ export default function SelectFramesScreen({
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [fullNotice, setFullNotice] = useState(false);
-  const slotRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -59,28 +59,6 @@ export default function SelectFramesScreen({
           return prev;
         }
         return [...prev, id];
-      });
-    },
-    [showFullNotice],
-  );
-
-  // Peel-drop: register the frame only if it landed on a PRINT ORDER slot.
-  // A drop anywhere else quietly cancels (the ghost has already unmounted).
-  const handlePeelDrop = useCallback(
-    (frameId: number, clientX: number, clientY: number) => {
-      const hit = slotRefs.current.some((el) => {
-        if (!el) return false;
-        const r = el.getBoundingClientRect();
-        return clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
-      });
-      if (!hit) return;
-      setSelectedIds((prev) => {
-        if (prev.includes(frameId)) return prev;
-        if (prev.length >= TOTAL_SHOTS) {
-          showFullNotice();
-          return prev;
-        }
-        return [...prev, frameId];
       });
     },
     [showFullNotice],
@@ -122,7 +100,6 @@ export default function SelectFramesScreen({
           onActiveChange={setActiveIndex}
           selectedIds={selectedIds}
           onToggleSelect={toggleSelect}
-          onPeelDrop={handlePeelDrop}
           reducedMotion={reducedMotion}
         />
       </div>
@@ -139,9 +116,6 @@ export default function SelectFramesScreen({
             return (
               <button
                 key={i}
-                ref={(el) => {
-                  slotRefs.current[i] = el;
-                }}
                 onClick={() => {
                   if (id === undefined) return;
                   const idx = capturedFrames.indexOf(id);
