@@ -19,14 +19,6 @@ import {
   motifForScent,
   type SelectedScentInput,
 } from "@/app/lib/session";
-import { useBoothConnection } from "@/app/lib/useBoothConnection";
-import {
-  captureFrame,
-  clearCapturedFrames,
-  isHardwareMode,
-  previewUrl,
-} from "@/app/lib/api";
-import type { PrintIdentity } from "./screens/PrintingScreen";
 import IdleScreen from "./screens/IdleScreen";
 import ScentScreen from "./screens/ScentScreen";
 import FormatSelectScreen from "./screens/FormatSelectScreen";
@@ -67,7 +59,6 @@ export default function KioskApp({
   // (above) becomes the 3 selected from this set, in the guest's chosen
   // print order, once Select confirms.
   const [capturedFrames, setCapturedFrames] = useState<number[]>([]);
-  const [frameSources, setFrameSources] = useState<Record<number, string>>({});
   const [selectedScent, setSelectedScent] = useState<Scent>(() => scentById("nocturne"));
   const [serial, setSerial] = useState("0000-0000");
   const [issuedDate, setIssuedDate] = useState("");
@@ -84,12 +75,6 @@ export default function KioskApp({
   // triggered while already on the printing phase, where `phase` alone
   // wouldn't change and React would otherwise reuse the mounted instance.
   const [printAttempt, setPrintAttempt] = useState(0);
-  const { connection, connect, disconnect } = useBoothConnection();
-  // Fixed ONCE, when the guest confirms their three frames, and never
-  // recomputed: a retry after a paper jam must reprint the same edition, not
-  // a new one stamped a minute later.
-  const [printIdentity, setPrintIdentity] = useState<PrintIdentity | null>(null);
-  const [retryRequested, setRetryRequested] = useState(false);
 
   const go = useCallback((p: Phase) => setPhase(p), []);
   // The guest scrolls the scent chapters and confirms one; that scent and its
@@ -110,127 +95,45 @@ export default function KioskApp({
     setSelectedScent(session.identity.selectedScent);
     setSelectedQuote(session.identity.selectedQuote);
     setSelectedChromeMotif(session.identity.selectedChromeMotif);
-    setPrintIdentity(null);
-    setRetryRequested(false);
-    setFrameSources({});
     setPhase("scent");
-
-    // Open the booth session now, while the guest is choosing an edition —
-    // the serial has to come from the backend (it owns the counter) and this
-    // is the last quiet moment before it is needed.
-    void connect().then((next) => {
-      if (next.fatal) {
-        setErrorReturnPhase("idle");
-        setErrorKind("printer-offline");
-        setPhase("error");
-        return;
-      }
-      if (next.serial) setSerial(next.serial);
-    });
-  }, [externalSelectedScent, connect]);
+  }, [externalSelectedScent]);
 
   // RETAKE ALL — from Proof or from Select: back to Capture for a fresh set
   // of 6, discarding whatever was captured/selected before. Edition, format,
   // serial, and issueDate are session-level and stay untouched.
   const retakeAll = useCallback(() => {
-    const resume = () => {
-      setFrames([]);
-      setCapturedFrames([]);
-      setFrameSources({});
-      setPhase("capture");
-    };
-    if (!connection.sessionId) {
-      resume();
-      return;
-    }
-    void clearCapturedFrames(connection.sessionId)
-      .then(resume)
-      .catch(() => {
-        if (isHardwareMode) {
-          setErrorReturnPhase("printing");
-          setErrorKind("camera");
-          setPhase("error");
-        } else {
-          resume();
-        }
-      });
-  }, [connection.sessionId]);
+    setFrames([]);
+    setCapturedFrames([]);
+    setPhase("capture");
+  }, []);
 
   // Capture finishes with 6 raw frames — no serial/print state is touched
   // yet; that only happens once Select confirms 3 of them.
-  const finishCapture = useCallback((captured: number[], sources: Record<number, string>) => {
+  const finishCapture = useCallback((captured: number[]) => {
     setCapturedFrames(captured);
-    setFrameSources(sources);
     setPhase("registeringFrames");
-  }, []);
-
-  const captureOne = useCallback(
-    async (frameNumber: number): Promise<string | null> => {
-      if (!connection.sessionId) {
-        if (isHardwareMode) throw new Error("hardware session is unavailable");
-        return null;
-      }
-      const frame = await captureFrame(connection.sessionId, frameNumber);
-      return frame.url;
-    },
-    [connection.sessionId],
-  );
-
-  const handleCaptureError = useCallback(() => {
-    setErrorReturnPhase("capture");
-    setErrorKind("camera");
-    setPhase("error");
   }, []);
 
   const framesRegistered = useCallback(() => {
     setPhase("selectFrames");
   }, []);
 
-  const confirmSelectedFrames = useCallback(
-    (selected: number[]) => {
-      setFrames(selected);
-
-      // Resolve the edition's identity to concrete values FIRST, then freeze
-      // the spec from those values. Reading React state here would give the
-      // pre-update values, and the spec must describe the edition that is
-      // actually about to be printed.
+  const confirmSelectedFrames = useCallback((selected: number[]) => {
+    setFrames(selected);
+    if (serial === "0000-0000") {
       const issuedAt = new Date();
-      const needsIssueIdentity = !issuedDate || !issuedTime || !edition;
-      const nextSerial =
-        serial === "0000-0000" ? (connection.serial ?? serialNo()) : serial;
-      const nextDate = needsIssueIdentity ? editionDate(issuedAt) : issuedDate;
-      const nextTime = needsIssueIdentity ? editionTime(issuedAt) : issuedTime;
-      const nextEdition = needsIssueIdentity ? issueNo(issuedAt) : edition;
-      if (needsIssueIdentity || serial === "0000-0000") {
-        setSerial(nextSerial);
-        setIssuedDate(nextDate);
-        setIssuedTime(nextTime);
-        setEdition(nextEdition);
-      }
-
-      // The edition's identity, fixed. PrintingScreen composes the artefact
-      // spec from this — it lives inside PrintStyleProvider and so is the only
-      // place that knows whether this is a PASS or a FILM. Composition is
-      // pure, so a retry rebuilds a byte-identical spec.
-      setPrintIdentity({
-        serial: nextSerial,
-        issueDate: nextDate,
-        issueTime: nextTime,
-        edition: nextEdition,
-        selectedFrameOrder: selected,
-      });
-      setRetryRequested(false);
-
-      setPrintAttempt((n) => n + 1);
-      setPhase("printing");
-    },
-    [serial, issuedDate, issuedTime, edition, connection.serial],
-  );
+      setSerial(serialNo());
+      setIssuedDate(editionDate(issuedAt));
+      setIssuedTime(editionTime(issuedAt));
+      setEdition(issueNo(issuedAt));
+    }
+    setPrintAttempt((n) => n + 1);
+    setPhase("printing");
+  }, [serial]);
 
   const reset = useCallback(() => {
     setFrames([]);
     setCapturedFrames([]);
-    setFrameSources({});
     setSelectedScent(scentById("nocturne"));
     setSerial("0000-0000");
     setIssuedDate("");
@@ -240,7 +143,6 @@ export default function KioskApp({
     setSelectedChromeMotif(COVER_MOTIF_ASSETS[0]);
     setErrorKind(null);
     setStaffForceFailure(false);
-    setRetryRequested(false);
     setPhase("idle");
   }, []);
 
@@ -256,7 +158,6 @@ export default function KioskApp({
   const retryFromError = useCallback(() => {
     setErrorKind(null);
     setStaffForceFailure(false);
-    setRetryRequested(true);
     setPrintAttempt((n) => n + 1);
     setPhase(errorReturnPhase);
   }, [errorReturnPhase]);
@@ -276,7 +177,6 @@ export default function KioskApp({
     () =>
       createFilmArtifactProps({
         frames,
-        frameSources,
         selectedQuote,
         selectedChromeMotif,
         selectedScent,
@@ -287,7 +187,6 @@ export default function KioskApp({
     [
       edition,
       frames,
-      frameSources,
       issuedDate,
       selectedChromeMotif,
       selectedQuote,
@@ -323,9 +222,6 @@ export default function KioskApp({
           <CaptureScreen
             total={CAPTURE_TOTAL}
             scent={selectedScent}
-            previewSrc={connection.sessionId ? previewUrl() : undefined}
-            capture={captureOne}
-            onCaptureError={handleCaptureError}
             onComplete={finishCapture}
           />
         )}
@@ -335,7 +231,6 @@ export default function KioskApp({
         {phase === "selectFrames" && (
           <SelectFramesScreen
             capturedFrames={capturedFrames}
-            frameSources={frameSources}
             onConfirm={confirmSelectedFrames}
             onRetakeAll={retakeAll}
           />
@@ -344,7 +239,6 @@ export default function KioskApp({
           <PrintingScreen
             key={printAttempt}
             frames={frames}
-            frameSources={frameSources}
             scent={selectedScent}
             serial={serial}
             issuedDate={issuedDate}
@@ -354,24 +248,6 @@ export default function KioskApp({
             onClaim={claim}
             onPrintError={handlePrintError}
             simulateFailure={staffForceFailure ? "print-failed" : null}
-            quote={selectedQuote}
-            motif={selectedChromeMotif}
-            retryRequested={retryRequested}
-            // Only a fully-established booth prints for real. Anything less —
-            // no backend, no printer width — falls back to the simulation,
-            // which `hardware` mode has already refused to reach.
-            booth={
-              connection.sessionId && connection.printerWidthDots && printIdentity
-                ? {
-                    sessionId: connection.sessionId,
-                    printerWidthDots: connection.printerWidthDots,
-                    qrBaseUrl:
-                      connection.health?.sharing.base_url ??
-                      "https://the-receipt.studio/p",
-                    identity: printIdentity,
-                  }
-                : null
-            }
           />
         )}
         {phase === "error" && errorKind && (
@@ -384,7 +260,6 @@ export default function KioskApp({
         {phase === "done" && (
           <DoneScreen
             frames={frames}
-            frameSources={frameSources}
             scent={selectedScent}
             serial={serial}
             issuedDate={issuedDate}

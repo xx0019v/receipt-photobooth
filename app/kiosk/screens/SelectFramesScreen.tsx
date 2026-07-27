@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Masthead from "@/app/components/Masthead";
-import CapturedPhoto from "@/app/components/CapturedPhoto";
+import Portrait from "@/app/components/Portrait";
 import FrameSelectionCarousel from "@/app/components/FrameSelectionCarousel";
 import { TOTAL_SHOTS } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
@@ -15,12 +15,10 @@ import { useLang } from "@/app/lib/i18n";
  */
 export default function SelectFramesScreen({
   capturedFrames,
-  frameSources,
   onConfirm,
   onRetakeAll,
 }: {
   capturedFrames: number[];
-  frameSources?: Record<number, string>;
   onConfirm: (selected: number[]) => void;
   onRetakeAll: () => void;
 }) {
@@ -98,7 +96,6 @@ export default function SelectFramesScreen({
       <div className="flex flex-1 items-center justify-center px-[40px] py-[20px]">
         <FrameSelectionCarousel
           frameIds={capturedFrames}
-          frameSources={frameSources}
           activeIndex={activeIndex}
           onActiveChange={setActiveIndex}
           selectedIds={selectedIds}
@@ -130,7 +127,7 @@ export default function SelectFramesScreen({
               >
                 {id !== undefined ? (
                   <>
-                    <CapturedPhoto src={frameSources?.[id]} seed={id} />
+                    <Portrait seed={id} />
                     <span className="absolute inset-x-0 bottom-0 bg-paper-bright/85 py-[2px] text-center font-mono text-[10px] tracking-[0.2em]">
                       {String(i + 1).padStart(2, "0")}
                     </span>

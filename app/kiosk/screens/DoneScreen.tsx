@@ -23,7 +23,6 @@ const AUTO_RETURN = 20_000;
  */
 export default function DoneScreen({
   frames,
-  frameSources,
   scent,
   serial,
   issuedDate,
@@ -32,7 +31,6 @@ export default function DoneScreen({
   onReset,
 }: {
   frames: number[];
-  frameSources?: Record<number, string>;
   scent: Scent;
   serial: string;
   issuedDate: string;
@@ -75,11 +73,8 @@ export default function DoneScreen({
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[30]">
       <div className="relative h-[3px] w-full bg-[color:var(--color-line-soft)]">
         <div
-          className="absolute inset-0 bg-ink transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]"
-          style={{
-            transform: `scaleX(${returnPct / 100})`,
-            transformOrigin: "left center",
-          }}
+          className="absolute inset-y-0 left-0 bg-ink transition-[width] duration-1000 ease-linear"
+          style={{ width: `${returnPct}%` }}
         />
       </div>
       <div className="flex items-center justify-between px-[64px] pb-[46px] pt-[22px] font-mono text-[15px] uppercase tracking-[0.3em] text-silver-dim">
@@ -129,7 +124,7 @@ export default function DoneScreen({
             style={{ width: BOARDING_SCREEN_W, height: PASS_DONE_H }}
           >
             <div style={{ width: BOARDING_W, height: BOARDING_H, transform: `scale(${BOARDING_SCREEN_W / BOARDING_W})`, transformOrigin: "top left" }}>
-              <BoardingPass frames={frames} frameSources={frameSources} scent={scent} serial={serial} date={issuedDate} time={issuedTime} />
+              <BoardingPass frames={frames} scent={scent} serial={serial} date={issuedDate} time={issuedTime} />
             </div>
           </div>
           <div

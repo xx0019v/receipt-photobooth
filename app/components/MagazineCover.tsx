@@ -1,6 +1,6 @@
 "use client";
 
-import CapturedPhoto from "./CapturedPhoto";
+import Portrait from "./Portrait";
 import {
   getQuoteLayoutVariant,
   type FilmArtifactProps,
@@ -21,7 +21,6 @@ import type { Quote } from "@/app/lib/quotes";
  */
 export default function MagazineCover({
   frames,
-  frameSources,
   selectedQuote,
   selectedChromeMotif,
   selectedScent,
@@ -62,11 +61,7 @@ export default function MagazineCover({
                 key={index}
                 className="relative h-[288px] w-[288px] shrink-0 overflow-hidden bg-ink"
               >
-                <CapturedPhoto
-                  src={frameSources?.[frame]}
-                  seed={frame - 1}
-                  print
-                />
+                <Portrait seed={frame - 1} print />
                 <span className="pointer-events-none absolute inset-0 border border-[color:var(--color-line)]" />
               </div>
             );

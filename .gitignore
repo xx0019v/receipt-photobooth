@@ -6,7 +6,6 @@
 
 # next.js
 /.next/
-/ui-dist/
 /out/
 /build
 
@@ -38,11 +37,3 @@ next-env.d.ts
 
 # preview daemon runtime stamp (which commit the running preview was built from)
 .preview-head
-
-# python backend
-.venv/
-__pycache__/
-*.pyc
-.pytest_cache/
-# captured frames + printed artefacts: guest photographs, never committed
-/backend/data/
