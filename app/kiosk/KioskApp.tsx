@@ -317,7 +317,11 @@ export default function KioskApp({
           <FormatSelectScreen scent={selectedScent} filmProps={filmProps} onContinue={() => go("pose")} />
         )}
         {phase === "pose" && (
-          <PoseScreen scent={selectedScent} onBegin={() => go("capture")} />
+          <PoseScreen
+            scent={selectedScent}
+            previewSrc={connection.sessionId ? previewUrl() : undefined}
+            onBegin={() => go("capture")}
+          />
         )}
         {phase === "capture" && (
           <CaptureScreen

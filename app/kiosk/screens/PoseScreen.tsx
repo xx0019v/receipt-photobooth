@@ -14,9 +14,12 @@ import { useChromeArtwork } from "@/app/lib/chromeArtwork";
  */
 export default function PoseScreen({
   scent,
+  previewSrc,
   onBegin,
 }: {
   scent: Scent;
+  /** Live MJPEG from the booth camera. Undefined falls back to the placeholder. */
+  previewSrc?: string;
   onBegin: () => void;
 }) {
   const { t, sub } = useLang();
@@ -52,10 +55,22 @@ export default function PoseScreen({
       {/* viewfinder — the screen's dominant surface */}
       <div className="flex flex-1 items-center justify-center px-[60px] py-[20px]">
         <div className="anim-fade-up delay-2 relative h-full max-h-[1080px] w-full overflow-hidden bg-ink">
-          <div className="absolute inset-0 opacity-[0.5]">
-            <Portrait seed={1} />
-          </div>
-          <div className="absolute inset-0 bg-ink/35" />
+          {/* The guest frames themselves here, so the live feed is carried at
+              full strength; the placeholder stays held back because it is
+              scenery, not a viewfinder. */}
+          {previewSrc ? (
+            <img
+              src={previewSrc}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full object-cover opacity-95 grayscale"
+            />
+          ) : (
+            <div className="absolute inset-0 opacity-[0.5]">
+              <Portrait seed={1} />
+            </div>
+          )}
+          <div className={`absolute inset-0 ${previewSrc ? "bg-ink/20" : "bg-ink/35"}`} />
 
           <Grid />
 
