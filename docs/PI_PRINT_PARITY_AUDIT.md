@@ -90,20 +90,58 @@ content, QR placement, barcode geometry, photo count/crop, and metadata rows.
 
 The defect is confined to **`receipt.py` reconstructing the design**.
 
-## Decision — canonical raster handoff
+## Decision — canonical raster handoff (native SVG)
 
 Adopt the brief's first-choice architecture:
 
 1. The frontend owns the design (it already does, on `main`).
-2. One session-fixed `PrintArtifactSpec` is frozen at Proof Lock.
-3. The frontend rasterises **the same components** used on screen into a PNG.
+2. One session-fixed `PrintArtifactSpec` is frozen when the guest confirms
+   their three frames (`app/lib/printArtifact.ts`).
+3. The frontend rasterises the artefact into a PNG and hands the backend the
+   pixels.
 4. The backend **never rebuilds the layout** — it validates, thermalises
-   (grayscale → autocontrast → dither → 1-bit), and prints.
-5. Unknown style / bad hash / dimension mismatch → explicit error, never a
-   fallback print.
+   (grayscale → autocontrast → Floyd–Steinberg → 1-bit), prints, and saves the
+   exact bytes it printed (`backend/booth/artifact.py`).
+5. Unknown style / bad hash / wrong width / runaway height / serial mismatch →
+   explicit 422, never a fallback print.
 
-This removes the second design definition entirely, which is the only way the
-two can stay in sync as the UI keeps changing.
+### Why native SVG, not a DOM screenshot
+
+The brief's step 3 originally reads "rasterise the same components." The first
+implementation cloned the live `BoardingPass` / `MagazineCover` DOM into an
+`<svg><foreignObject>` and drew that to a canvas. **That taints the canvas**:
+`canvas.toBlob()` throws `Tainted canvases may not be exported` — reproduced
+here even for a bare `<div>` with no images or fonts (Electron/Chromium 148).
+The brief itself lists the reasons to avoid html2canvas-style capture (CSS
+transform drift, font races, devicePixelRatio, clip-path, Chromium
+differences), so this is a documented hazard, not a surprise.
+
+The artefact is therefore drawn as **native SVG** (`app/lib/printSvg.ts`):
+`<text>`, `<rect>`, `<line>`, `<image>` — no `foreignObject`. It rasterises
+cleanly and identically across browsers and on the Pi. Parity holds because the
+SVG reads every value from the one `PrintArtifactSpec` and every dimension from
+the same constants the React components export (`BOARDING_*`, `ARTWORK`). The
+on-screen review still uses the React components; the print SVG is the
+sanctioned **thermal translation** of that same design and data — same regions,
+same photo order, same metadata, same proportions, monochrome — which is
+exactly the difference §10 permits.
+
+### Verified (mock backend, Print Artifact Inspector)
+
+| | PASS | FILM |
+|---|---|---|
+| artwork | 2100 × 620 landscape | 640 × 1280 portrait |
+| print canvas | 620 × 2100 (rotated once, in SVG) | 640 × 1280 (no rotation) |
+| raster @ 384 dots | 384 × 1301 | 384 × 768 |
+| physical @ 8 dot/mm | 48 × 162.6 mm | 48 × 96 mm |
+| black ratio | 5.0 % | 4.6 % |
+| frame order | [4, 1, 6] | [4, 1, 6] |
+| QR | real, `/p/{serial}` | none |
+| `receipt.png` == `artifact-thermal.png` | byte-identical | byte-identical |
+
+Golden rasters for both live in `backend/tests/golden/`; `test_golden.py`
+re-thermalises each source and asserts it reproduces the committed 1-bit image
+byte-for-byte.
 
 ## Ported (additive only)
 

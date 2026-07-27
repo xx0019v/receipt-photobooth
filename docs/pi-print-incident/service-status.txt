@@ -1,0 +1,5 @@
+NOT ACQUIRED — 2026-07-27 JST
+
+No exact Raspberry Pi SSH host was available in the repository, SSH config,
+known_hosts, shell history, ARP/Bonjour discovery, or deployment files.
+No systemctl output has been fabricated.
