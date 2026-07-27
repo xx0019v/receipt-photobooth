@@ -214,7 +214,9 @@ def test_artifact_prints_the_uploaded_pixels(client):
     body = res.json()
     assert body["artifact_sha256"] == hashlib.sha256(data).hexdigest()
     assert body["width_dots"] == 384
-    assert body["height_dots"] == 900
+    # The source artwork is 900 dots. Production adds a fixed 96-dot white
+    # tear margin to the actual printer payload so the design clears the head.
+    assert body["height_dots"] == 996
 
     state = _wait_done(client, body["job_id"])
     assert state["state"] == "done", state

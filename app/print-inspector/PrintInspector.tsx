@@ -125,7 +125,7 @@ function PrintInspectorInner() {
           PRINT ARTIFACT INSPECTOR
         </h1>
         <span style={{ fontSize: 12, color: "#888" }}>
-          staff / development only — not a guest screen
+          staff / development only - not a guest screen
         </span>
         <span
           style={{
@@ -204,7 +204,7 @@ function ArtifactColumn({
         <Row k="frame order">[{FIXTURE.frameOrder.join(", ")}] (print order)</Row>
         <Row k="scent">{fixtureScent().code} · {fixtureScent().name}</Row>
         <Row k="motif">{CHROME_ASSETS[FIXTURE.motifId].id}</Row>
-        <Row k="quote">{quote ? `"${quote.text}"` : "— (PASS has none)"}</Row>
+        <Row k="quote">{quote ? `"${quote.text}"` : "none (PASS)"}</Row>
         <Row k="QR">{style === "pass" ? "yes (real /p/serial)" : "none (FILM has no QR)"}</Row>
         {panel.source && (
           <>
@@ -216,6 +216,8 @@ function ArtifactColumn({
         {panel.thermal && (
           <>
             <Row k="thermal raster">{panel.thermal.widthDots} × {panel.thermal.heightDots} dots (1-bit)</Row>
+            <Row k="fixed paper length">{panel.thermal.physicalLengthMm} mm</Row>
+            <Row k="tear margin">{panel.thermal.tailFeedDots} dots / {(panel.thermal.tailFeedDots / 8).toFixed(1)} mm</Row>
             <Row k="black ratio">{(panel.thermal.blackRatio * 100).toFixed(1)}%</Row>
           </>
         )}
@@ -228,6 +230,13 @@ function ArtifactColumn({
         <div style={{ display: "flex", gap: 18, padding: 14, overflowX: "auto", background: "#0c0c0c" }}>
           <figure style={{ margin: 0 }}>
             <figcaption style={cap}>SOURCE (canonical raster)</figcaption>
+            <a
+              href={panel.source.dataUrl}
+              download={`${style}-source.png`}
+              style={downloadLink}
+            >
+              DOWNLOAD SOURCE
+            </a>
             <img
               src={panel.source.dataUrl}
               alt={`${style} source raster`}
@@ -238,6 +247,13 @@ function ArtifactColumn({
           {panel.thermal && (
             <figure style={{ margin: 0 }}>
               <figcaption style={cap}>THERMAL (1-bit, what the head burns)</figcaption>
+              <a
+                href={panel.thermal.url}
+                download={`${style}-thermal.png`}
+                style={downloadLink}
+              >
+                DOWNLOAD THERMAL
+              </a>
               <img
                 src={panel.thermal.url}
                 alt={`${style} thermal raster`}
@@ -274,3 +290,12 @@ const btn: React.CSSProperties = {
 };
 
 const cap: React.CSSProperties = { fontSize: 11, color: "#888", marginBottom: 6, letterSpacing: "0.14em" };
+const downloadLink: React.CSSProperties = {
+  display: "inline-block",
+  marginBottom: 8,
+  color: "#aaa",
+  fontSize: 10,
+  letterSpacing: "0.12em",
+  textDecoration: "underline",
+  textUnderlineOffset: 3,
+};

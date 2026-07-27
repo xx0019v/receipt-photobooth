@@ -82,6 +82,7 @@ def health() -> dict:
         },
         "artifact": {
             "width_dots": settings.printer_width_dots,
+            "tail_feed_dots": settings.printer_tail_feed_dots,
             "styles": list(KNOWN_ARTIFACT_STYLES),
             "dpi": 203,
             "physical_width_mm": round(settings.printer_width_dots / 8, 2),
@@ -328,6 +329,7 @@ async def print_artifact(
             style=style,
             expected_width_dots=settings.printer_width_dots,
             expected_sha256=artifact_hash,
+            tail_feed_dots=settings.printer_tail_feed_dots,
         )
     except ArtifactError as exc:
         # 422: the upload is well-formed HTTP but unusable as an artefact.
@@ -337,10 +339,10 @@ async def print_artifact(
         expected_height = round(
             canvas["height"] * settings.printer_width_dots / canvas["width"]
         )
-        if prepared.height_dots != expected_height:
+        if prepared.content_height_dots != expected_height:
             raise HTTPException(
                 422,
-                f"artifact height {prepared.height_dots} != expected "
+                f"artifact content height {prepared.content_height_dots} != expected "
                 f"{expected_height} for canonical geometry",
             )
 
@@ -387,7 +389,10 @@ async def thermalize_preview(
     data = await artifact.read()
     try:
         prepared = prepare(
-            data, style=style, expected_width_dots=settings.printer_width_dots
+            data,
+            style=style,
+            expected_width_dots=settings.printer_width_dots,
+            tail_feed_dots=settings.printer_tail_feed_dots,
         )
     except ArtifactError as exc:
         raise HTTPException(422, str(exc)) from exc
@@ -401,11 +406,14 @@ async def thermalize_preview(
             "X-Artifact-Sha256": prepared.sha256,
             "X-Width-Dots": str(prepared.width_dots),
             "X-Height-Dots": str(prepared.height_dots),
+            "X-Content-Height-Dots": str(prepared.content_height_dots),
+            "X-Tail-Feed-Dots": str(prepared.tail_feed_dots),
             "X-Black-Ratio": str(prepared.black_ratio),
             "X-Physical-Width-Mm": str(round(prepared.width_dots / 8, 2)),
             "X-Physical-Length-Mm": str(round(prepared.height_dots / 8, 2)),
             "Access-Control-Expose-Headers": (
                 "X-Artifact-Sha256,X-Width-Dots,X-Height-Dots,"
+                "X-Content-Height-Dots,X-Tail-Feed-Dots,"
                 "X-Black-Ratio,X-Physical-Width-Mm,X-Physical-Length-Mm"
             ),
         },

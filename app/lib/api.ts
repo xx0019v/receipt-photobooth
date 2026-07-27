@@ -136,6 +136,7 @@ export type BoothHealth = {
   drivers: { camera: string; printer: string };
   artifact: {
     width_dots: number;
+    tail_feed_dots: number;
     styles: string[];
     dpi: number;
     physical_width_mm: number;
@@ -240,6 +241,8 @@ export type ThermalPreview = {
   sha256: string;
   widthDots: number;
   heightDots: number;
+  contentHeightDots: number;
+  tailFeedDots: number;
   blackRatio: number;
   physicalWidthMm: number;
   physicalLengthMm: number;
@@ -278,6 +281,8 @@ export async function thermalizePreview(
     sha256: h.get("X-Artifact-Sha256") ?? "",
     widthDots: Number(h.get("X-Width-Dots") ?? 0),
     heightDots: Number(h.get("X-Height-Dots") ?? 0),
+    contentHeightDots: Number(h.get("X-Content-Height-Dots") ?? 0),
+    tailFeedDots: Number(h.get("X-Tail-Feed-Dots") ?? 0),
     blackRatio: Number(h.get("X-Black-Ratio") ?? 0),
     physicalWidthMm: Number(h.get("X-Physical-Width-Mm") ?? 0),
     physicalLengthMm: Number(h.get("X-Physical-Length-Mm") ?? 0),

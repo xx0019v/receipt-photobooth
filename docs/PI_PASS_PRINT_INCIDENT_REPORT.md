@@ -12,7 +12,8 @@ editorial `BoardingPass` shown on screen (2100×620, "THE RECEIPT").
   by running the PR #2 candidate `backend/booth/receipt.py`. 384×603, `SCENT MEMORY
   AIRWAYS` / `SCENT BOARDING PASS` / `FRAGRANCE … Iris · Black Amber · Smoke`.
 - `docs/pi-print-incident/expected-current-pass.png` — the canonical raster
-  from the current design (384×1301, editorial, photos in print order, real QR).
+  from the current design (384×1301 artwork; 384×1397 final payload including
+  a fixed 96-dot tear margin, editorial, photos in print order, real QR).
 - `docs/pi-print-incident/comparison.png` — the two side by side.
 
 ## Code-level cause reproduced; live incident cause still pending Pi evidence
@@ -67,6 +68,15 @@ defaults, so even a correct call could not reproduce the on-screen edition.
 - A different hash/key for the same session is HTTP 409. Explicit retry may
   requeue only a zero-band failure; any possible partial print is blocked for
   operator inspection.
+- PASS labels and stub metadata now use a thermal-safe shared type scale in
+  both the screen component and canonical SVG. The printed stub includes the
+  same FROM/TO, date, time, flight, seat, serial, barcode and QR as the screen.
+- The backend appends exactly 96 white raster rows (12 mm) after every artwork
+  and removes the state-dependent `print_and_feed(3)` call. The final PASS
+  payload is therefore always 1397 dots / 174.62 mm at 384 dots.
+- ESC/POS output uses paced 64-dot bands. A job reaches `done` only after the
+  complete artwork and fixed tear margin have been physically paced through
+  the head, preventing buffer overrun and variable mid-design stopping.
 
 ## Recurrence prevention
 

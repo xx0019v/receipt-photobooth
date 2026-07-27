@@ -47,6 +47,8 @@ class ThermalArtifact:
     sha256: str
     width_dots: int
     height_dots: int
+    content_height_dots: int
+    tail_feed_dots: int
     black_ratio: float
 
 
@@ -135,6 +137,7 @@ def prepare(
     expected_width_dots: int,
     expected_sha256: str | None = None,
     dither: bool = True,
+    tail_feed_dots: int = 0,
 ) -> ThermalArtifact:
     source = decode_artifact(
         data,
@@ -143,12 +146,24 @@ def prepare(
         expected_sha256=expected_sha256,
     )
     thermal = thermalize(source, dither=dither)
+    if tail_feed_dots < 0:
+        raise ArtifactError("tail feed dots must be non-negative")
+    if tail_feed_dots:
+        with_tail = Image.new(
+            "1",
+            (thermal.width, thermal.height + tail_feed_dots),
+            255,
+        )
+        with_tail.paste(thermal, (0, 0))
+        thermal = with_tail
     return ThermalArtifact(
         source=source,
         thermal=thermal,
         sha256=_sha256(data),
         width_dots=thermal.width,
         height_dots=thermal.height,
+        content_height_dots=source.height,
+        tail_feed_dots=tail_feed_dots,
         black_ratio=black_ratio(thermal),
     )
 
@@ -179,6 +194,8 @@ def save_bundle(
             "artifact_sha256": artifact.sha256,
             "width_dots": artifact.width_dots,
             "height_dots": artifact.height_dots,
+            "content_height_dots": artifact.content_height_dots,
+            "tail_feed_dots": artifact.tail_feed_dots,
             "black_ratio": artifact.black_ratio,
             "physical_width_mm": round(artifact.width_dots / 8, 2),
             "physical_length_mm": round(artifact.height_dots / 8, 2),

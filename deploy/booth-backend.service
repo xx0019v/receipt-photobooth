@@ -19,6 +19,8 @@ Environment=PRINTER_DRIVER=escpos
 Environment=BOOTH_MODE=hardware
 Environment=PRINTER_DEVICE=/dev/usb/lp0
 Environment=PRINTER_WIDTH_DOTS=384
+Environment=PRINTER_TAIL_FEED_DOTS=96
+Environment=PRINTER_SPEED_MM_S=28
 # GDMicroelectronics micro-printer has no auto-cutter:
 Environment=PRINTER_CUT=0
 Environment=BOOTH_DATA_DIR=/home/chuo/booth-data

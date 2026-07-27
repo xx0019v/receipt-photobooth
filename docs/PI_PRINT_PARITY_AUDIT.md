@@ -132,9 +132,11 @@ exactly the difference §10 permits.
 |---|---|---|
 | artwork | 2100 × 620 landscape | 640 × 1280 portrait |
 | print canvas | 620 × 2100 (rotated once, in SVG) | 640 × 1280 (no rotation) |
-| raster @ 384 dots | 384 × 1301 | 384 × 768 |
-| physical @ 8 dot/mm | 48 × 162.6 mm | 48 × 96 mm |
-| black ratio | 5.0 % | 4.6 % |
+| artwork raster @ 384 dots | 384 × 1301 | 384 × 768 |
+| fixed tear margin | 96 dots / 12 mm | 96 dots / 12 mm |
+| final printer payload | 384 × 1397 | 384 × 864 |
+| fixed paper length @ 8 dot/mm | 48 × 174.62 mm | 48 × 108 mm |
+| black ratio | 5.79 % | 4.07 % |
 | frame order | [4, 1, 6] | [4, 1, 6] |
 | QR | real, `/p/{serial}` | none |
 | `receipt.png` == `artifact-thermal.png` | byte-identical | byte-identical |

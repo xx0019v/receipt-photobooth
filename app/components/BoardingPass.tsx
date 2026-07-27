@@ -32,6 +32,24 @@ export const BOARDING_STUB_W = 280;
 export const BOARDING_PHOTO_SIZE = 368;
 export const BOARDING_PHOTO_GAP = 20;
 
+/**
+ * Thermal-safe type scale shared with the canonical SVG renderer.
+ *
+ * The 620-unit artwork is reduced to a 384-dot head (0.619×). Anything below
+ * 14 artwork units becomes a 6-8 dot glyph and is not reliably readable on
+ * the physical printer. These values keep every informational line at 9 dots
+ * or larger after rasterisation.
+ */
+export const PASS_TYPE = {
+  masthead: 22,
+  supporting: 20,
+  label: 20,
+  edge: 20,
+  caption: 18,
+  stubSmall: 20,
+  stubTiny: 18,
+} as const;
+
 /** Shared on-screen width for Review, Printing, and Done at 1080×1920. */
 export const BOARDING_SCREEN_W = 1000;
 
@@ -72,14 +90,17 @@ export default function BoardingPass({
       className="paper-tex relative flex shrink-0 overflow-hidden text-ink shadow-[0_30px_80px_-40px_rgba(0,0,0,0.6)]"
       style={{ width: BOARDING_W, height: BOARDING_H }}
     >
-      <EdgeMark side="left">{BRAND} — Boarding Pass</EdgeMark>
+      <EdgeMark side="left">{BRAND} - Boarding Pass</EdgeMark>
 
       {/* ---- Main : headline + photo strip ----------------------------- */}
       <div
         className="flex h-full shrink-0 flex-col px-[40px] py-[26px]"
         style={{ width: BOARDING_MAIN_W }}
       >
-        <div className="flex items-center justify-between font-mono text-[15px] uppercase tracking-[0.3em]">
+        <div
+          className="flex items-center justify-between font-mono uppercase tracking-[0.22em]"
+          style={{ fontSize: PASS_TYPE.masthead }}
+        >
           <span>{BRAND}</span>
           <span className="text-silver-dim">Boarding Pass</span>
         </div>
@@ -90,7 +111,10 @@ export default function BoardingPass({
             <h1 className="font-display text-[54px] font-semibold uppercase leading-[0.92] tracking-[-0.02em]">
               Memories, bottled.
             </h1>
-            <p className="mt-[9px] font-mono text-[13px] uppercase leading-[1.6] tracking-[0.28em] text-silver-dim">
+            <p
+              className="mt-[9px] font-mono uppercase leading-[1.5] tracking-[0.18em] text-silver-dim"
+              style={{ fontSize: PASS_TYPE.supporting }}
+            >
               A journey in frames. A memory that stays with you.
             </p>
           </div>
@@ -131,10 +155,13 @@ export default function BoardingPass({
 
         <div className="mt-auto flex items-center gap-[16px] pt-[14px]">
           <span className="h-px flex-1 bg-[color:var(--color-line)]" />
-          <span className="font-mono text-[12px] uppercase tracking-[0.34em] text-silver-dim">
+          <span
+            className="font-mono uppercase tracking-[0.22em] text-silver-dim"
+            style={{ fontSize: PASS_TYPE.caption }}
+          >
             Captured today, remembered always.
           </span>
-          <span className="text-[12px] text-silver-dim">✦</span>
+          <span className="text-silver-dim" style={{ fontSize: PASS_TYPE.caption }}>✦</span>
           <span className="h-px flex-1 bg-[color:var(--color-line)]" />
         </div>
       </div>
@@ -158,7 +185,7 @@ export default function BoardingPass({
           </div>
           <div className="text-right">
             <Label>Class</Label>
-            <p className="mt-[6px] font-mono text-[15px] uppercase tracking-[0.14em]">Archive</p>
+            <p className="mt-[6px] font-mono text-[18px] uppercase tracking-[0.1em]">Archive</p>
           </div>
         </div>
 
@@ -177,7 +204,7 @@ export default function BoardingPass({
         </div>
         <div className="mt-[16px]">
           <Label>Route</Label>
-          <p className="mt-[6px] font-mono text-[17px] uppercase tracking-[0.18em]">Memory → Archive</p>
+          <p className="mt-[6px] font-mono text-[20px] uppercase tracking-[0.12em]">Memory → Archive</p>
         </div>
 
         <Rule />
@@ -212,7 +239,7 @@ export default function BoardingPass({
           </div>
           <div className="text-right">
             <Label>Serial</Label>
-            <p className="mt-[6px] font-mono text-[16px] tracking-[0.06em]">{serial}</p>
+            <p className="mt-[6px] font-mono text-[18px] tracking-[0.04em]">{serial}</p>
           </div>
         </div>
       </div>
@@ -230,10 +257,10 @@ export default function BoardingPass({
         style={{ width: BOARDING_STUB_W }}
       >
         <Label>Pass No.</Label>
-        <p className="mt-[5px] font-mono text-[19px] uppercase tracking-[0.06em]">{passNo}</p>
+        <p className="mt-[5px] font-mono text-[21px] uppercase tracking-[0.04em]">{passNo}</p>
         <div className="mt-[12px]">
           <Label>Serial</Label>
-          <p className="mt-[4px] font-mono text-[14px] tracking-[0.06em]">{serial}</p>
+          <p className="mt-[4px] font-mono tracking-[0.04em]" style={{ fontSize: PASS_TYPE.stubSmall }}>{serial}</p>
         </div>
 
         <Rule />
@@ -249,26 +276,29 @@ export default function BoardingPass({
           </div>
           <div>
             <Label>Flight</Label>
-            <p className="mt-[4px] font-mono text-[14px] uppercase tracking-[0.06em]">{scent.code}</p>
+            <p className="mt-[4px] font-mono uppercase tracking-[0.04em]" style={{ fontSize: PASS_TYPE.stubSmall }}>{scent.code}</p>
           </div>
           <div className="text-right">
             <Label>Seat</Label>
-            <p className="mt-[4px] font-mono text-[14px] uppercase tracking-[0.06em]">{seat}</p>
+            <p className="mt-[4px] font-mono uppercase tracking-[0.04em]" style={{ fontSize: PASS_TYPE.stubSmall }}>{seat}</p>
           </div>
           <div>
             <Label>Date</Label>
-            <p className="mt-[4px] font-mono text-[12px] tracking-[0.04em]">{printedDate}</p>
+            <p className="mt-[4px] font-mono tracking-[0.03em]" style={{ fontSize: PASS_TYPE.stubTiny }}>{printedDate}</p>
           </div>
           <div className="text-right">
             <Label>Time</Label>
-            <p className="mt-[4px] font-mono text-[12px] tracking-[0.04em]">{stamp}</p>
+            <p className="mt-[4px] font-mono tracking-[0.03em]" style={{ fontSize: PASS_TYPE.stubTiny }}>{stamp}</p>
           </div>
         </div>
 
         <div className="mt-auto">
           <Barcode />
           <div className="mt-[10px] flex items-end justify-between gap-[10px]">
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-silver-dim">
+            <span
+              className="font-mono uppercase tracking-[0.12em] text-silver-dim"
+              style={{ fontSize: PASS_TYPE.stubTiny }}
+            >
               Ed. {edition.no}
             </span>
             <div className="shrink-0 border border-[color:var(--color-ink)] p-[5px]">
@@ -302,10 +332,14 @@ function EdgeMark({ side, children }: { side: "left" | "right"; children: React.
     <div
       className={`relative flex w-[54px] shrink-0 items-center justify-center ${side === "left" ? "border-r" : "border-l"} border-[color:var(--color-line-soft)]`}
     >
-      <span className="text-[13px] text-silver-dim">✦</span>
+      <span className="text-silver-dim" style={{ fontSize: PASS_TYPE.edge }}>✦</span>
       <span
-        className="absolute font-mono text-[11px] uppercase tracking-[0.3em] text-silver-dim"
-        style={{ transform: side === "left" ? "rotate(-90deg)" : "rotate(90deg)", whiteSpace: "nowrap" }}
+        className="absolute font-mono uppercase tracking-[0.2em] text-silver-dim"
+        style={{
+          fontSize: PASS_TYPE.edge,
+          transform: side === "left" ? "rotate(-90deg)" : "rotate(90deg)",
+          whiteSpace: "nowrap",
+        }}
       >
         {children}
       </span>
@@ -315,7 +349,12 @@ function EdgeMark({ side, children }: { side: "left" | "right"; children: React.
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-silver-dim">{children}</p>
+    <p
+      className="font-mono uppercase tracking-[0.16em] text-silver-dim"
+      style={{ fontSize: PASS_TYPE.label }}
+    >
+      {children}
+    </p>
   );
 }
 

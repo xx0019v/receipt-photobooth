@@ -14,8 +14,8 @@
  * would receive a different edition than the one they approved.
  */
 
-export const PRINT_ARTIFACT_VERSION = "1.0.0";
-export const PRINT_RENDERER_VERSION = "native-svg-thermal-1";
+export const PRINT_ARTIFACT_VERSION = "1.1.0";
+export const PRINT_RENDERER_VERSION = "native-svg-thermal-2";
 
 /** Artwork geometry per style — the single source of truth for BOTH the
  *  on-screen component and the print raster. If these ever disagree with the

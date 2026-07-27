@@ -39,6 +39,22 @@ def test_accepts_a_well_formed_artifact():
     assert art.sha256 == hashlib.sha256(data).hexdigest()
 
 
+def test_fixed_tail_feed_is_part_of_the_printer_payload():
+    data = png_bytes(height=800)
+    art = prepare(
+        data,
+        style="pass",
+        expected_width_dots=WIDTH,
+        tail_feed_dots=96,
+    )
+    assert art.content_height_dots == 800
+    assert art.tail_feed_dots == 96
+    assert art.height_dots == 896
+    # The appended rows are white but still have physical height, so the last
+    # design row exits the head before the job can finish.
+    assert art.thermal.crop((0, 800, WIDTH, 896)).getextrema() == (255, 255)
+
+
 def test_unknown_style_is_refused():
     with pytest.raises(ArtifactError, match="unknown style"):
         prepare(png_bytes(), style="ticket", expected_width_dots=WIDTH)

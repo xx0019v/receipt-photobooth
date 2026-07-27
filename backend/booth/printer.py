@@ -24,7 +24,7 @@ StateFn = Callable[[str], None]
 
 # Print the receipt in horizontal bands so we can report progress and avoid
 # one giant USB transfer.
-BAND_HEIGHT = 128
+BAND_HEIGHT = 64
 
 
 @dataclass(frozen=True)
@@ -100,6 +100,7 @@ class EscposPrinter(PrinterDriver):
 
     def __init__(self, settings: Settings):
         self.settings = settings
+        self.dots_per_second = max(1, settings.printer_speed_mm_s * 8)
         self._printer = None
         self._lock = threading.Lock()
 
@@ -149,11 +150,18 @@ class EscposPrinter(PrinterDriver):
                     )
                     p.image(band, impl="bitImageRaster")
                     bands_sent += 1
-                    on_progress(min(0.96, (y + band.height) / total * 0.96))
+                    # Pace the producer to the physical head. Without this,
+                    # the kernel may accept the full job while the printer's
+                    # small internal buffer drops a later band, producing a
+                    # different stopping point on every print.
+                    time.sleep(band.height / self.dots_per_second)
+                    on_progress(min(0.99, (y + band.height) / total * 0.99))
                 if on_state:
                     on_state("sent")
                     on_state("feeding")
-                p.print_and_feed(3)
+                # The exact tear margin is already encoded as white raster
+                # rows at the end of the payload. A line-based feed here
+                # depends on printer line-spacing state and changes length.
                 if on_state:
                     on_state("cutting")
                 if self.settings.printer_cut:

@@ -36,6 +36,13 @@ class Settings:
     # Thermal printer geometry. 384 dots = 58 mm paper, 576 dots = 80 mm.
     printer_width_dots: int = 384
     printer_cut: bool = True
+    # Exact blank raster rows appended after the artwork. Keeping this inside
+    # the payload gives every print the same tear margin and prevents the last
+    # design rows from stopping under the print head.
+    printer_tail_feed_dots: int = 96
+    # Conservative physical head speed used to pace USB raster bands. Cheap
+    # printers often accept bytes faster than their small buffer can burn them.
+    printer_speed_mm_s: int = 28
     # Preferred path: the usblp device node the kernel creates for the
     # printer. Empty string -> talk raw USB via pyusb with the IDs below.
     printer_device: str = "/dev/usb/lp0"
@@ -80,6 +87,8 @@ def settings_from_env() -> Settings:
         printer_driver=printer,
         printer_width_dots=_env_int("PRINTER_WIDTH_DOTS", 384),
         printer_cut=_env_flag("PRINTER_CUT", True),
+        printer_tail_feed_dots=_env_int("PRINTER_TAIL_FEED_DOTS", 96),
+        printer_speed_mm_s=_env_int("PRINTER_SPEED_MM_S", 28),
         printer_device=os.environ.get("PRINTER_DEVICE", "/dev/usb/lp0"),
         printer_usb_vendor=_env_int("PRINTER_USB_VENDOR", 0x28E9),
         printer_usb_product=_env_int("PRINTER_USB_PRODUCT", 0x0289),

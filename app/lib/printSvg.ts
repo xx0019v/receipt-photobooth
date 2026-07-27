@@ -24,6 +24,7 @@ import {
   BOARDING_STUB_W,
   BOARDING_PHOTO_SIZE,
   BOARDING_PHOTO_GAP,
+  PASS_TYPE,
 } from "@/app/components/BoardingPass";
 import { BRAND } from "@/app/lib/edition";
 import type { PrintArtifactSpec } from "@/app/lib/printArtifact";
@@ -72,7 +73,14 @@ function text(
 }
 
 function label(x: number, y: number, s: string, anchor: "start" | "end" = "start"): string {
-  return text(x, y, s, { size: 11, family: "mono", tracking: 2.6, fill: DIM, anchor, upper: true });
+  return text(x, y, s, {
+    size: PASS_TYPE.label,
+    family: "mono",
+    tracking: 1.8,
+    fill: DIM,
+    anchor,
+    upper: true,
+  });
 }
 
 /** A thermal photo cell: the real frame if we have it, else a registration
@@ -169,18 +177,43 @@ export function passSvg(
 
   // --- Main region: masthead, headline, photo strip ---
   const mainX = 54 + 40;
-  parts.push(text(mainX, 46, BRAND, { size: 15, family: "mono", tracking: 4, upper: true }));
-  parts.push(text(54 + BOARDING_MAIN_W - 40, 46, "Boarding Pass", { size: 15, family: "mono", tracking: 4, fill: DIM, anchor: "end", upper: true }));
+  parts.push(text(mainX, 46, BRAND, { size: PASS_TYPE.masthead, family: "mono", tracking: 3, upper: true }));
+  parts.push(text(54 + BOARDING_MAIN_W - 40, 46, "Boarding Pass", { size: PASS_TYPE.masthead, family: "mono", tracking: 3, fill: DIM, anchor: "end", upper: true }));
   parts.push(`<line x1="${mainX}" y1="60" x2="${54 + BOARDING_MAIN_W - 40}" y2="60" stroke="${INK}" stroke-width="1"/>`);
   parts.push(text(mainX, 118, "Memories, bottled.", { size: 54, family: "display", weight: 600, upper: true }));
+  parts.push(text(mainX, 146, "A journey in frames. A memory that stays with you.", {
+    size: PASS_TYPE.supporting,
+    family: "mono",
+    tracking: 2,
+    fill: DIM,
+    upper: true,
+  }));
 
   // photo strip (print order)
-  const stripY = 150;
+  const stripY = 166;
   order.slice(0, 3).forEach((frameNo, i) => {
     const px = mainX + i * (BOARDING_PHOTO_SIZE + BOARDING_PHOTO_GAP);
     parts.push(photoCell(px, stripY, BOARDING_PHOTO_SIZE, frameNo, photos));
   });
-  parts.push(text(mainX, H - 34, "Captured today, remembered always.", { size: 12, family: "mono", tracking: 3.4, fill: DIM, upper: true }));
+  const mainR = 54 + BOARDING_MAIN_W - 40;
+  const captionY = H - 26;
+  const captionCx = (mainX + mainR) / 2;
+  parts.push(`<line x1="${mainX}" y1="${captionY - 5}" x2="${captionCx - 245}" y2="${captionY - 5}" stroke="${INK}" stroke-width="1"/>`);
+  parts.push(text(captionCx - 10, captionY, "Captured today, remembered always.", {
+    size: PASS_TYPE.caption,
+    family: "mono",
+    tracking: 2.2,
+    fill: DIM,
+    anchor: "middle",
+    upper: true,
+  }));
+  parts.push(text(captionCx + 230, captionY, "✦", {
+    size: PASS_TYPE.caption,
+    family: "display",
+    fill: DIM,
+    anchor: "middle",
+  }));
+  parts.push(`<line x1="${captionCx + 250}" y1="${captionY - 5}" x2="${mainR}" y2="${captionY - 5}" stroke="${INK}" stroke-width="1"/>`);
 
   // security seal (motif) — top-right of main
   const sealCx = 54 + BOARDING_MAIN_W - 84;
@@ -205,14 +238,16 @@ export function passSvg(
   parts.push(label(infoX, 52, "Passenger"));
   parts.push(text(infoX, 84, "Guest", { size: 26, family: "display", upper: true }));
   parts.push(label(infoR, 52, "Class", "end"));
-  parts.push(text(infoR, 84, "Archive", { size: 15, family: "mono", tracking: 1.4, anchor: "end", upper: true }));
+  parts.push(text(infoR, 84, "Archive", { size: 18, family: "mono", tracking: 1, anchor: "end", upper: true }));
+  parts.push(`<line x1="${infoX}" y1="116" x2="${infoR}" y2="116" stroke="${INK}" stroke-width="1"/>`);
 
   parts.push(label(infoX, 150, "From"));
   parts.push(text(infoX, 192, "Now", { size: 38, family: "display", upper: true }));
   parts.push(label(infoR, 150, "To", "end"));
   parts.push(text(infoR, 192, "Forever", { size: 38, family: "display", anchor: "end", upper: true }));
   parts.push(label(infoX, 232, "Route"));
-  parts.push(text(infoX, 258, "Memory → Archive", { size: 17, family: "mono", tracking: 1.8, upper: true }));
+  parts.push(text(infoX, 258, "Memory → Archive", { size: 20, family: "mono", tracking: 1.2, upper: true }));
+  parts.push(`<line x1="${infoX}" y1="288" x2="${infoR}" y2="288" stroke="${INK}" stroke-width="1"/>`);
 
   const gridY = 316;
   parts.push(label(infoX, gridY, "Flight"));
@@ -230,7 +265,7 @@ export function passSvg(
   parts.push(label(infoX, H - 66, "Edition"));
   parts.push(text(infoX, H - 40, `${ed.no} · ${ed.code}`, { size: 22, family: "display", upper: true }));
   parts.push(label(infoR, H - 66, "Serial", "end"));
-  parts.push(text(infoR, H - 40, spec.serial, { size: 16, family: "mono", tracking: 0.6, anchor: "end" }));
+  parts.push(text(infoR, H - 40, spec.serial, { size: 18, family: "mono", tracking: 0.4, anchor: "end" }));
 
   // --- Perforation 2 ---
   const cut2 = 54 + BOARDING_MAIN_W + 40 + BOARDING_INFO_W + 40 + 20;
@@ -240,17 +275,26 @@ export function passSvg(
   const stubX = 54 + BOARDING_MAIN_W + 40 + BOARDING_INFO_W + 40 + 40 + 24;
   const stubR = stubX + BOARDING_STUB_W - 48;
   parts.push(label(stubX, 46, "Pass No."));
-  parts.push(text(stubX, 70, passNo, { size: 19, family: "mono", tracking: 0.6, upper: true }));
+  parts.push(text(stubX, 70, passNo, { size: 21, family: "mono", tracking: 0.4, upper: true }));
   parts.push(label(stubX, 104, "Serial"));
-  parts.push(text(stubX, 124, spec.serial, { size: 14, family: "mono", tracking: 0.6 }));
-  parts.push(label(stubX, 180, "Flight"));
-  parts.push(text(stubX, 202, spec.scent.code, { size: 14, family: "mono", tracking: 0.6, upper: true }));
-  parts.push(label(stubR, 180, "Seat", "end"));
-  parts.push(text(stubR, 202, seat, { size: 14, family: "mono", tracking: 0.6, anchor: "end", upper: true }));
+  parts.push(text(stubX, 128, spec.serial, { size: PASS_TYPE.stubSmall, family: "mono", tracking: 0.4 }));
+  parts.push(`<line x1="${stubX}" y1="150" x2="${stubR}" y2="150" stroke="${INK}" stroke-width="1"/>`);
+  parts.push(label(stubX, 174, "From"));
+  parts.push(text(stubX, 198, "Now", { size: 19, family: "display", upper: true }));
+  parts.push(label(stubR, 174, "To", "end"));
+  parts.push(text(stubR, 198, "Forever", { size: 19, family: "display", anchor: "end", upper: true }));
+  parts.push(label(stubX, 238, "Flight"));
+  parts.push(text(stubX, 262, spec.scent.code, { size: PASS_TYPE.stubSmall, family: "mono", tracking: 0.4, upper: true }));
+  parts.push(label(stubR, 238, "Seat", "end"));
+  parts.push(text(stubR, 262, seat, { size: PASS_TYPE.stubSmall, family: "mono", tracking: 0.4, anchor: "end", upper: true }));
+  parts.push(label(stubX, 302, "Date"));
+  parts.push(text(stubX, 326, spec.issueDate, { size: PASS_TYPE.stubTiny, family: "mono", tracking: 0.3 }));
+  parts.push(label(stubR, 302, "Time", "end"));
+  parts.push(text(stubR, 326, spec.issueTime, { size: PASS_TYPE.stubTiny, family: "mono", tracking: 0.3, anchor: "end" }));
 
   // barcode + QR at the stub foot (nearest the printer slot)
   parts.push(barcode(stubX, H - 150, BOARDING_STUB_W - 48, 42, "413132214231341221432312143132421334"));
-  parts.push(text(stubX, H - 92, `Ed. ${ed.no}`, { size: 10, family: "mono", tracking: 2, fill: DIM, upper: true }));
+  parts.push(text(stubX, H - 92, `Ed. ${ed.no}`, { size: PASS_TYPE.stubTiny, family: "mono", tracking: 1.2, fill: DIM, upper: true }));
   if (opts.qrDataUri) {
     const qrS = 78;
     parts.push(`<rect x="${stubR - qrS - 10}" y="${H - 88 - qrS}" width="${qrS + 10}" height="${qrS + 10}" fill="none" stroke="${INK}" stroke-width="1.4"/>`);
@@ -258,8 +302,16 @@ export function passSvg(
   }
 
   // edge marks
-  parts.push(text(30, H / 2, `${BRAND} — Boarding Pass`, { size: 11, family: "mono", tracking: 3, fill: DIM, anchor: "middle", upper: true }));
-  parts.push(text(W - 30, H / 2, "One of the archive. Made to last.", { size: 11, family: "mono", tracking: 3, fill: DIM, anchor: "middle", upper: true }));
+  parts.push(
+    `<g transform="translate(30 ${H / 2}) rotate(-90)">` +
+      text(0, 0, `${BRAND} - Boarding Pass`, { size: PASS_TYPE.edge, family: "mono", tracking: 2, fill: DIM, anchor: "middle", upper: true }) +
+    `</g>`,
+  );
+  parts.push(
+    `<g transform="translate(${W - 30} ${H / 2}) rotate(90)">` +
+      text(0, 0, "One of the archive. Made to last.", { size: PASS_TYPE.edge, family: "mono", tracking: 2, fill: DIM, anchor: "middle", upper: true }) +
+    `</g>`,
+  );
 
   const body =
     `<rect width="${W}" height="${H}" fill="${PAPER}"/>` +
