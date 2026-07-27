@@ -74,6 +74,12 @@ class SessionStore:
         session.frames.append(path)
         return f"{session.serial}-{idx}", path
 
+    def clear_frames(self, session: Session) -> None:
+        """Discard captures before printing, preserving session identity."""
+        for path in session.frames:
+            path.unlink(missing_ok=True)
+        session.frames.clear()
+
     def frame_path(self, frame_id: str) -> Path | None:
         """frame_id is `{serial}-{n}`; resolve strictly under the store root."""
         serial, _, n = frame_id.rpartition("-")

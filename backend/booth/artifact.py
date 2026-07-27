@@ -158,6 +158,7 @@ def save_bundle(
     out_dir: Path,
     *,
     manifest: dict,
+    receipt_path: Path | None = None,
 ) -> None:
     """Persist exactly what happened, so a print can be audited after the fact.
 
@@ -167,21 +168,28 @@ def save_bundle(
     out_dir.mkdir(parents=True, exist_ok=True)
     artifact.source.save(out_dir / "artifact-source.png")
     artifact.thermal.save(out_dir / "artifact-thermal.png")
-    artifact.thermal.save(out_dir / "receipt.png")
+    artifact.thermal.save(out_dir / "artifact-final-1bit.png")
+    artifact.thermal.save(out_dir / "printer-payload.png")
+    receipt_path = receipt_path or (out_dir / "receipt.png")
+    receipt_path.parent.mkdir(parents=True, exist_ok=True)
+    artifact.thermal.save(receipt_path)
+    manifest_body = json.dumps(
+        {
+            **manifest,
+            "artifact_sha256": artifact.sha256,
+            "width_dots": artifact.width_dots,
+            "height_dots": artifact.height_dots,
+            "black_ratio": artifact.black_ratio,
+            "physical_width_mm": round(artifact.width_dots / 8, 2),
+            "physical_length_mm": round(artifact.height_dots / 8, 2),
+            "dpi": 203,
+        },
+        indent=2,
+        ensure_ascii=False,
+    )
+    (out_dir / "manifest.json").write_text(manifest_body, encoding="utf-8")
+    # Compatibility alias for pre-incident tooling. New production jobs use
+    # manifest.json as specified by the physical-print audit contract.
     (out_dir / "artifact-manifest.json").write_text(
-        json.dumps(
-            {
-                **manifest,
-                "artifact_sha256": artifact.sha256,
-                "width_dots": artifact.width_dots,
-                "height_dots": artifact.height_dots,
-                "black_ratio": artifact.black_ratio,
-                "physical_width_mm": round(artifact.width_dots / 8, 2),
-                "physical_length_mm": round(artifact.height_dots / 8, 2),
-                "dpi": 203,
-            },
-            indent=2,
-            ensure_ascii=False,
-        ),
-        encoding="utf-8",
+        manifest_body, encoding="utf-8"
     )

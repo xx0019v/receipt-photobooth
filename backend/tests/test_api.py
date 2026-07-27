@@ -307,10 +307,52 @@ def test_artifact_bundle_is_written_for_audit(client, tmp_path):
     res = _post_artifact(
         client, sid, manifest={"style": "cover", "serial": session["serial"]}
     )
-    _wait_done(client, res.json()["job_id"])
+    job_id = res.json()["job_id"]
+    _wait_done(client, job_id)
 
-    out = tmp_path / "sessions" / session["serial"]
-    manifest = json.loads((out / "artifact-manifest.json").read_text())
+    out = (
+        tmp_path
+        / "sessions"
+        / session["serial"]
+        / "print-jobs"
+        / job_id
+    )
+    manifest = json.loads((out / "manifest.json").read_text())
     assert manifest["artifact_sha256"] == res.json()["artifact_sha256"]
     assert manifest["printer_driver"] == "mock"
-    assert (out / "artifact-thermal.png").exists()
+    for name in (
+        "artifact-source.png",
+        "artifact-thermal.png",
+        "artifact-final-1bit.png",
+        "printer-payload.png",
+        "job-state.json",
+        "print.log",
+    ):
+        assert (out / name).exists(), name
+    state = json.loads((out / "job-state.json").read_text())
+    assert state["state"] == "done"
+    assert (tmp_path / "sessions" / session["serial"] / "receipt.png").exists()
+
+
+def test_different_artifact_for_same_session_is_conflict(client):
+    session = client.post("/api/sessions").json()
+    sid = session["session_id"]
+    client.post(f"/api/sessions/{sid}/capture")
+    manifest = {"style": "pass", "serial": session["serial"]}
+    first = _post_artifact(client, sid, manifest=manifest)
+    assert first.status_code == 202
+
+    different = _artifact_png(height=901)
+    second = _post_artifact(client, sid, manifest=manifest, data=different)
+    assert second.status_code == 409
+    assert "different artifact" in second.json()["detail"]
+
+
+def test_clear_captures_resets_frame_numbering(client):
+    session = client.post("/api/sessions").json()
+    sid = session["session_id"]
+    first = client.post(f"/api/sessions/{sid}/capture").json()
+    assert first["frame_id"].endswith("-1")
+    assert client.delete(f"/api/sessions/{sid}/frames").status_code == 204
+    replacement = client.post(f"/api/sessions/{sid}/capture").json()
+    assert replacement["frame_id"].endswith("-1")

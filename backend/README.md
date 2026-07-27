@@ -35,12 +35,15 @@ sudo udevadm control --reload && sudo udevadm trigger
 sudo usermod -aG lp chuo   # usblp (/dev/usb/lp0) へのアクセス権
 sudo cp ../deploy/booth-backend.service /etc/systemd/system/
 sudo systemctl enable --now booth-backend
+
+# hardware policyを埋め込んだ静的UIを生成
+../deploy/build-ui.sh
 ```
 
 手動起動する場合（QR の着地先 = Pi の LAN IP を必ず指定）:
 
 ```bash
-CAMERA_DRIVER=picamera2 PRINTER_DRIVER=escpos PRINTER_CUT=0 \
+BOOTH_MODE=hardware CAMERA_DRIVER=picamera2 PRINTER_DRIVER=escpos PRINTER_CUT=0 \
 QR_BASE_URL=http://192.168.3.5:8000/p \
 .venv/bin/uvicorn booth.main:app --host 0.0.0.0 --port 8000
 ```
@@ -50,6 +53,7 @@ QR_BASE_URL=http://192.168.3.5:8000/p \
 | 変数 | 既定値 | 説明 |
 |---|---|---|
 | `BOOTH_MOCK` | – | `1` で camera/printer とも強制モック |
+| `BOOTH_MODE` | driverから導出 | `hardware` / `mock`。hardwareでmock driverは起動エラー |
 | `CAMERA_DRIVER` | `mock` | `mock` / `picamera2` |
 | `PRINTER_DRIVER` | `mock` | `mock` / `escpos` |
 | `PRINTER_WIDTH_DOTS` | `384` | 58mm=384 / 80mm=576 |
@@ -63,15 +67,26 @@ QR_BASE_URL=http://192.168.3.5:8000/p \
 
 ```
 booth/
+  artifact.py  Frontend canonical PNGの検証・グレースケール・1bit化
   config.py    環境変数 → Settings
   camera.py    CameraDriver: MockCamera / Picamera2Camera（3:4 縦クロップ、init リトライ）
   printer.py   PrinterDriver: MockPrinter(PNG出力) / EscposPrinter(usblp File / pyusb, バンド印字)
-  receipt.py   ReceiptRenderer: PASS(横型→90°回転) / COVER(引用カード) の 2 スタイル（F-S ディザ）
+  receipt.py   旧Python layout（hardware modeでは使用禁止）
   sessions.py  serial 採番（YYYY-NNNN 永続連番）+ フレーム保存 + TTL + serial→dir 解決
-  jobs.py      印刷ジョブキュー（直列 / queued→rendering→printing→done|error,
-               style/meta + frame_order: 撮影フレームの部分集合を印刷順で印字）
-  main.py      FastAPI: health / preview.mjpg / sessions / capture / print /
+  jobs.py      印刷ジョブキュー、冪等性、部分印刷ガード、job単位の監査bundle
+  calibration.py  1/2/3dot線・階調・black field・barcode・QR pattern
+  main.py      FastAPI: health / preview.mjpg / sessions / capture / print-artifact /
                qr/{serial}.png / 配布ページ p/{serial}
+```
+
+実機calibration（まずPNGだけ確認し、紙を入れてから`--print`）:
+
+```bash
+BOOTH_MODE=hardware CAMERA_DRIVER=picamera2 PRINTER_DRIVER=escpos \
+  .venv/bin/python -m booth.calibration --output /tmp/calibration-pattern.png
+# 物理状態確認後のみ:
+BOOTH_MODE=hardware CAMERA_DRIVER=picamera2 PRINTER_DRIVER=escpos \
+  .venv/bin/python -m booth.calibration --output /tmp/calibration-pattern.png --print
 ```
 
 API 契約の全体は [`docs/backend-requirements.md`](../docs/backend-requirements.md) §4 を参照。

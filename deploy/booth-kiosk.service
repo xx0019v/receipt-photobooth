@@ -12,11 +12,14 @@ Wants=booth-ui.service
 [Service]
 Environment=WAYLAND_DISPLAY=wayland-0
 Environment=XDG_RUNTIME_DIR=/run/user/%U
+ExecStartPre=/bin/sh -c 'for i in $(seq 1 30); do /usr/bin/curl -fsS http://127.0.0.1:3000/ >/dev/null && exit 0; sleep 1; done; exit 1'
 ExecStart=/usr/bin/chromium --kiosk --incognito --noerrdialogs --disable-infobars \
   --disable-session-crashed-bubble --ozone-platform=wayland \
   http://127.0.0.1:3000
 Restart=always
 RestartSec=3
+TimeoutStartSec=45
+TimeoutStopSec=15
 
 [Install]
 WantedBy=default.target

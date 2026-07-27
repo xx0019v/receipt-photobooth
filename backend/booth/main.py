@@ -9,6 +9,7 @@ Run (Pi):
 from __future__ import annotations
 
 import asyncio
+import io
 import json
 import logging
 from contextlib import asynccontextmanager
@@ -26,7 +27,7 @@ from pydantic import BaseModel, ConfigDict
 from .artifact import KNOWN_ARTIFACT_STYLES, ArtifactError, prepare
 from .camera import make_camera
 from .config import settings_from_env
-from .jobs import PrintQueue
+from .jobs import DuplicatePrintError, PrintQueue
 from .printer import make_printer
 from .receipt import ReceiptRenderer
 from .sessions import SessionStore
@@ -68,12 +69,13 @@ def health() -> dict:
     `mode` is explicit ("hardware" | "mock") so the kiosk can refuse to run a
     mock print as if it were real — a mock booth must LOOK like a mock booth.
     """
-    is_mock = settings.printer_driver == "mock" or settings.camera_driver == "mock"
+    printer_status = printer.status()
     return {
         "status": "ok",
-        "mode": "mock" if is_mock else "hardware",
+        "mode": settings.booth_mode,
         "camera": camera.healthy(),
-        "printer": printer.healthy(),
+        "printer": printer_status.connection_available,
+        "printer_status": printer_status.as_dict(),
         "drivers": {
             "camera": settings.camera_driver,
             "printer": settings.printer_driver,
@@ -84,6 +86,7 @@ def health() -> dict:
             "dpi": 203,
             "physical_width_mm": round(settings.printer_width_dots / 8, 2),
         },
+        "sharing": {"base_url": settings.qr_base_url.rstrip("/")},
     }
 
 
@@ -122,6 +125,15 @@ async def capture(sid: str) -> dict:
     jpeg = await loop.run_in_executor(None, camera.capture_jpeg)
     frame_id, _ = store.add_frame(session, jpeg)
     return {"frame_id": frame_id, "url": f"/api/frames/{frame_id}.jpg"}
+
+
+@app.delete("/api/sessions/{sid}/frames", status_code=204)
+def clear_session_frames(sid: str) -> Response:
+    session = store.get(sid)
+    if session is None:
+        raise HTTPException(404, "unknown or expired session")
+    store.clear_frames(session)
+    return Response(status_code=204)
 
 
 @app.get("/api/frames/{frame_id}.jpg")
@@ -164,6 +176,12 @@ def print_session(sid: str, req: PrintRequest | None = None) -> dict:
         raise HTTPException(404, "unknown or expired session")
     if not session.frames:
         raise HTTPException(409, "session has no captured frames")
+    if settings.booth_mode == "hardware":
+        raise HTTPException(
+            410,
+            "legacy Python layout printing is disabled in hardware mode; "
+            "submit a canonical print artifact",
+        )
     req = req or PrintRequest()
     if req.style not in KNOWN_ARTIFACT_STYLES:
         # Refuse rather than default. Printing an unknown style as a PASS
@@ -189,6 +207,7 @@ async def print_artifact(
     artifact_hash: str = Form(...),
     artifact: UploadFile = File(...),
     idempotency_key: str | None = Form(None),
+    retry_requested: bool = Form(False),
 ) -> dict:
     """Print the canonical raster the kiosk rendered.
 
@@ -219,12 +238,88 @@ async def print_artifact(
         raise HTTPException(
             422, f"manifest serial {spec_serial!r} != session serial {session.serial!r}"
         )
+    if spec.get("sessionId") and spec["sessionId"] != sid:
+        raise HTTPException(422, "manifest sessionId does not match request session")
+    if settings.booth_mode == "hardware" and not idempotency_key:
+        raise HTTPException(422, "idempotency_key is required in hardware mode")
 
+    # `selectedFrameOrder` is provenance: which captures the guest picked, in
+    # print order. The photographs themselves are already baked into the
+    # artefact pixels, so this does not change what prints — but when the
+    # session HAS frames it must agree with them, or the audit trail lies
+    # about which shots produced this edition.
     order = spec.get("selectedFrameOrder") or []
-    if order and any(
+    frames_verified = bool(session.frames)
+    if order and frames_verified and any(
         not isinstance(n, int) or n < 1 or n > len(session.frames) for n in order
     ):
         raise HTTPException(422, "selectedFrameOrder out of range for this session")
+    if settings.booth_mode == "hardware":
+        required = (
+            "version",
+            "rendererVersion",
+            "sessionId",
+            "serial",
+            "issueDate",
+            "issueTime",
+            "edition",
+            "selectedFrameIds",
+            "selectedFrameOrder",
+            "crops",
+            "scent",
+            "motif",
+            "artwork",
+            "printerWidthDots",
+            "ditherMode",
+            "artifactHash",
+            "idempotencyKey",
+        )
+        if style == "pass":
+            required = (*required, "qrUrl")
+        missing = [key for key in required if spec.get(key) in (None, "", [], {})]
+        if missing:
+            raise HTTPException(
+                422, f"hardware manifest missing required fields: {missing}"
+            )
+        if len(order) != 3 or len(set(order)) != 3:
+            raise HTTPException(
+                422, "hardware print requires exactly 3 distinct selected frames"
+            )
+        if not frames_verified:
+            raise HTTPException(
+                409, "hardware print has no captured frames; refusing placeholders"
+            )
+        expected_ids = [f"{session.serial}-{n}" for n in order]
+        if spec.get("selectedFrameIds") != expected_ids:
+            raise HTTPException(
+                422, "selectedFrameIds do not match selectedFrameOrder"
+            )
+        if spec.get("printerWidthDots") != settings.printer_width_dots:
+            raise HTTPException(422, "manifest printerWidthDots mismatch")
+        if spec.get("ditherMode") != "floyd-steinberg":
+            raise HTTPException(422, "unsupported ditherMode")
+        if spec.get("artifactHash") != artifact_hash:
+            raise HTTPException(422, "manifest artifactHash mismatch")
+        if spec.get("idempotencyKey") != idempotency_key:
+            raise HTTPException(422, "manifest idempotencyKey mismatch")
+        expected_artwork = {
+            "pass": {
+                "width": 2100,
+                "height": 620,
+                "orientation": "landscape",
+                "canvas": {"width": 620, "height": 2100},
+                "rotatedInDom": True,
+            },
+            "cover": {
+                "width": 640,
+                "height": 1280,
+                "orientation": "portrait",
+                "canvas": {"width": 640, "height": 1280},
+                "rotatedInDom": False,
+            },
+        }[style]
+        if spec.get("artwork") != expected_artwork:
+            raise HTTPException(422, "manifest artwork geometry mismatch")
 
     data = await artifact.read()
     try:
@@ -237,20 +332,37 @@ async def print_artifact(
     except ArtifactError as exc:
         # 422: the upload is well-formed HTTP but unusable as an artefact.
         raise HTTPException(422, str(exc)) from exc
+    if settings.booth_mode == "hardware":
+        canvas = spec["artwork"]["canvas"]
+        expected_height = round(
+            canvas["height"] * settings.printer_width_dots / canvas["width"]
+        )
+        if prepared.height_dots != expected_height:
+            raise HTTPException(
+                422,
+                f"artifact height {prepared.height_dots} != expected "
+                f"{expected_height} for canonical geometry",
+            )
 
-    job = print_queue.submit(
-        session,
-        style=style,
-        meta=spec,
-        frame_order=order or None,
-        artifact=prepared,
-        artifact_manifest={
-            **spec,
-            "idempotency_key": idempotency_key,
-            "printer_width_dots": settings.printer_width_dots,
-            "printer_driver": settings.printer_driver,
-        },
-    )
+    try:
+        job = print_queue.submit(
+            session,
+            style=style,
+            meta=spec,
+            frame_order=order or None,
+            artifact=prepared,
+            artifact_manifest={
+                **spec,
+                "idempotency_key": idempotency_key,
+                "printer_width_dots": settings.printer_width_dots,
+                "printer_driver": settings.printer_driver,
+                "frames_verified": frames_verified,
+            },
+            idempotency_key=idempotency_key,
+            retry_requested=retry_requested,
+        )
+    except DuplicatePrintError as exc:
+        raise HTTPException(409, str(exc)) from exc
     return {
         "job_id": job.id,
         "artifact_sha256": prepared.sha256,
@@ -258,6 +370,46 @@ async def print_artifact(
         "height_dots": prepared.height_dots,
         "black_ratio": prepared.black_ratio,
     }
+
+
+@app.post("/api/artifact/thermalize")
+async def thermalize_preview(
+    style: str = Form("pass"),
+    artifact: UploadFile = File(...),
+) -> Response:
+    """Thermalise a PNG and return the 1-bit result — WITHOUT printing.
+
+    Debug tooling for the Print Artifact Inspector and the golden tests: it
+    runs the exact `prepare()` pipeline the printer path uses, so what the
+    inspector shows is what the head would burn. No session, no queue, no
+    paper. The stats travel in headers so the body stays a plain PNG.
+    """
+    data = await artifact.read()
+    try:
+        prepared = prepare(
+            data, style=style, expected_width_dots=settings.printer_width_dots
+        )
+    except ArtifactError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+    buf = io.BytesIO()
+    prepared.thermal.save(buf, format="PNG")
+    return Response(
+        content=buf.getvalue(),
+        media_type="image/png",
+        headers={
+            "X-Artifact-Sha256": prepared.sha256,
+            "X-Width-Dots": str(prepared.width_dots),
+            "X-Height-Dots": str(prepared.height_dots),
+            "X-Black-Ratio": str(prepared.black_ratio),
+            "X-Physical-Width-Mm": str(round(prepared.width_dots / 8, 2)),
+            "X-Physical-Length-Mm": str(round(prepared.height_dots / 8, 2)),
+            "Access-Control-Expose-Headers": (
+                "X-Artifact-Sha256,X-Width-Dots,X-Height-Dots,"
+                "X-Black-Ratio,X-Physical-Width-Mm,X-Physical-Length-Mm"
+            ),
+        },
+    )
 
 
 @app.get("/api/print-jobs/{job_id}")

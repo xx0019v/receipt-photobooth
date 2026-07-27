@@ -3,17 +3,23 @@
 from __future__ import annotations
 
 import logging
+import json
 import queue
 import threading
+from datetime import datetime, timezone
 import uuid
 from dataclasses import dataclass, field
 
 from .artifact import ThermalArtifact, save_bundle
-from .printer import PrinterDriver
+from .printer import PrinterDriver, PrinterWriteError
 from .receipt import KNOWN_STYLES, ReceiptRenderer
 from .sessions import Session
 
 log = logging.getLogger("booth.jobs")
+
+
+class DuplicatePrintError(ValueError):
+    """The session is already bound to a different physical artefact."""
 
 
 @dataclass
@@ -30,10 +36,19 @@ class PrintJob:
     # the guest approved. When present the layout is NEVER rebuilt here.
     artifact: ThermalArtifact | None = None
     artifact_manifest: dict | None = None
-    state: str = "queued"  # queued | rendering | printing | done | error
+    idempotency_key: str | None = None
+    state: str = "queued"
     progress: float = 0.0
     message: str = ""
+    bands_may_have_printed: bool = False
+    created_at: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
     _lock: threading.Lock = field(default_factory=threading.Lock)
+
+    @property
+    def dir(self):
+        return self.session.dir / "print-jobs" / self.id
 
     def snapshot(self) -> dict:
         with self._lock:
@@ -42,12 +57,38 @@ class PrintJob:
                 "state": self.state,
                 "progress": round(self.progress, 3),
                 "message": self.message,
+                "artifact_sha256": self.artifact.sha256 if self.artifact else None,
+                "idempotency_key": self.idempotency_key,
+                "may_have_printed": self.bands_may_have_printed,
             }
 
     def update(self, **kw) -> None:
         with self._lock:
             for k, v in kw.items():
                 setattr(self, k, v)
+            snapshot = {
+                "job_id": self.id,
+                "session_id": self.session.id,
+                "serial": self.session.serial,
+                "style": self.style,
+                "state": self.state,
+                "progress": round(self.progress, 3),
+                "message": self.message,
+                "artifact_sha256": self.artifact.sha256 if self.artifact else None,
+                "idempotency_key": self.idempotency_key,
+                "may_have_printed": self.bands_may_have_printed,
+                "created_at": self.created_at,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+        self.dir.mkdir(parents=True, exist_ok=True)
+        tmp = self.dir / "job-state.json.tmp"
+        tmp.write_text(json.dumps(snapshot, indent=2), encoding="utf-8")
+        tmp.replace(self.dir / "job-state.json")
+        with (self.dir / "print.log").open("a", encoding="utf-8") as handle:
+            handle.write(
+                f"{snapshot['updated_at']} state={snapshot['state']} "
+                f"progress={snapshot['progress']} message={snapshot['message']!r}\n"
+            )
 
 
 class PrintQueue:
@@ -69,6 +110,8 @@ class PrintQueue:
         frame_order: list[int] | None = None,
         artifact: ThermalArtifact | None = None,
         artifact_manifest: dict | None = None,
+        idempotency_key: str | None = None,
+        retry_requested: bool = False,
     ) -> PrintJob:
         """Idempotent per session: a repeat POST (double tap, client retry)
         returns the session's existing job instead of printing twice. Only a
@@ -81,14 +124,39 @@ class PrintQueue:
         job's paper."""
         with self._submit_lock:
             existing = self._by_session.get(session.id)
-            if existing is not None and existing.snapshot()["state"] != "error":
-                same_artifact = (
-                    artifact is None
-                    or existing.artifact is None
-                    or existing.artifact.sha256 == artifact.sha256
+            if existing is not None:
+                existing_state = existing.snapshot()["state"]
+                same_artifact = bool(
+                    artifact is not None
+                    and existing.artifact is not None
+                    and existing.artifact.sha256 == artifact.sha256
+                ) or (artifact is None and existing.artifact is None)
+                same_key = (
+                    idempotency_key is None
+                    or existing.idempotency_key is None
+                    or existing.idempotency_key == idempotency_key
                 )
-                if same_artifact:
+                if not (same_artifact and same_key):
+                    raise DuplicatePrintError(
+                        "session is already bound to a different artifact or "
+                        "idempotency key; refusing a second print"
+                    )
+                if existing_state != "error":
                     return existing
+                if not retry_requested:
+                    return existing
+                if existing.bands_may_have_printed:
+                    raise DuplicatePrintError(
+                        "the failed job may have printed partially; automatic "
+                        "retry is blocked pending operator inspection"
+                    )
+                existing.update(
+                    state="queued",
+                    progress=0.0,
+                    message="explicit retry requested",
+                )
+                self._q.put(existing)
+                return existing
             job = PrintJob(
                 id=uuid.uuid4().hex[:12],
                 session=session,
@@ -97,9 +165,11 @@ class PrintQueue:
                 frame_order=frame_order or None,
                 artifact=artifact,
                 artifact_manifest=artifact_manifest,
+                idempotency_key=idempotency_key,
             )
             self._jobs[job.id] = job
             self._by_session[session.id] = job
+            job.update(state="queued")
         self._q.put(job)
         return job
 
@@ -120,8 +190,9 @@ class PrintQueue:
                     image = job.artifact.thermal
                     save_bundle(
                         job.artifact,
-                        job.session.dir,
+                        job.dir,
                         manifest=job.artifact_manifest or {},
+                        receipt_path=job.session.dir / "receipt.png",
                     )
                 else:
                     # Legacy path (no artifact supplied). Kept so existing
@@ -147,12 +218,28 @@ class PrintQueue:
                             f"unknown style {job.style!r} and no canonical artifact supplied"
                         )
 
+                job.update(state="ready_to_print")
                 job.update(state="printing")
                 self.printer.print_image(
-                    image, on_progress=lambda p: job.update(progress=p)
+                    image,
+                    on_progress=lambda p: job.update(progress=p),
+                    on_state=lambda state: job.update(state=state),
                 )
                 job.update(state="done", progress=1.0, message=note)
-                log.info("printed serial=%s job=%s style=%s", job.session.serial, job.id, job.style)
+                log.info(
+                    "printed serial=%s job=%s style=%s hash=%s key=%s",
+                    job.session.serial,
+                    job.id,
+                    job.style,
+                    job.artifact.sha256 if job.artifact else "legacy",
+                    job.idempotency_key,
+                )
             except Exception as exc:  # printer unplugged, out of paper, ...
                 log.exception("print job failed job=%s", job.id)
-                job.update(state="error", message=str(exc))
+                job.update(
+                    state="error",
+                    message=str(exc),
+                    bands_may_have_printed=(
+                        isinstance(exc, PrinterWriteError) and exc.may_have_printed
+                    ),
+                )

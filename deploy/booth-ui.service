@@ -11,6 +11,9 @@ WorkingDirectory=%h/receipt-photobooth
 ExecStart=/usr/bin/python3 -m http.server 3000 --directory ui-dist --bind 127.0.0.1
 Restart=always
 RestartSec=2
+TimeoutStartSec=15
+TimeoutStopSec=10
+NoNewPrivileges=true
 
 [Install]
 WantedBy=default.target
