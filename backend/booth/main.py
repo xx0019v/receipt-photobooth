@@ -14,7 +14,7 @@ import json
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
@@ -42,10 +42,21 @@ printer = make_printer(settings)
 store = SessionStore(settings)
 print_queue = PrintQueue(ReceiptRenderer(settings), printer)
 
+# The MJPEG preview is an endless response. Without a shutdown signal it never
+# returns, uvicorn's graceful shutdown blocks on "waiting for connections to
+# close", and systemd SIGKILLs the unit after TimeoutStopSec — which is exactly
+# how the service was found in `failed` state with a kiosk browser attached.
+_shutting_down = asyncio.Event()
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     camera.start()
     yield
+    _shutting_down.set()
+    # Give in-flight preview generators a frame or two to notice the flag
+    # before the camera they are reading from goes away.
+    await asyncio.sleep(2 / settings.preview_fps)
     camera.stop()
 
 
@@ -92,13 +103,17 @@ def health() -> dict:
 
 
 @app.get("/api/preview.mjpg")
-async def preview_stream() -> StreamingResponse:
+async def preview_stream(request: Request) -> StreamingResponse:
     boundary = "boothframe"
     interval = 1 / settings.preview_fps
 
     async def gen():
         loop = asyncio.get_running_loop()
-        while True:
+        while not _shutting_down.is_set():
+            # A kiosk that navigated away (POSE -> CAPTURE) leaves its stream
+            # behind; without this the generators pile up on one camera.
+            if await request.is_disconnected():
+                return
             jpeg = await loop.run_in_executor(None, camera.preview_jpeg)
             yield (
                 f"--{boundary}\r\ncontent-type: image/jpeg\r\n"
