@@ -61,7 +61,7 @@ export default function InactivityWarning({
           <button
             type="button"
             onClick={onEnd}
-            className="press flex min-h-[104px] items-center justify-center border border-[color:var(--color-ink)] bg-paper-bright px-[30px] font-mono text-[17px] uppercase tracking-[0.28em] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--color-ink)]"
+            className="press flex min-h-[116px] items-center justify-center border border-[color:var(--color-ink)] bg-paper-bright px-[34px] font-mono text-[19px] uppercase tracking-[0.26em] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--color-ink)]"
             style={{ cursor: "pointer" }}
           >
             End session
@@ -69,7 +69,7 @@ export default function InactivityWarning({
           <button
             type="button"
             onClick={onContinue}
-            className="press flex min-h-[104px] items-center justify-between bg-ink px-[38px] font-mono text-[20px] uppercase tracking-[0.3em] text-paper focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--color-ink)]"
+            className="press flex min-h-[116px] items-center justify-between bg-ink px-[42px] font-mono text-[22px] uppercase tracking-[0.28em] text-paper focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--color-ink)]"
             style={{ cursor: "pointer" }}
           >
             <span>Continue session</span>

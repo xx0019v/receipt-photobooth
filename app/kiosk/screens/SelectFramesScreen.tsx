@@ -124,7 +124,7 @@ export default function SelectFramesScreen({
                   const idx = capturedFrames.indexOf(id);
                   if (idx >= 0) setActiveIndex(idx);
                 }}
-                className="relative h-[76px] w-[76px] shrink-0 overflow-hidden border border-[color:var(--color-line)] bg-paper-bright"
+                className="relative h-[88px] w-[88px] shrink-0 overflow-hidden border border-[color:var(--color-line)] bg-paper-bright"
                 style={{ cursor: id === undefined ? "default" : "pointer" }}
                 disabled={id === undefined}
               >
@@ -149,23 +149,23 @@ export default function SelectFramesScreen({
       <div className="grid grid-cols-[1fr_1.6fr] gap-[24px] px-[80px] pb-[80px]">
         <button
           onClick={onRetakeAll}
-          className="press flex min-h-[90px] flex-col items-center justify-center gap-[4px] border border-[color:var(--color-ink)] bg-paper-bright px-[24px] py-[24px]"
+          className="press flex min-h-[112px] flex-col items-center justify-center gap-[6px] border border-[color:var(--color-ink)] bg-paper-bright px-[28px] py-[24px]"
           style={{ cursor: "pointer" }}
         >
-          <span className="font-mono text-[18px] uppercase tracking-[0.28em]">Retake all</span>
-          {sub && <span className="jp-sub text-[14px] text-silver-dim">すべて撮り直す</span>}
+          <span className="font-mono text-[21px] uppercase tracking-[0.26em]">Retake all</span>
+          {sub && <span className="jp-sub text-[16px] text-silver-dim">すべて撮り直す</span>}
         </button>
         <button
           onClick={() => ready && onConfirm(selectedIds)}
           disabled={!ready}
-          className="press flex min-h-[90px] items-center justify-center border border-[color:var(--color-ink)] bg-ink px-[24px] py-[24px] text-paper disabled:opacity-30"
+          className="press flex min-h-[112px] items-center justify-center border border-[color:var(--color-ink)] bg-ink px-[28px] py-[24px] text-paper disabled:opacity-30"
           style={{ cursor: ready ? "pointer" : "default" }}
         >
           <span className="flex flex-col items-center gap-[4px]">
-            <span className="font-mono text-[18px] uppercase tracking-[0.28em]">
+            <span className="font-mono text-[21px] uppercase tracking-[0.26em]">
               {ready ? "Use these 3" : "Ready to compose"}
             </span>
-            {sub && <span className="jp-sub text-[14px] text-paper/55">この3枚を使用</span>}
+            {sub && <span className="jp-sub text-[16px] text-paper/60">この3枚を使用</span>}
           </span>
         </button>
       </div>

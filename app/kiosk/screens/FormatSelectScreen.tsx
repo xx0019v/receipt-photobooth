@@ -38,6 +38,10 @@ export default function FormatSelectScreen({
   }, [setStyle]);
 
   const isPass = style === "pass";
+  const chooseFormat = (nextStyle: PrintStyle) => {
+    setStyle(nextStyle);
+    onContinue();
+  };
 
   const startSwipe = (event: ReactPointerEvent<HTMLDivElement>) => {
     if ((event.target as HTMLElement).closest("button")) return;
@@ -109,7 +113,7 @@ export default function FormatSelectScreen({
           jp={sub?.format.passTag}
           size="620 × 2100"
           selectedLabel={t.format.selected}
-          onPick={() => setStyle("pass")}
+          onPick={() => chooseFormat("pass")}
           glyph={<PassGlyph />}
         />
         <span aria-hidden="true" className="my-[24px] w-px shrink-0 bg-[color:var(--color-line)]" />
@@ -122,7 +126,7 @@ export default function FormatSelectScreen({
           jp={sub?.format.coverTag}
           size="640 × 1280"
           selectedLabel={t.format.selected}
-          onPick={() => setStyle("cover")}
+          onPick={() => chooseFormat("cover")}
           glyph={<FilmGlyph />}
         />
       </div>
@@ -141,12 +145,12 @@ export default function FormatSelectScreen({
         </div>
         <button
           onClick={onContinue}
-          className="card press flex min-h-[96px] items-center gap-[22px] bg-ink px-[64px] text-paper"
+          className="card press flex min-h-[116px] items-center gap-[24px] bg-ink px-[70px] text-paper"
           style={{ cursor: "pointer" }}
         >
           <span className="flex flex-col items-start gap-[4px]">
-            <span className="font-mono text-[22px] uppercase tracking-[0.3em]">{t.format.continue}</span>
-            {sub && <span className="jp-sub text-[14px] text-paper/55">{sub.format.continue}</span>}
+            <span className="font-mono text-[24px] uppercase tracking-[0.3em]">{t.format.continue}</span>
+            {sub && <span className="jp-sub text-[16px] text-paper/60">{sub.format.continue}</span>}
           </span>
           <span className="font-display text-[38px]">→</span>
         </button>
@@ -208,7 +212,7 @@ function FormatChoice({
 
       <span className="flex flex-col items-center gap-[8px]">
         <span
-          className="font-display font-semibold leading-[0.95] tracking-[-0.015em] transition-all duration-500"
+          className="font-display font-semibold leading-[0.95] tracking-[-0.015em]"
           style={{ fontSize: active ? 48 : 40 }}
         >
           {name}
@@ -221,8 +225,8 @@ function FormatChoice({
       {/* selected underline — a printed rule, not a chip */}
       <span
         aria-hidden="true"
-        className="absolute bottom-[14px] left-1/2 h-px -translate-x-1/2 bg-[color:var(--color-ink)] transition-all duration-500"
-        style={{ width: active ? 190 : 0 }}
+        className="absolute bottom-[14px] left-1/2 h-px w-[190px] origin-center -translate-x-1/2 bg-[color:var(--color-ink)] transition-transform duration-500"
+        style={{ transform: `translateX(-50%) scaleX(${active ? 1 : 0})` }}
       />
     </button>
   );

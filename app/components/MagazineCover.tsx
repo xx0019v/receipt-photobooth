@@ -53,7 +53,7 @@ export default function MagazineCover({
       </header>
 
       {/* ---- Body : photo column (left) + quote / motif (right) --------- */}
-      <div className="relative mt-[30px] flex flex-1 items-start px-[46px]">
+      <div className="relative mt-[30px] flex flex-1 items-start pb-0 pl-[70px] pr-[46px] pt-0">
         <div className="flex flex-col gap-[14px]">
           {[0, 1, 2].map((index) => {
             const frame = frames[index] ?? frames[frames.length - 1] ?? index + 1;

@@ -49,24 +49,24 @@ export default function ErrorScreen({
       <div className="mt-[52px] grid w-full max-w-[760px] grid-cols-2 gap-[24px]">
         <button
           onClick={onSecondary}
-          className="press flex min-h-[90px] flex-col items-center justify-center gap-[4px] border border-[color:var(--color-ink)] bg-paper-bright px-[24px] py-[24px]"
+          className="press flex min-h-[112px] flex-col items-center justify-center gap-[6px] border border-[color:var(--color-ink)] bg-paper-bright px-[28px] py-[24px]"
           style={{ cursor: "pointer" }}
         >
-          <span className="font-mono text-[18px] uppercase tracking-[0.28em]">
+          <span className="font-mono text-[21px] uppercase tracking-[0.26em]">
             {copy.secondary}
           </span>
-          {sub && <span className="jp-sub text-[14px] text-silver-dim">{copy.secondaryJp}</span>}
+          {sub && <span className="jp-sub text-[16px] text-silver-dim">{copy.secondaryJp}</span>}
         </button>
         <button
           onClick={onPrimary}
-          className="press flex min-h-[90px] items-center justify-center border border-[color:var(--color-ink)] bg-ink px-[24px] py-[24px] text-paper"
+          className="press flex min-h-[112px] items-center justify-center border border-[color:var(--color-ink)] bg-ink px-[28px] py-[24px] text-paper"
           style={{ cursor: "pointer" }}
         >
           <span className="flex flex-col items-center gap-[4px]">
-            <span className="font-mono text-[18px] uppercase tracking-[0.28em]">
+            <span className="font-mono text-[21px] uppercase tracking-[0.26em]">
               {copy.primary}
             </span>
-            {sub && <span className="jp-sub text-[14px] text-paper/55">{copy.primaryJp}</span>}
+            {sub && <span className="jp-sub text-[16px] text-paper/60">{copy.primaryJp}</span>}
           </span>
         </button>
       </div>

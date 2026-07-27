@@ -236,7 +236,7 @@ export default function ScentScreen({
                     type="button"
                     onClick={() => turnTo(i + 1)}
                     aria-label={`Next edition: ${EDITIONS[i + 1].code}`}
-                    className="press scent-hint flex min-h-[96px] w-full items-center justify-between border-t border-[color:var(--color-line)] text-silver-dim"
+                    className="press scent-hint flex min-h-[112px] w-full items-center justify-between border-t border-[color:var(--color-line)] text-silver-dim"
                     style={{ cursor: "pointer" }}
                   >
                     <span className="flex items-baseline gap-[18px] text-left">
@@ -260,7 +260,7 @@ export default function ScentScreen({
                     type="button"
                     onClick={() => turnTo(0)}
                     aria-label={`Return to first edition: ${EDITIONS[0].code}`}
-                    className="press flex min-h-[96px] w-full items-center justify-between border-t border-[color:var(--color-line)] text-silver-dim"
+                    className="press flex min-h-[112px] w-full items-center justify-between border-t border-[color:var(--color-line)] text-silver-dim"
                     style={{ cursor: "pointer" }}
                   >
                     <span className="flex items-baseline gap-[18px] text-left">

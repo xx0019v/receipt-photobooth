@@ -509,33 +509,33 @@ export default function PrintingScreen({
           <div className="grid grid-cols-[1fr_1.45fr] gap-[24px]">
             <button
               onClick={onRetake}
-              className="press flex min-h-[90px] flex-col items-center justify-center gap-[4px] border border-[color:var(--color-ink)] bg-paper-bright px-[24px] py-[24px]"
+              className="press flex min-h-[112px] flex-col items-center justify-center gap-[6px] border border-[color:var(--color-ink)] bg-paper-bright px-[28px] py-[24px]"
               style={{ cursor: "pointer" }}
             >
-              <span className="font-mono text-[20px] uppercase tracking-[0.3em]">
+              <span className="font-mono text-[22px] uppercase tracking-[0.28em]">
                 {t.review.retake}
               </span>
               {sub && (
-                <span className="jp-sub text-[15px] text-silver-dim">{sub.review.retake}</span>
+                <span className="jp-sub text-[16px] text-silver-dim">{sub.review.retake}</span>
               )}
             </button>
             <button
               onClick={startPrintRitual}
-              className="press flex min-h-[90px] items-center justify-center border border-[color:var(--color-ink)] bg-ink px-[24px] py-[24px] text-paper"
+              className="press flex min-h-[112px] items-center justify-center border border-[color:var(--color-ink)] bg-ink px-[28px] py-[24px] text-paper"
               style={{ cursor: "pointer" }}
             >
               <span className="flex flex-col items-center gap-[4px]">
-                <span className="font-mono text-[20px] uppercase tracking-[0.3em]">
+                <span className="font-mono text-[22px] uppercase tracking-[0.28em]">
                   {isCover ? "Print my film" : t.review.print}
                 </span>
                 {sub && (
-                  <span className="jp-sub text-[15px] text-paper/55">{isCover ? "FILMを発券" : sub.review.print}</span>
+                  <span className="jp-sub text-[16px] text-paper/60">{isCover ? "FILMを発券" : sub.review.print}</span>
                 )}
               </span>
             </button>
           </div>
         ) : stage === "proofLock" ? (
-          <div className="anim-fade-up flex min-h-[90px] flex-col items-center justify-center gap-[6px] border border-[color:var(--color-ink)] px-[24px] py-[20px]">
+          <div className="anim-fade-up flex min-h-[112px] flex-col items-center justify-center gap-[6px] border border-[color:var(--color-ink)] px-[28px] py-[20px]">
             <span className="font-mono text-[18px] uppercase tracking-[0.32em]">
               {edition_label(serial)} · {issuedDate} {issuedTime}
             </span>
@@ -580,27 +580,27 @@ export default function PrintingScreen({
           <div className="anim-fade-up delay-2 grid grid-cols-[1fr_1.6fr] gap-[24px]">
             <button
               onClick={onRetake}
-              className="press flex min-h-[90px] flex-col items-center justify-center gap-[4px] border border-[color:var(--color-ink)] bg-paper-bright px-[24px] py-[24px]"
+              className="press flex min-h-[112px] flex-col items-center justify-center gap-[6px] border border-[color:var(--color-ink)] bg-paper-bright px-[28px] py-[24px]"
               style={{ cursor: "pointer" }}
             >
-              <span className="font-mono text-[20px] uppercase tracking-[0.3em]">
+              <span className="font-mono text-[22px] uppercase tracking-[0.28em]">
                 {t.review.retake}
               </span>
               {sub && (
-                <span className="jp-sub text-[15px] text-silver-dim">{sub.review.retake}</span>
+                <span className="jp-sub text-[16px] text-silver-dim">{sub.review.retake}</span>
               )}
             </button>
             <button
               onClick={onClaim}
-              className="press flex min-h-[90px] items-center justify-center border border-[color:var(--color-ink)] bg-ink px-[24px] py-[24px] text-paper"
+              className="press flex min-h-[112px] items-center justify-center border border-[color:var(--color-ink)] bg-ink px-[28px] py-[24px] text-paper"
               style={{ cursor: "pointer" }}
             >
               <span className="flex flex-col items-center gap-[4px]">
-                <span className="font-mono text-[20px] uppercase tracking-[0.3em]">
+                <span className="font-mono text-[22px] uppercase tracking-[0.28em]">
                   {t.idle.cta}
                 </span>
                 {sub && (
-                  <span className="jp-sub text-[15px] text-paper/55">{sub.idle.cta}</span>
+                  <span className="jp-sub text-[16px] text-paper/60">{sub.idle.cta}</span>
                 )}
               </span>
             </button>

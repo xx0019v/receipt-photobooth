@@ -117,12 +117,12 @@ export default function PoseScreen({
       <div className="px-[80px] pb-[80px] pt-[6px]">
         <button
           onClick={onBegin}
-          className="card press flex min-h-[100px] w-full items-center justify-between bg-ink px-[56px] text-paper"
+          className="card press flex min-h-[120px] w-full items-center justify-between bg-ink px-[62px] text-paper"
           style={{ cursor: "pointer" }}
         >
           <span className="flex flex-col gap-[6px]">
             <span className="font-mono text-[26px] uppercase tracking-[0.4em]">{t.pose.start}</span>
-            {sub && <span className="jp-sub text-[16px] text-paper/55">{sub.pose.start}</span>}
+            {sub && <span className="jp-sub text-[17px] text-paper/60">{sub.pose.start}</span>}
           </span>
           <span className="font-mono text-[19px] uppercase tracking-[0.28em] text-paper/60">
             {CAPTURE_TOTAL} {t.pose.frames} →

@@ -361,7 +361,9 @@ export function filmSvg(
   parts.push(text(W / 2, 132, "Edition · Print", { size: 13, family: "mono", tracking: 6.5, fill: DIM, anchor: "middle", upper: true }));
 
   // photo column (print order) + motif + vertical quote
-  const colX = 46;
+  // Nudge the image column toward the paper centre while preserving the
+  // editorial quote rail on its right.
+  const colX = 70;
   const photoSize = 288;
   order.slice(0, 3).forEach((frameNo, i) => {
     parts.push(photoCell(colX, 176 + i * (photoSize + 14), photoSize, frameNo, photos));
