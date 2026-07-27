@@ -13,8 +13,13 @@ Wants=booth-ui.service
 Environment=WAYLAND_DISPLAY=wayland-0
 Environment=XDG_RUNTIME_DIR=/run/user/%U
 ExecStartPre=/bin/sh -c 'for i in $(seq 1 30); do /usr/bin/curl -fsS http://127.0.0.1:3000/ >/dev/null && exit 0; sleep 1; done; exit 1'
+# --password-store=basic: without it Chromium asks gnome-keyring for a
+# credential store, and on a fresh profile that raises a "Choose password for
+# new keyring" dialog ON TOP of the kiosk — with an on-screen keyboard. The
+# booth stores no credentials, so the in-memory store is the correct one.
 ExecStart=/usr/bin/chromium --kiosk --incognito --noerrdialogs --disable-infobars \
   --disable-session-crashed-bubble --ozone-platform=wayland \
+  --password-store=basic \
   http://127.0.0.1:3000
 Restart=always
 RestartSec=3
