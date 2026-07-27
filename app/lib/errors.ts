@@ -1,6 +1,10 @@
-/** Kiosk recovery states. UI + types only — no backend is wired to emit
- * these yet (PR #2 owns camera/printer/paper hardware integration); Staff
- * Mode's TEST PRINT is the only way to reach them today. */
+/** Kiosk recovery states.
+ *
+ * `printer-offline` and `print-failed` are now raised by the real booth: a
+ * backend that cannot be reached in hardware mode, an artefact the backend
+ * refuses, or a job that ends in `error`. `camera` and `paper-empty` are
+ * still reachable only through Staff Mode's TEST PRINT — the drivers do not
+ * report those conditions distinctly yet. */
 export type ErrorKind =
   | "camera"
   | "printer-offline"
