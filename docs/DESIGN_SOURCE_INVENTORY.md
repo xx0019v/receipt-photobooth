@@ -84,8 +84,8 @@ from scratch, no code, DOM structure, or class names copied.
 
 See `ORIGINKIT_USAGE.md` — SVGs are byte-identical to the existing
 `public/assets/chrome/` library (single embedded rasters; not fragmentable);
-the mp4 was profiled and re-encoded 6.5MB→63KB and used once in FRAME CORE's
-`registering` state.
+the mp4 was profiled and re-encoded 6.5MB→609KB, retaining the complete
+6.125s clip as the post-capture loading object.
 
 ## 2026-07-16 · pc。lips.mp4 (ACUSE_v)
 
