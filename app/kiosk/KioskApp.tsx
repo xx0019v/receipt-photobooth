@@ -16,7 +16,6 @@ import { ChromeArtworkProvider } from "@/app/lib/chromeArtwork";
 import { createFilmArtifactProps } from "@/app/lib/film";
 import {
   initializeSession,
-  motifForScent,
   type SelectedScentInput,
 } from "@/app/lib/session";
 import { useBoothConnection } from "@/app/lib/useBoothConnection";
@@ -94,9 +93,9 @@ export default function KioskApp({
   const go = useCallback((p: Phase) => setPhase(p), []);
   // The guest scrolls the scent chapters and confirms one; that scent and its
   // silver motif become fixed for the whole session, then we move to Format.
-  const chooseScent = useCallback((scent: Scent) => {
+  const chooseScent = useCallback((scent: Scent, motif: ChromeAsset) => {
     setSelectedScent(scent);
-    setSelectedChromeMotif(motifForScent(scent));
+    setSelectedChromeMotif(motif);
     setPhase("format");
   }, []);
 

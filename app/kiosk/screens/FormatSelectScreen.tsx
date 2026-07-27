@@ -7,6 +7,7 @@ import { usePrintStyle, type PrintStyle } from "@/app/lib/printStyle";
 import { BOARDING_H, BOARDING_W } from "@/app/components/BoardingPass";
 import { type Scent } from "@/app/lib/edition";
 import { type FilmArtifactProps } from "@/app/lib/film";
+import { useChromeArtwork } from "@/app/lib/chromeArtwork";
 
 /**
  * FORMAT — both choices are visible at once.
@@ -29,6 +30,7 @@ export default function FormatSelectScreen({
 }) {
   const { t, sub } = useLang();
   const { style, setStyle } = usePrintStyle();
+  const selectedMark = useChromeArtwork();
   const swipeStart = useRef<{ pointerId: number; x: number; y: number } | null>(null);
 
   useEffect(() => {
@@ -36,6 +38,10 @@ export default function FormatSelectScreen({
   }, [setStyle]);
 
   const isPass = style === "pass";
+  const chooseFormat = (nextStyle: PrintStyle) => {
+    setStyle(nextStyle);
+    onContinue();
+  };
 
   const startSwipe = (event: ReactPointerEvent<HTMLDivElement>) => {
     if ((event.target as HTMLElement).closest("button")) return;
@@ -64,9 +70,9 @@ export default function FormatSelectScreen({
     <div className="flex h-full flex-col">
       <Masthead />
 
-      <div className="px-[80px] pt-[44px]">
+      <div className="relative px-[80px] pt-[44px]">
         <p className="kicker anim-fade-up">{t.format.step}</p>
-        <h2 className="anim-fade-up delay-1 mt-[14px] font-display text-[74px] font-semibold leading-[0.88] tracking-[-0.025em]">
+        <h2 className="anim-fade-up delay-1 mt-[14px] max-w-[700px] text-balance font-display text-[74px] font-semibold leading-[0.88] tracking-[-0.025em]">
           {t.format.title[0]} <span className="italic">{t.format.title[1]}</span>
         </h2>
         {sub && (
@@ -75,6 +81,19 @@ export default function FormatSelectScreen({
             {sub.format.title[1]}
           </p>
         )}
+        <figure className="anim-fade-up delay-2 absolute right-[80px] top-[148px] h-[176px] w-[208px] border border-[color:var(--color-line)] bg-paper-bright">
+          <img
+            src={selectedMark.path}
+            alt=""
+            aria-hidden="true"
+            width={184}
+            height={132}
+            className="mx-auto mt-[8px] h-[132px] w-[184px] object-contain grayscale contrast-125"
+          />
+          <figcaption className="mx-[12px] border-t border-[color:var(--color-line-soft)] pt-[7px] font-mono text-[9px] uppercase tracking-[0.12em] text-silver-dim">
+            Print Mark · {selectedMark.name}
+          </figcaption>
+        </figure>
       </div>
 
       {/* Two formats, side by side — a real comparison, not a reveal */}
@@ -94,7 +113,7 @@ export default function FormatSelectScreen({
           jp={sub?.format.passTag}
           size="620 × 2100"
           selectedLabel={t.format.selected}
-          onPick={() => setStyle("pass")}
+          onPick={() => chooseFormat("pass")}
           glyph={<PassGlyph />}
         />
         <span aria-hidden="true" className="my-[24px] w-px shrink-0 bg-[color:var(--color-line)]" />
@@ -107,7 +126,7 @@ export default function FormatSelectScreen({
           jp={sub?.format.coverTag}
           size="640 × 1280"
           selectedLabel={t.format.selected}
-          onPick={() => setStyle("cover")}
+          onPick={() => chooseFormat("cover")}
           glyph={<FilmGlyph />}
         />
       </div>
@@ -126,12 +145,12 @@ export default function FormatSelectScreen({
         </div>
         <button
           onClick={onContinue}
-          className="card press flex min-h-[96px] items-center gap-[22px] bg-ink px-[64px] text-paper"
+          className="card press flex min-h-[116px] items-center gap-[24px] bg-ink px-[70px] text-paper"
           style={{ cursor: "pointer" }}
         >
           <span className="flex flex-col items-start gap-[4px]">
-            <span className="font-mono text-[22px] uppercase tracking-[0.3em]">{t.format.continue}</span>
-            {sub && <span className="jp-sub text-[14px] text-paper/55">{sub.format.continue}</span>}
+            <span className="font-mono text-[24px] uppercase tracking-[0.3em]">{t.format.continue}</span>
+            {sub && <span className="jp-sub text-[16px] text-paper/60">{sub.format.continue}</span>}
           </span>
           <span className="font-display text-[38px]">→</span>
         </button>
@@ -193,7 +212,7 @@ function FormatChoice({
 
       <span className="flex flex-col items-center gap-[8px]">
         <span
-          className="font-display font-semibold leading-[0.95] tracking-[-0.015em] transition-all duration-500"
+          className="font-display font-semibold leading-[0.95] tracking-[-0.015em]"
           style={{ fontSize: active ? 48 : 40 }}
         >
           {name}
@@ -206,8 +225,8 @@ function FormatChoice({
       {/* selected underline — a printed rule, not a chip */}
       <span
         aria-hidden="true"
-        className="absolute bottom-[14px] left-1/2 h-px -translate-x-1/2 bg-[color:var(--color-ink)] transition-all duration-500"
-        style={{ width: active ? 190 : 0 }}
+        className="absolute bottom-[14px] left-1/2 h-px w-[190px] origin-center -translate-x-1/2 bg-[color:var(--color-ink)] transition-transform duration-500"
+        style={{ transform: `translateX(-50%) scaleX(${active ? 1 : 0})` }}
       />
     </button>
   );

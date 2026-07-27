@@ -53,7 +53,7 @@ export default function MagazineCover({
       </header>
 
       {/* ---- Body : photo column (left) + quote / motif (right) --------- */}
-      <div className="relative mt-[30px] flex flex-1 items-start px-[46px]">
+      <div className="relative mt-[30px] flex flex-1 items-start pb-0 pl-[70px] pr-[46px] pt-0">
         <div className="flex flex-col gap-[14px]">
           {[0, 1, 2].map((index) => {
             const frame = frames[index] ?? frames[frames.length - 1] ?? index + 1;
@@ -82,22 +82,23 @@ export default function MagazineCover({
             className="absolute right-[6px] top-[120px] bottom-[8px] w-px bg-[color:var(--color-line-soft)]"
           />
 
-          {/* the scent's mark, printed into the sheet through a circular
-              window — flat and grayscale, an editorial stamp not a glossy orb */}
+          {/* The selected ACUSE mark: large enough to survive 1-bit print. */}
           <figure
             aria-hidden="true"
-            className="absolute right-0 top-[10px] h-[74px] w-[74px] overflow-hidden rounded-full opacity-90 ring-1 ring-[color:var(--color-line)]"
+            className="absolute right-0 top-0 h-[154px] w-[154px] overflow-hidden border border-[color:var(--color-line)] bg-paper-bright"
           >
             <img
               src={selectedChromeMotif.path}
               alt=""
-              className="absolute left-1/2 top-1/2 h-[132%] w-[132%] -translate-x-1/2 -translate-y-1/2 object-cover grayscale contrast-[0.9] brightness-105 mix-blend-multiply"
+              width={138}
+              height={138}
+              className="absolute inset-[8px] h-[calc(100%-16px)] w-[calc(100%-16px)] object-contain grayscale contrast-125 mix-blend-multiply"
             />
           </figure>
 
           {/* vertical editorial quote — reads bottom-to-top, down the margin */}
           {!isLong && (
-            <div className="absolute inset-x-0 bottom-0 top-[112px] flex items-center justify-center">
+            <div className="absolute inset-x-0 bottom-0 top-[180px] flex items-center justify-center">
               <span
                 className="whitespace-nowrap font-display uppercase leading-none tracking-[0.06em] text-ink"
                 style={{

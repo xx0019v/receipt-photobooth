@@ -150,14 +150,11 @@ performance, one identity:
    these would visually re-merge two systems the project deliberately kept
    apart.
 
-Instead, `FrameCore` (`app/components/motion/FrameCore.tsx`) is a small,
-self-authored SVG sculpture — 6 radially-arranged circular fragments plus a
-registration ring, ~10 DOM nodes, no filters, no gradients beyond one
-`radialGradient` reused across all 6 fragments — built in the same visual
-language as `IssueCore` (silver, registration marks, grayscale, one-shot) but
-with its own distinct 4-state motion (`unprocessed → indexing → registering →
-ready`), so it never shares an animation with the printing-side ISSUE CORE,
-and never shares imagery with the Idle/Pose/PASS motif system either.
+`FrameCore` (`app/components/motion/FrameCore.tsx`) remains an archived,
+self-authored SVG study. The current post-capture screen no longer renders
+that study because the latest direction makes the supplied film the loading
+object itself. The six-frame registration sequence remains in the film strip
+below the video.
 
 ### `pc：wiget.mp4` — audited and optimized, used once
 
@@ -167,23 +164,20 @@ assumption:
 
 | | source | optimized (`public/assets/motion/frame-register-core.mp4`) |
 |---|---|---|
-| resolution | 2880×2880 | 640×640 |
+| resolution | 2880×2880 | 960×960 |
 | fps | 32 | 24 |
-| duration | 6.125s | 1.625s (first segment only) |
-| bitrate | 8.48 Mbps | ~0.30 Mbps |
-| size | 6.50 MB | **62.9 KB** |
+| duration | 6.125s | 6.125s (complete clip) |
+| bitrate | 8.48 Mbps | ~0.80 Mbps |
+| size | 6.50 MB | **609 KB** |
 | audio | present | stripped (`-an`) |
 
-This lands comfortably inside the brief's own budget (512–640px, 24–30fps,
-muted, ≤2MB) — a genuine 100× size reduction, not a rejection. It's used
-exactly once, only during FRAME CORE's `registering` state (the ~0.3s window
-where the sculpture assembles), as a faint (`opacity: 0.3`, `mix-blend-mode:
-multiply`) reflection layered behind the SVG sculpture — `<video preload="none"
-muted playsInline>`, `currentTime` reset and `.play()` called only on
-entering `registering`, `.pause()` on leaving it or on unmount. A single
-extracted poster frame (`frame-register-core-poster.jpg`, 7.5KB, 320×320)
-stands in for it under `prefers-reduced-motion` — shown as a static, low
-opacity image with no playback at all, per the brief's reduced-motion rule.
+This remains below the 2MB kiosk budget while preserving the complete motion.
+It is now the primary 600px loading object for the full post-capture
+interstitial, rather than a faint half-second reflection behind another
+graphic. The video is muted, inline, preloaded, and played once. A 640×640
+poster (`frame-register-core-poster.jpg`, 25KB) replaces playback under
+`prefers-reduced-motion`. A 6.25s timer remains as a safe completion fallback
+if Chromium does not emit the video's `ended` event.
 
 ## Adopted list
 

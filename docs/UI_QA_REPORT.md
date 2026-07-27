@@ -184,16 +184,12 @@ regeneration), console clean throughout.
    order.** The original `MAX_MS - 220` calculation for entering `ready`
    could resolve to a timestamp *before* the `registering` timer fired,
    so the state briefly reverted from `ready` back to `registering` a
-   moment before the screen unmounted — and, combined with `preload="none"`
-   on the reflection `<video>`, meant the clip's fetch never had time to
-   start before the screen was gone (only the poster ever loaded, confirmed
-   via `read_network_requests`). Rewrote the timeline as a single set of
-   monotonically-increasing constants (`RegisteringFramesScreen.tsx`) and
-   switched the video to `preload="auto"` (justified — the optimized clip is
-   63KB) so the browser fetches/decodes it during the ~1s of indexing that
-   precedes `registering`. Re-verified: `frame-register-core.mp4` now shows
-   a `206 Partial Content` fetch inside the registering window, console
-   clean.
+   moment before the screen unmounted. The latest post-capture direction now
+   uses the complete optimized film as the loading object for 6.125s, with
+   `preload="auto"` and an `ended` callback plus a 6.25s timer fallback.
+   Re-verified at 1080×1920: Chromium reported duration `6.125`, readyState
+   `4`, active playback, and a 600×600 rendered video before advancing to
+   Select.
 
 ### Not verified in this session (explicitly incomplete)
 

@@ -14,7 +14,7 @@
  */
 import type { PrintArtifactSpec } from "./printArtifact";
 import { printGeometry } from "./printArtifact";
-import { buildArtifactSvg, type PhotoSources } from "./printSvg";
+import { buildArtifactSvg, type MotifSvg, type PhotoSources } from "./printSvg";
 import { API_BASE, isHardwareMode } from "./api";
 
 /** Same-origin (and CORS-enabled) assets cached as data URIs / markup. */
@@ -82,12 +82,15 @@ async function inlineFontFaces(): Promise<string> {
 }
 
 /** Inner markup of an SVG file (its children), for embedding the motif. */
-async function motifInner(assetPath: string): Promise<string | undefined> {
+async function motifInner(assetPath: string): Promise<MotifSvg | undefined> {
   try {
     const markup = await toText(new URL(assetPath, document.baseURI).href);
     const doc = new DOMParser().parseFromString(markup, "image/svg+xml");
     const svg = doc.querySelector("svg");
-    return svg ? svg.innerHTML : undefined;
+    if (!svg) return undefined;
+    const viewBox = svg.getAttribute("viewBox");
+    if (!viewBox) return undefined;
+    return { inner: svg.innerHTML, viewBox };
   } catch {
     return undefined;
   }
@@ -118,7 +121,7 @@ async function gatherAssets(spec: PrintArtifactSpec): Promise<{
   photos: PhotoSources;
   qrDataUri?: string;
   fontCss: string;
-  motifSvg?: string;
+  motifSvg?: MotifSvg;
 }> {
   await document.fonts.ready;
   const photos: PhotoSources = {};

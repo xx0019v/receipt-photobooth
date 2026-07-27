@@ -11,9 +11,8 @@ ever changes, this fails — which is the point: the printed artefact must not
 drift silently.
 
 To regenerate after an intentional change: open the Print Artifact Inspector,
-drive a print of each style through the mock backend, and copy the saved
-`artifact-source.png` / `artifact-thermal.png` from `data/sessions/{serial}/`
-into this directory.
+rasterise each style, and save both its source and thermal images into this
+directory.
 """
 
 from pathlib import Path
@@ -124,3 +123,24 @@ def test_pass_has_ink_where_the_qr_sits():
     )
     black = corner.histogram()[0]
     assert black > 200, "expected QR ink in the PASS stub corner"
+
+
+@pytest.mark.parametrize(
+    ("style", "box"),
+    [
+        # The PASS is rotated after rasterisation, hence its mark lands low on
+        # the thermal canvas. FILM stays portrait and keeps the mark top-right.
+        ("pass", (282, 695, 360, 775)),
+        ("cover", (260, 100, 360, 205)),
+    ],
+)
+def test_selected_acuse_mark_has_real_ink(style, box):
+    """A source viewBox regression used to leave only the mark's frame."""
+    art = prepare(
+        _source(style),
+        style=style,
+        expected_width_dots=384,
+        tail_feed_dots=TAIL_FEED_DOTS,
+    )
+    mark = art.thermal.convert("1").crop(box)
+    assert mark.histogram()[0] > 300, f"{style} ACUSE mark disappeared"

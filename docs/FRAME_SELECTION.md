@@ -95,26 +95,23 @@ opacity 1 / 0.78 / 0.5, and a small downward `margin-bottom` offset (0 / 10px
 - Selecting a 4th frame while 3 are already chosen is a no-op (the toggle
   handler checks `prev.length >= TOTAL_SHOTS` and returns unchanged).
 
-## REGISTERING FRAMES / FRAME CORE
+## REGISTERING FRAMES
 
-`app/kiosk/screens/RegisteringFramesScreen.tsx` +
-`app/components/motion/FrameCore.tsx`. A fixed-duration (clamped 1.2–1.8s)
-one-shot interstitial: `unprocessed → indexing → registering → ready`, where
-`indexing` steps through the 6 captured frames one at a time
+`app/kiosk/screens/RegisteringFramesScreen.tsx`. A 6.25s one-shot
+interstitial synchronized to the complete supplied loading film:
+`unprocessed → indexing → registering → ready`, where `indexing` steps
+through the 6 captured frames one at a time
 (`registeredCount` prop, 0→6) so the object visibly "reads" each of the 6
 photos before settling. See `ORIGINKIT_USAGE.md` for the full audit of why
 the supplied 12 SVGs were not used (they turned out to be the project's own
 existing chrome-motif library, byte-identical to `public/assets/chrome/*`,
-each a single embedded raster with no fragmentable vector structure) and why
-FRAME CORE is a separate, smaller sculpture from ISSUE CORE rather than a
-reused/retextured copy of it.
+each a single embedded raster with no fragmentable vector structure).
 
-A faint, one-shot reflection sourced from the supplied `pc：wiget.mp4` — this
-one *was* usable after optimization (6.5MB/2880px/32fps → 63KB/640px/24fps,
-1.625s, muted, no loop) — plays once behind the sculpture only during the
-`registering` state, at 0.3 opacity with `mix-blend-mode: multiply`, and is
-replaced entirely by a static poster image under `prefers-reduced-motion`.
-See `ORIGINKIT_USAGE.md` for the full before/after table.
+The supplied `pc：wiget.mp4` is the main loading object. It is optimized from
+6.5MB/2880px/32fps to 609KB/960px/24fps while retaining the complete 6.125s
+motion. It plays once at 600px after Capture and is replaced entirely by a
+static poster under `prefers-reduced-motion`. See `ORIGINKIT_USAGE.md` for
+the full before/after table.
 
 ## Reduced motion
 

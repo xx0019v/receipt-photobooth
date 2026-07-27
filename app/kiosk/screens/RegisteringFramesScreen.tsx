@@ -1,42 +1,46 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import FrameCore, { type FrameCoreState } from "@/app/components/motion/FrameCore";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CAPTURE_TOTAL } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
 
-// Timeline (monotonically increasing, no clamp arithmetic that can
-// re-order two states): unprocessed -> indexing (6 steps) -> registering
-// -> ready -> onDone. Total lands at 1780ms, inside the 1.2-1.8s brief.
-const INDEXING_START_MS = 100;
-const INDEXING_DURATION_MS = 900;
-const STEP_MS = INDEXING_DURATION_MS / CAPTURE_TOTAL;
-const REGISTERING_START_MS = INDEXING_START_MS + INDEXING_DURATION_MS + 80;
-const REGISTERING_DURATION_MS = 500;
-const READY_START_MS = REGISTERING_START_MS + REGISTERING_DURATION_MS;
-const DONE_MS = READY_START_MS + 200;
+type RegisteringState = "unprocessed" | "indexing" | "registering" | "ready";
 
-// A single one-shot reflection pass behind FRAME CORE during "registering" —
-// sourced from the supplied pc widget clip, re-encoded 2880x2880/32fps/8.5Mbps
-// -> 640x640/24fps/~63KB/1.6s (see docs/ORIGINKIT_USAGE.md for the full
-// audit). Only shown for the brief "registering" window, never looped, and
-// entirely skipped under reduced-motion (poster only).
-const VIDEO_SRC = "/assets/motion/frame-register-core.mp4";
-const POSTER_SRC = "/assets/motion/frame-register-core-poster.jpg";
+// Timeline follows the supplied 6.125s chrome-object film. The six captured
+// frames lock first, the object keeps moving while the proof is composed,
+// then the ready state lands just before the clip finishes.
+const INDEXING_START_MS = 150;
+const INDEXING_DURATION_MS = 1_200;
+const STEP_MS = INDEXING_DURATION_MS / CAPTURE_TOTAL;
+const REGISTERING_START_MS = INDEXING_START_MS + INDEXING_DURATION_MS + 100;
+const READY_START_MS = 5_600;
+const DONE_MS = 6_250;
+
+// The supplied pc widget clip is the loading object itself. It is re-encoded
+// for Raspberry Pi Chromium at 960x960/24fps/~609KB, plays once, and is
+// entirely replaced with a still under reduced motion.
+const VIDEO_SRC = "/assets/motion/frame-register-core.mp4?v=2";
+const POSTER_SRC = "/assets/motion/frame-register-core-poster.jpg?v=2";
 
 /**
- * REGISTERING FRAMES — a registration bed, not a centered loader. The FRAME
- * CORE is a fixed registration head straddling a vertical rule on the left;
- * the six captured frames run as a horizontal film to its right and lock into
- * alignment one at a time (left → right) as each is indexed. Continuous with
- * Capture's contact-sheet language and Select's proof language on either side.
+ * REGISTERING FRAMES uses the supplied chrome object as the unmistakable
+ * loading focus after Capture. The six-frame film locks below it one frame at
+ * a time, preserving continuity with Capture and Select without competing
+ * with the object.
  */
 export default function RegisteringFramesScreen({ onDone }: { onDone: () => void }) {
   const { sub } = useLang();
-  const [state, setState] = useState<FrameCoreState>("unprocessed");
+  const [state, setState] = useState<RegisteringState>("unprocessed");
   const [registeredCount, setRegisteredCount] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const doneRef = useRef(false);
+
+  const finish = useCallback(() => {
+    if (doneRef.current) return;
+    doneRef.current = true;
+    onDone();
+  }, [onDone]);
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -54,25 +58,25 @@ export default function RegisteringFramesScreen({ onDone }: { onDone: () => void
     }
     timers.push(setTimeout(() => setState("registering"), REGISTERING_START_MS));
     timers.push(setTimeout(() => setState("ready"), READY_START_MS));
-    timers.push(setTimeout(onDone, DONE_MS));
+    timers.push(setTimeout(finish, DONE_MS));
     return () => timers.forEach(clearTimeout);
-  }, [onDone]);
+  }, [finish]);
 
-  // Play the reflection exactly once, only during "registering". Paused and
-  // released on unmount / state change either way. (See ORIGINKIT_USAGE.md.)
+  // Play once for the complete interstitial. The timer above is a fallback
+  // when Chromium cannot deliver an ended event.
   useEffect(() => {
     const v = videoRef.current;
-    if (!v || reducedMotion) return;
-    if (state === "registering") {
-      v.currentTime = 0;
-      v.play().catch(() => {});
-    } else {
+    if (!v) return;
+    if (reducedMotion) {
       v.pause();
+      return;
     }
+    v.currentTime = 0;
+    v.play().catch(() => {});
     return () => {
       v.pause();
     };
-  }, [state, reducedMotion]);
+  }, [reducedMotion]);
 
   const shown = Math.min(registeredCount, CAPTURE_TOTAL);
 
@@ -80,7 +84,7 @@ export default function RegisteringFramesScreen({ onDone }: { onDone: () => void
     <div className="relative h-full w-full overflow-hidden bg-paper">
       {/* running header — top-left */}
       <p className="absolute left-[64px] top-[96px] font-mono text-[15px] uppercase tracking-[0.4em] text-silver-dim">
-        Registering frames
+        Registering frames…
       </p>
 
       {/* oversized count anchor, upper-left */}
@@ -92,42 +96,39 @@ export default function RegisteringFramesScreen({ onDone }: { onDone: () => void
       </div>
       {sub && (
         <p className="absolute left-[64px] top-[400px] jp-sub text-[16px] text-silver-dim">
-          フレームを登録しています
+          フレームを登録しています…
         </p>
       )}
 
-      {/* registration bed — vertical rule + FRAME CORE head + horizontal film */}
-      <div className="absolute inset-x-0 top-[900px] flex items-center pl-[56px]">
-        {/* the registration head: FRAME CORE straddling a vertical rule */}
-        <div className="relative flex h-[380px] w-[360px] shrink-0 items-center justify-center">
-          <span className="absolute right-[6px] top-1/2 h-[264px] w-px -translate-y-1/2 bg-[color:var(--color-ink)]" aria-hidden="true" />
-          {reducedMotion ? (
-            state === "registering" || state === "ready" ? (
-              <img
-                src={POSTER_SRC}
-                alt=""
-                aria-hidden="true"
-                className="absolute h-[280px] w-[280px] opacity-25 grayscale"
-                style={{ mixBlendMode: "multiply" }}
-              />
-            ) : null
-          ) : (
-            <video
-              ref={videoRef}
-              src={VIDEO_SRC}
-              poster={POSTER_SRC}
-              muted
-              playsInline
-              preload="auto"
-              className="absolute h-[280px] w-[280px] grayscale transition-opacity duration-300"
-              style={{ mixBlendMode: "multiply", opacity: state === "registering" ? 0.3 : 0 }}
-              aria-hidden="true"
-            />
-          )}
-          <FrameCore state={state} registeredCount={registeredCount} size={280} showLabel={false} />
-        </div>
+      {/* supplied chrome loading object */}
+      <div className="absolute inset-x-0 top-[500px] flex justify-center" aria-hidden="true">
+        {reducedMotion ? (
+          <img
+            src={POSTER_SRC}
+            alt=""
+            width={600}
+            height={600}
+            className="h-[600px] w-[600px] object-cover"
+          />
+        ) : (
+          <video
+            ref={videoRef}
+            src={VIDEO_SRC}
+            poster={POSTER_SRC}
+            width={600}
+            height={600}
+            muted
+            playsInline
+            autoPlay
+            preload="auto"
+            onEnded={finish}
+            className="h-[600px] w-[600px] object-cover"
+          />
+        )}
+      </div>
 
-        {/* the film: six frames feeding past the head, locking left → right */}
+      {/* six captured frames locking into print order */}
+      <div className="absolute inset-x-0 top-[1240px] flex justify-center">
         <div className="flex items-center gap-[16px]" aria-hidden="true">
           {Array.from({ length: CAPTURE_TOTAL }).map((_, i) => {
             const locked = i < shown;
@@ -163,8 +164,12 @@ export default function RegisteringFramesScreen({ onDone }: { onDone: () => void
       </div>
 
       {/* status line along the bottom edge */}
-      <p className="absolute bottom-[80px] left-[64px] font-mono text-[14px] uppercase tracking-[0.3em] text-silver-dim">
-        {state === "ready" ? "Registered · composing proof" : "Indexing captured frames"}
+      <p
+        className="absolute bottom-[80px] left-[64px] font-mono text-[14px] uppercase tracking-[0.3em] text-silver-dim"
+        role="status"
+        aria-live="polite"
+      >
+        {state === "ready" ? "Registered · composing proof" : "Indexing captured frames…"}
       </p>
     </div>
   );

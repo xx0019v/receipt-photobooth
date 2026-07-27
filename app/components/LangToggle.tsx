@@ -25,7 +25,7 @@ export default function LangToggle() {
               e.stopPropagation();
               setLang(o.id);
             }}
-            className={`press px-[22px] py-[12px] font-mono text-[17px] uppercase tracking-[0.2em] ${
+            className={`press min-h-[64px] px-[28px] py-[16px] font-mono text-[18px] uppercase tracking-[0.2em] ${
               active ? "bg-ink text-paper" : "text-silver-dim"
             }`}
             style={{ cursor: "pointer" }}

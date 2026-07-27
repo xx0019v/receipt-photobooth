@@ -4,7 +4,6 @@ import CapturedPhoto from "./CapturedPhoto";
 import Qr from "./Qr";
 import { BRAND, editionDate, editionTime, editionForScent, type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
-import { passSecurityAsset } from "@/app/lib/chromeAssets";
 import { useChromeArtwork } from "@/app/lib/chromeArtwork";
 
 /**
@@ -77,7 +76,6 @@ export default function BoardingPass({
 }) {
   const { t } = useLang();
   const motif = useChromeArtwork();
-  const seal = passSecurityAsset(scent.id);
   const printedDate = date || editionDate();
   const stamp = time || editionTime();
   const seat = `${String(frames.length).padStart(2, "0")}A`;
@@ -118,15 +116,17 @@ export default function BoardingPass({
               A journey in frames. A memory that stays with you.
             </p>
           </div>
-          {/* circular security seal — a flat printed stamp, not an object */}
+          {/* The selected ACUSE mark is part of the edition, not decoration. */}
           <figure
             aria-hidden="true"
-            className="relative h-[88px] w-[88px] shrink-0 overflow-hidden rounded-full ring-1 ring-[color:var(--color-ink)]"
+            className="relative h-[120px] w-[120px] shrink-0 overflow-hidden border border-[color:var(--color-ink)] bg-paper-bright"
           >
             <img
               src={motif.path}
               alt=""
-              className="absolute left-1/2 top-1/2 h-[128%] w-[128%] -translate-x-1/2 -translate-y-1/2 object-cover grayscale contrast-[0.9] mix-blend-multiply"
+              width={106}
+              height={106}
+              className="absolute inset-[7px] h-[calc(100%-14px)] w-[calc(100%-14px)] object-contain grayscale contrast-125 mix-blend-multiply"
             />
           </figure>
         </div>
