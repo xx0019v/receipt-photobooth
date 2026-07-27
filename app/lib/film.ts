@@ -6,6 +6,7 @@ export type QuoteLayoutVariant = "short" | "medium" | "long";
 
 export type FilmArtifactProps = {
   frames: number[];
+  frameSources?: Record<number, string>;
   selectedQuote: Quote;
   selectedChromeMotif: ChromeAsset;
   selectedScent: Scent;
@@ -31,6 +32,7 @@ export function getQuoteLayoutVariant(
 
 export function createFilmArtifactProps({
   frames,
+  frameSources,
   selectedQuote,
   selectedChromeMotif,
   selectedScent,
@@ -40,6 +42,7 @@ export function createFilmArtifactProps({
 }: Omit<FilmArtifactProps, "scentNotes" | "scentMood" | "scentDestination">): FilmArtifactProps {
   return {
     frames,
+    frameSources,
     selectedQuote,
     selectedChromeMotif,
     selectedScent,

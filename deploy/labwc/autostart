@@ -1,0 +1,4 @@
+# labwc autostart for the kiosk Pi. Install: cp deploy/labwc/autostart ~/.config/labwc/
+# Portrait orientation for the DSI touch panel; rc.xml maps the touch device
+# to this rotated output so coordinates stay aligned.
+wlr-randr --output DSI-2 --transform 270 &

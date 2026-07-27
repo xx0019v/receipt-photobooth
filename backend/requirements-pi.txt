@@ -1,0 +1,4 @@
+# Raspberry Pi only — install on top of requirements.txt.
+# picamera2 comes from apt (python3-picamera2); create the venv with
+#   python3 -m venv --system-site-packages .venv
+python-escpos[usb]>=3.1

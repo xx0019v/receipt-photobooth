@@ -1,0 +1,5 @@
+NOT ACQUIRED — 2026-07-27 JST
+
+The live Raspberry Pi journal and today's physical print job were not
+accessible without a verified SSH target. This file intentionally contains no
+locally simulated journal entries.

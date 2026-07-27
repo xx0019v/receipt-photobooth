@@ -1,0 +1,33 @@
+# systemd unit for the booth backend (Raspberry Pi 5).
+# Install:
+#   sudo cp deploy/booth-backend.service /etc/systemd/system/
+#   sudo systemctl enable --now booth-backend
+[Unit]
+Description=THE RECEIPT photobooth backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=chuo
+# usblp printer node (/dev/usb/lp0) is group `lp`:
+#   sudo usermod -aG lp chuo
+SupplementaryGroups=lp video
+WorkingDirectory=/home/chuo/receipt-photobooth/backend
+Environment=CAMERA_DRIVER=picamera2
+Environment=PRINTER_DRIVER=escpos
+Environment=BOOTH_MODE=hardware
+Environment=PRINTER_DEVICE=/dev/usb/lp0
+Environment=PRINTER_WIDTH_DOTS=384
+# GDMicroelectronics micro-printer has no auto-cutter:
+Environment=PRINTER_CUT=0
+Environment=BOOTH_DATA_DIR=/home/chuo/booth-data
+ExecStart=/home/chuo/receipt-photobooth/backend/.venv/bin/uvicorn booth.main:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=2
+TimeoutStartSec=30
+TimeoutStopSec=15
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

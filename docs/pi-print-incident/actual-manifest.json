@@ -1,0 +1,11 @@
+{
+  "status": "not-acquired-from-pi",
+  "date": "2026-07-27",
+  "actualPrintedPassFile": "actual-printed-pass.png",
+  "actualPrintedPassProvenance": "local reproduction of origin/feat/2-backend-core backend/booth/receipt.py",
+  "warning": "This is not the receipt.png captured from today's Raspberry Pi print job.",
+  "piHead": null,
+  "piService": null,
+  "piRendererPath": null,
+  "physicalPhoto": null
+}

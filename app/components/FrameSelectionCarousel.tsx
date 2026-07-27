@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import Portrait from "@/app/components/Portrait";
+import CapturedPhoto from "@/app/components/CapturedPhoto";
 
 // Stage geometry — the active proof is the screen's hero, and the 940px
 // viewport leaves ~128px of the previous/next proofs visible at each edge so
@@ -31,6 +31,7 @@ const THUMB_OPACITY = [1, 0.8, 0.55] as const;
  */
 export default function FrameSelectionCarousel({
   frameIds,
+  frameSources,
   activeIndex,
   onActiveChange,
   selectedIds,
@@ -38,6 +39,7 @@ export default function FrameSelectionCarousel({
   reducedMotion,
 }: {
   frameIds: number[];
+  frameSources?: Record<number, string>;
   activeIndex: number;
   onActiveChange: (i: number) => void;
   selectedIds: number[];
@@ -140,7 +142,7 @@ export default function FrameSelectionCarousel({
                   transition: reducedMotion ? "opacity 140ms linear" : "opacity 260ms ease",
                 }}
               >
-                <Portrait seed={id} />
+                <CapturedPhoto src={frameSources?.[id]} seed={id} />
                 {isActive && (
                   <>
                     <RegMark className="left-[16px] top-[16px]" selected={isSelected} />
@@ -196,7 +198,7 @@ export default function FrameSelectionCarousel({
                     : "width 260ms ease, height 260ms ease, margin 260ms ease, opacity 260ms ease",
                 }}
               >
-                <Portrait seed={id} />
+                <CapturedPhoto src={frameSources?.[id]} seed={id} />
                 {selected && (
                   <span className="absolute right-[3px] top-[3px] h-[6px] w-[6px] rounded-full bg-ink" aria-hidden="true" />
                 )}
