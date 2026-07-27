@@ -1,6 +1,6 @@
 "use client";
 
-import CapturedPhoto from "./CapturedPhoto";
+import Portrait from "./Portrait";
 import Qr from "./Qr";
 import { BRAND, editionDate, editionTime, editionForScent, type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
@@ -44,14 +44,12 @@ export const PASS_PRINT_H = BOARDING_W;
 
 export default function BoardingPass({
   frames,
-  frameSources,
   scent,
   serial,
   date,
   time,
 }: {
   frames: number[];
-  frameSources?: Record<number, string>;
   scent: Scent;
   serial: string;
   date?: string;
@@ -118,11 +116,7 @@ export default function BoardingPass({
                 className="absolute inset-0"
                 style={i === 2 ? { transform: "translateX(-3px) scale(1.04)", transformOrigin: "center" } : undefined}
               >
-                <CapturedPhoto
-                  src={frameSources?.[frame]}
-                  seed={frame - 1}
-                  print
-                />
+                <Portrait seed={frame - 1} print />
               </div>
               <span className="pointer-events-none absolute inset-0 border border-[color:var(--color-line)]" />
             </figure>

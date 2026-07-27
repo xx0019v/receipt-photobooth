@@ -1,36 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import BoardingPass, { BOARDING_W, BOARDING_H, BOARDING_SCREEN_W, PASS_SLOT_W } from "@/app/components/BoardingPass";
 import MagazineCover from "@/app/components/MagazineCover";
 import IssueCore, { type IssueCoreState } from "@/app/components/motion/IssueCore";
-import CapturedPhoto from "@/app/components/CapturedPhoto";
+import Portrait from "@/app/components/Portrait";
 import { editionForScent, type Scent } from "@/app/lib/edition";
 import { type FilmArtifactProps } from "@/app/lib/film";
 import { useLang } from "@/app/lib/i18n";
 import { usePrintStyle } from "@/app/lib/printStyle";
 import { type ErrorKind } from "@/app/lib/errors";
-import { createPrintArtifactSpec } from "@/app/lib/printArtifact";
-import { useCanonicalPrint } from "@/app/lib/useCanonicalPrint";
-import { type Quote } from "@/app/lib/quotes";
-import { type ChromeAsset } from "@/app/lib/chromeAssets";
-import { isHardwareMode } from "@/app/lib/api";
-
-/**
- * The edition's identity, fixed at frame-confirm time by KioskApp.
- *
- * Deliberately free of anything derived: no `new Date()`, no `Math.random()`.
- * Composing a spec from this is pure, so the artefact a retry prints is the
- * artefact the guest approved.
- */
-export type PrintIdentity = {
-  serial: string;
-  issueDate: string;
-  issueTime: string;
-  edition: string;
-  /** 1-based indices into the captured set, in print order. */
-  selectedFrameOrder: number[];
-};
 
 const COVER_DURATION = 3900;
 const PASS_DURATION = 4100;
@@ -105,7 +84,6 @@ const ISSUE_CORE_STATE: Partial<Record<Stage, IssueCoreState>> = {
 
 export default function PrintingScreen({
   frames,
-  frameSources,
   scent,
   serial,
   issuedDate,
@@ -115,13 +93,8 @@ export default function PrintingScreen({
   onClaim,
   onPrintError,
   simulateFailure = null,
-  booth = null,
-  quote,
-  motif,
-  retryRequested = false,
 }: {
   frames: number[];
-  frameSources?: Record<number, string>;
   scent: Scent;
   serial: string;
   issuedDate: string;
@@ -132,23 +105,6 @@ export default function PrintingScreen({
   onPrintError?: (kind: ErrorKind) => void;
   /** Staff Mode / QA only — forces the issuing phase to fail partway through. */
   simulateFailure?: ErrorKind | null;
-  /**
-   * A live booth. When present, the ritual drives a REAL print: the artefact
-   * is rasterised from the mounted components and the paper on screen
-   * advances with the paper in the machine. When null (laptop dev, no
-   * backend) the timeline is simulated — which is why `BOOTH_MODE` exists to
-   * stop a Pi ever running the simulation by accident.
-   */
-  booth?: {
-    sessionId: string;
-    printerWidthDots: number;
-    qrBaseUrl: string;
-    identity: PrintIdentity;
-  } | null;
-  quote?: Quote;
-  motif?: ChromeAsset;
-  /** True only after the guest/operator explicitly selected Retry. */
-  retryRequested?: boolean;
 }) {
   const { t, sub } = useLang();
   const { style } = usePrintStyle();
@@ -156,51 +112,6 @@ export default function PrintingScreen({
   const [pct, setPct] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  // The off-screen artefact, mounted at print-canvas size. This node is what
-  // gets rasterised — so the printed pixels and the reviewed design are the
-  // same component tree, not two implementations of one idea.
-  // Composed here because this is the only place inside PrintStyleProvider —
-  // the format is half the artefact's identity, and the spec must carry it.
-  const printSession = useMemo(() => {
-    if (!booth) return null;
-    const { identity } = booth;
-    return {
-      sessionId: booth.sessionId,
-      printerWidthDots: booth.printerWidthDots,
-      retryRequested,
-      spec: createPrintArtifactSpec({
-        style,
-        sessionId: booth.sessionId,
-        serial: identity.serial,
-        issueDate: identity.issueDate,
-        issueTime: identity.issueTime,
-        edition: identity.edition,
-        selectedFrameIds: identity.selectedFrameOrder.map(
-          (n) => `${identity.serial}-${n}`,
-        ),
-        selectedFrameOrder: identity.selectedFrameOrder,
-        scent: {
-          id: scent.id,
-          code: scent.code,
-          name: scent.name,
-          mood: scent.mood.en,
-          character: scent.phrase.en,
-          destination: scent.destination.en,
-          notes: scent.notes.map((n) => n.en),
-        },
-        quote: quote ? { text: quote.text, variant: quote.variant } : undefined,
-        motif: motif ? { id: motif.id, asset: motif.path } : undefined,
-        qrUrl:
-          style === "pass"
-            ? `${booth.qrBaseUrl.replace(/\/$/u, "")}/${identity.serial}`
-            : undefined,
-        printerWidthDots: booth.printerWidthDots,
-      }),
-    };
-  }, [booth, style, scent, quote, motif, retryRequested]);
-
-  const print = useCanonicalPrint(printSession);
-  const live = printSession !== null;
 
   const isCover = style === "cover";
   const printStarted = stage !== "review" && stage !== "proofLock";
@@ -238,19 +149,10 @@ export default function PrintingScreen({
   // tap cannot start a second job.
   const startPrintRitual = useCallback(() => {
     if (stage !== "review") return;
-    if (isHardwareMode && !live) {
-      onPrintError?.("printer-offline");
-      return;
-    }
     setStage("proofLock");
-    // Rasterise and upload DURING the lock ritual. Building the 620×2100 SVG
-    // and hashing it is real work, and this is the one moment the guest is
-    // watching something deliberate, so the latency disappears into the
-    // choreography instead of stalling the paper feed later.
-    if (live) void print.start();
     const t1 = setTimeout(() => setStage("preparing"), PROOF_LOCK_MS[ms]);
     timers.current.push(t1);
-  }, [stage, ms, live, print, onPrintError]);
+  }, [stage, ms]);
 
   useEffect(() => {
     if (stage === "preparing") {
@@ -259,10 +161,6 @@ export default function PrintingScreen({
       return () => clearTimeout(t1);
     }
     if (stage === "registered") {
-      // With a real printer, REGISTERED is a genuine wait: the artefact has
-      // to be accepted by the backend before paper can move. Holding here
-      // means the on-screen feed never starts ahead of the machine.
-      if (live && print.phase !== "printing" && print.phase !== "done") return;
       const t1 = setTimeout(() => {
         setPct(0);
         setStage("issuing");
@@ -271,33 +169,13 @@ export default function PrintingScreen({
       return () => clearTimeout(t1);
     }
     if (stage === "completing") {
-      const t2 = setTimeout(() => setStage("ready"), RELEASE_MS[ms]);
-      timers.current.push(t2);
-      return () => clearTimeout(t2);
+      const t1 = setTimeout(() => setStage("ready"), RELEASE_MS[ms]);
+      timers.current.push(t1);
+      return () => clearTimeout(t1);
     }
-  }, [stage, ms, live, print.phase]);
+  }, [stage, ms]);
 
-  // A real failure — no printer, refused artefact, paper out — ends the
-  // ritual wherever it is. The guest must not watch a print complete that
-  // never happened.
-  useEffect(() => {
-    if (!live || print.phase !== "error") return;
-    onPrintError?.("print-failed");
-  }, [live, print.phase, onPrintError]);
-
-  // ISSUING (live) — the feed IS the machine. Progress comes from the
-  // backend's banded raster callback, so the paper on screen advances
-  // exactly as far as the paper in the printer.
-  useEffect(() => {
-    if (!live || stage !== "issuing") return;
-    setPct(print.progress);
-    if (print.phase === "done") {
-      setPct(1);
-      setStage("completing");
-    }
-  }, [live, stage, print.progress, print.phase]);
-
-  // ISSUING (simulated) — laptop dev only, no backend attached.
+  // ISSUING — paper feed progress, synced 1:1 with ISSUE CORE's phase.
   // The fail trigger (Staff Mode / QA only) is scheduled on its own timer
   // rather than decided inside the rAF tick: browsers throttle or suspend
   // requestAnimationFrame for a backgrounded/inactive tab, and a
@@ -305,7 +183,7 @@ export default function PrintingScreen({
   // paint frames actually being delivered. rAF here only drives the visual
   // feed animation.
   useEffect(() => {
-    if (live || stage !== "issuing") return;
+    if (stage !== "issuing") return;
 
     const start = performance.now();
     let raf = 0;
@@ -337,7 +215,7 @@ export default function PrintingScreen({
       clearTimeout(guard);
       if (failTimer) clearTimeout(failTimer);
     };
-  }, [duration, stage, live, simulateFailure, onPrintError]);
+  }, [duration, stage, simulateFailure, onPrintError]);
 
   const ease = mechanicalFeed(pct);
   const title = isCover
@@ -417,7 +295,6 @@ export default function PrintingScreen({
            design arrives as the machine issues it rather than as a preview. */
         <SealedProof
           frames={frames}
-          frameSources={frameSources}
           serial={serial}
           issuedDate={issuedDate}
           issuedTime={issuedTime}
@@ -487,7 +364,7 @@ export default function PrintingScreen({
               }}
             >
               <div style={{ width: BOARDING_W, height: BOARDING_H, transform: `scale(${passScale})`, transformOrigin: "top left" }}>
-                <BoardingPass frames={frames} frameSources={frameSources} scent={scent} serial={serial} date={issuedDate} time={issuedTime} />
+                <BoardingPass frames={frames} scent={scent} serial={serial} date={issuedDate} time={issuedTime} />
               </div>
               {!done && (
                 <div className="print-noise pointer-events-none absolute inset-0 opacity-[0.03] mix-blend-multiply" />
@@ -545,10 +422,7 @@ export default function PrintingScreen({
           </div>
         ) : stage !== "ready" ? (
           <>
-            <div
-              className="flex items-center justify-between font-mono text-[18px] uppercase tracking-[0.3em] text-silver-dim"
-              aria-live="polite"
-            >
+            <div className="flex items-center justify-between font-mono text-[18px] uppercase tracking-[0.3em] text-silver-dim">
               <span>
                 {scent.mood.en} · {isCover ? "printing film" : t.print.progress}
               </span>
@@ -558,20 +432,10 @@ export default function PrintingScreen({
             </div>
             <div className="mt-[16px] h-px w-full bg-[color:var(--color-line-soft)]">
               <div
-                role="progressbar"
-                aria-label="Print progress"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.round(
-                  stage === "issuing" ? pct * 100 : stage === "completing" ? 100 : 0,
-                )}
                 className="h-full bg-[color:var(--color-line)]"
                 style={{
-                  transform: `scaleX(${
-                    stage === "issuing" ? pct : stage === "completing" ? 1 : 0
-                  })`,
-                  transformOrigin: "left center",
-                  transition: "transform 80ms cubic-bezier(0.16,1,0.3,1)",
+                  width: `${stage === "issuing" ? pct * 100 : stage === "completing" ? 100 : 0}%`,
+                  transition: "width 80ms linear",
                 }}
               />
             </div>
@@ -623,7 +487,6 @@ function edition_label(serial: string) {
  */
 function SealedProof({
   frames,
-  frameSources,
   serial,
   issuedDate,
   issuedTime,
@@ -634,7 +497,6 @@ function SealedProof({
   sub,
 }: {
   frames: number[];
-  frameSources?: Record<number, string>;
   serial: string;
   issuedDate: string;
   issuedTime: string;
@@ -667,7 +529,7 @@ function SealedProof({
             return (
               <div key={i} className="flex-1">
                 <div className="relative aspect-square overflow-hidden border border-[color:var(--color-line)] bg-paper-bright">
-                  {id !== undefined && <CapturedPhoto src={frameSources?.[id]} seed={id} />}
+                  {id !== undefined && <Portrait seed={id} />}
                   <ProofLockMark className="left-[8px] top-[8px]" />
                   <ProofLockMark className="bottom-[8px] right-[8px] rotate-180" />
                 </div>

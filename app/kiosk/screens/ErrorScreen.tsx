@@ -23,11 +23,7 @@ export default function ErrorScreen({
   const copy = ERROR_COPY[kind];
 
   return (
-    <div
-      className="flex h-full flex-col items-center justify-center bg-paper px-[80px] text-center"
-      role="alert"
-      aria-live="assertive"
-    >
+    <div className="flex h-full flex-col items-center justify-center bg-paper px-[80px] text-center">
       <div className="mb-[36px] opacity-70">
         <IssueCore state="calibrate" progress={0} size={80} showLabel={false} />
       </div>

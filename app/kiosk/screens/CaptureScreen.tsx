@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Portrait from "@/app/components/Portrait";
-import CapturedPhoto from "@/app/components/CapturedPhoto";
 import { type Scent } from "@/app/lib/edition";
 import { useLang } from "@/app/lib/i18n";
 import { useChromeArtwork } from "@/app/lib/chromeArtwork";
@@ -18,24 +17,17 @@ import { useChromeArtwork } from "@/app/lib/chromeArtwork";
 export default function CaptureScreen({
   total,
   scent,
-  previewSrc,
-  capture,
-  onCaptureError,
   onComplete,
 }: {
   total: number;
   scent: Scent;
-  previewSrc?: string;
-  capture?: (frameNumber: number) => Promise<string | null>;
-  onCaptureError?: (error: unknown) => void;
-  onComplete: (frames: number[], sources: Record<number, string>) => void;
+  onComplete: (frames: number[]) => void;
 }) {
   const { t, sub } = useLang();
   const [shot, setShot] = useState(0);
   const [count, setCount] = useState(3);
   const [flash, setFlash] = useState(false);
   const [frames, setFrames] = useState<number[]>([]);
-  const [sources, setSources] = useState<Record<number, string>>({});
   const seal = useChromeArtwork();
 
   useEffect(() => {
@@ -44,7 +36,6 @@ export default function CaptureScreen({
 
     (async () => {
       const captured: number[] = [];
-      const capturedSources: Record<number, string> = {};
       for (let s = 0; s < total; s++) {
         if (cancelled) return;
         setShot(s);
@@ -55,16 +46,6 @@ export default function CaptureScreen({
         }
         setCount(0);
         setFlash(true);
-        try {
-          const source = capture ? await capture(s + 1) : null;
-          if (source) {
-            capturedSources[s + 1] = source;
-            setSources({ ...capturedSources });
-          }
-        } catch (error) {
-          if (!cancelled) onCaptureError?.(error);
-          return;
-        }
         await wait(130);
         captured.push(s + 1);
         setFrames([...captured]);
@@ -74,13 +55,13 @@ export default function CaptureScreen({
       }
       if (cancelled) return;
       await wait(420);
-      onComplete(captured, capturedSources);
+      onComplete(captured);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [total, capture, onCaptureError, onComplete]);
+  }, [total, onComplete]);
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden">
@@ -141,18 +122,7 @@ export default function CaptureScreen({
       {/* camera viewport — the dominant surface of the screen */}
       <div className="flex flex-1 items-center justify-center px-[70px]">
         <div className="relative h-[1020px] w-[940px] overflow-hidden bg-ink">
-          {previewSrc ? (
-            <img
-              src={previewSrc}
-              width={940}
-              height={1020}
-              alt=""
-              aria-hidden="true"
-              className="h-full w-full object-cover opacity-95 grayscale"
-            />
-          ) : (
-            <Portrait seed={shot} className="opacity-95" />
-          )}
+          <Portrait seed={shot} className="opacity-95" />
 
           {/* rule-of-thirds grid — camera, not decoration */}
           <div className="pointer-events-none absolute inset-0">
@@ -236,7 +206,7 @@ export default function CaptureScreen({
                 >
                   {done ? (
                     <>
-                      <CapturedPhoto src={sources[i + 1]} seed={i} />
+                      <Portrait seed={i} />
                       <RegMark className="left-[5px] top-[5px]" />
                       <RegMark className="bottom-[5px] right-[5px] rotate-180" />
                     </>
