@@ -228,6 +228,12 @@ body {
   outline-offset: -10px;
 }
 
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 4px;
+}
+
 .idle-ritual__tap {
   position: relative;
   z-index: 4;
