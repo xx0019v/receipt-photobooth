@@ -37,6 +37,10 @@ const DIM = "#000";
  *  URIs keyed by 1-based frame number; otherwise a thermal placeholder is
  *  drawn so the layout is exact even before the camera is wired. */
 export type PhotoSources = Record<number, string>;
+export type MotifSvg = {
+  inner: string;
+  viewBox: string;
+};
 
 function esc(s: string): string {
   return s
@@ -141,6 +145,22 @@ function dashedCut(cx: number, top: number, bottom: number): string {
   );
 }
 
+/**
+ * Embed an ACUSE source without rewriting its coordinate system.
+ *
+ * The source files use a 1200-ish viewBox. The old renderer discarded that
+ * and wrapped their children in `0 0 100 100`, so paper received a mostly
+ * blank corner. Keeping the original viewBox makes the chosen mark visible.
+ */
+function motifMark(x: number, y: number, size: number, motif: MotifSvg): string {
+  const inset = 8;
+  return (
+    `<rect x="${x}" y="${y}" width="${size}" height="${size}" fill="${PAPER}" stroke="${INK}" stroke-width="1"/>` +
+    `<svg x="${x + inset}" y="${y + inset}" width="${size - inset * 2}" height="${size - inset * 2}" ` +
+      `viewBox="${esc(motif.viewBox)}" preserveAspectRatio="xMidYMid meet">${motif.inner}</svg>`
+  );
+}
+
 function edition_(spec: PrintArtifactSpec): { no: string; code: string } {
   // Edition code carried on the spec's motif/scent is resolved upstream; the
   // spec already froze `edition` as a display string ("No. 042"). The PASS
@@ -161,7 +181,7 @@ function edition_(spec: PrintArtifactSpec): { no: string; code: string } {
  */
 export function passSvg(
   spec: PrintArtifactSpec,
-  opts: { photos?: PhotoSources; qrDataUri?: string; fontCss?: string; motifSvg?: string } = {},
+  opts: { photos?: PhotoSources; qrDataUri?: string; fontCss?: string; motifSvg?: MotifSvg } = {},
 ): string {
   const photos = opts.photos ?? {};
   const order = spec.selectedFrameOrder.length
@@ -216,16 +236,13 @@ export function passSvg(
   parts.push(`<line x1="${captionCx + 250}" y1="${captionY - 5}" x2="${mainR}" y2="${captionY - 5}" stroke="${INK}" stroke-width="1"/>`);
 
   // security seal (motif) — top-right of main
-  const sealCx = 54 + BOARDING_MAIN_W - 84;
-  const sealCy = 96;
+  const sealSize = 120;
+  const sealX = 54 + BOARDING_MAIN_W - 40 - sealSize;
+  const sealY = 42;
   if (opts.motifSvg) {
-    parts.push(
-      `<clipPath id="seal"><circle cx="${sealCx}" cy="${sealCy}" r="42"/></clipPath>` +
-        `<g clip-path="url(#seal)" transform="translate(${sealCx - 42},${sealCy - 42})"><svg width="84" height="84" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">${opts.motifSvg}</svg></g>` +
-        `<circle cx="${sealCx}" cy="${sealCy}" r="42" fill="none" stroke="${INK}" stroke-width="1"/>`,
-    );
+    parts.push(motifMark(sealX, sealY, sealSize, opts.motifSvg));
   } else {
-    parts.push(`<circle cx="${sealCx}" cy="${sealCy}" r="42" fill="none" stroke="${INK}" stroke-width="1"/>`);
+    parts.push(`<rect x="${sealX}" y="${sealY}" width="${sealSize}" height="${sealSize}" fill="none" stroke="${INK}" stroke-width="1"/>`);
   }
 
   // --- Perforation 1 ---
@@ -330,7 +347,7 @@ export function passSvg(
 /** FILM — native 640×1280 portrait, no rotation. */
 export function filmSvg(
   spec: PrintArtifactSpec,
-  opts: { photos?: PhotoSources; fontCss?: string; motifSvg?: string } = {},
+  opts: { photos?: PhotoSources; fontCss?: string; motifSvg?: MotifSvg } = {},
 ): string {
   const photos = opts.photos ?? {};
   const order = spec.selectedFrameOrder.length ? spec.selectedFrameOrder : [1, 2, 3];
@@ -351,13 +368,11 @@ export function filmSvg(
   });
 
   const marginX = colX + photoSize;
-  const motifCx = W - 46 - 37;
+  const motifSize = 154;
+  const motifX = W - 46 - motifSize;
+  const motifY = 176;
   if (opts.motifSvg) {
-    parts.push(
-      `<clipPath id="fmotif"><circle cx="${motifCx}" cy="223" r="37"/></clipPath>` +
-        `<g clip-path="url(#fmotif)" transform="translate(${motifCx - 37},186)"><svg width="74" height="74" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">${opts.motifSvg}</svg></g>` +
-        `<circle cx="${motifCx}" cy="223" r="37" fill="none" stroke="${INK}" stroke-width="1"/>`,
-    );
+    parts.push(motifMark(motifX, motifY, motifSize, opts.motifSvg));
   }
   // vertical quote down the right margin (short/medium only)
   const words = spec.quote?.text.split(/\s+/u).length ?? 0;
@@ -403,14 +418,14 @@ export function filmSvg(
 function wrapSvg(width: number, height: number, inner: string, fontCss?: string): string {
   const style = fontCss ? `<style>${fontCss}</style>` : "";
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" ` +
+    `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${width}" height="${height}" ` +
     `viewBox="0 0 ${width} ${height}">${style}${inner}</svg>`
   );
 }
 
 export function buildArtifactSvg(
   spec: PrintArtifactSpec,
-  opts: { photos?: PhotoSources; qrDataUri?: string; fontCss?: string; motifSvg?: string } = {},
+  opts: { photos?: PhotoSources; qrDataUri?: string; fontCss?: string; motifSvg?: MotifSvg } = {},
 ): string {
   return spec.style === "cover" ? filmSvg(spec, opts) : passSvg(spec, opts);
 }

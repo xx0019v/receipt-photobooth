@@ -1,4 +1,4 @@
-import { CHROME_ASSETS, COVER_MOTIF_ASSETS, type ChromeAsset } from "./chromeAssets";
+import { editionMotifs, type ChromeAsset } from "./chromeAssets";
 import { SCENTS, type Scent } from "./edition";
 import { QUOTES, type Quote } from "./quotes";
 
@@ -7,13 +7,6 @@ import { QUOTES, type Quote } from "./quotes";
  * then used everywhere (Reveal, Format, Pose, Capture, PASS, FILM, Review,
  * Printing, Done) so a session never mixes marks.
  */
-const SCENT_MOTIFS: Record<string, readonly ChromeAsset[]> = {
-  nocturne: [CHROME_ASSETS.stars, CHROME_ASSETS.moons],
-  clean: [CHROME_ASSETS.crescent, CHROME_ASSETS.orbit],
-  warm: [CHROME_ASSETS.ribbon, CHROME_ASSETS.cherries],
-  cold: [CHROME_ASSETS.moons, CHROME_ASSETS.bust],
-};
-
 export type SelectedScentInput = Scent | string | null | undefined;
 
 export type SessionIdentity = {
@@ -36,10 +29,14 @@ function pickOne<T>(items: readonly T[], random: () => number): T {
   return items[Math.max(0, index)];
 }
 
-/** The one silver motif that belongs to a scent — deterministic, so the mark a
- *  guest meets on the Scent page is the same one printed everywhere after. */
+/** The default mark for callers that do not expose the three-way selector. */
 export function motifForScent(scent: Scent): ChromeAsset {
-  return (SCENT_MOTIFS[scent.id] ?? COVER_MOTIF_ASSETS)[0];
+  return motifsForScent(scent)[0];
+}
+
+/** The three ACUSE marks offered by this edition. */
+export function motifsForScent(scent: Scent): readonly ChromeAsset[] {
+  return editionMotifs(scent.id);
 }
 
 /** Resolve an externally supplied scent first; otherwise decide once per session. */
@@ -71,7 +68,7 @@ export function createSessionIdentity(
   return {
     selectedScent: scent,
     selectedQuote: pickOne(QUOTES, random),
-    selectedChromeMotif: motifForScent(scent),
+    selectedChromeMotif: pickOne(motifsForScent(scent), random),
   };
 }
 

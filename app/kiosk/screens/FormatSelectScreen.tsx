@@ -7,6 +7,7 @@ import { usePrintStyle, type PrintStyle } from "@/app/lib/printStyle";
 import { BOARDING_H, BOARDING_W } from "@/app/components/BoardingPass";
 import { type Scent } from "@/app/lib/edition";
 import { type FilmArtifactProps } from "@/app/lib/film";
+import { useChromeArtwork } from "@/app/lib/chromeArtwork";
 
 /**
  * FORMAT — both choices are visible at once.
@@ -29,6 +30,7 @@ export default function FormatSelectScreen({
 }) {
   const { t, sub } = useLang();
   const { style, setStyle } = usePrintStyle();
+  const selectedMark = useChromeArtwork();
   const swipeStart = useRef<{ pointerId: number; x: number; y: number } | null>(null);
 
   useEffect(() => {
@@ -64,9 +66,9 @@ export default function FormatSelectScreen({
     <div className="flex h-full flex-col">
       <Masthead />
 
-      <div className="px-[80px] pt-[44px]">
+      <div className="relative px-[80px] pt-[44px]">
         <p className="kicker anim-fade-up">{t.format.step}</p>
-        <h2 className="anim-fade-up delay-1 mt-[14px] font-display text-[74px] font-semibold leading-[0.88] tracking-[-0.025em]">
+        <h2 className="anim-fade-up delay-1 mt-[14px] max-w-[700px] text-balance font-display text-[74px] font-semibold leading-[0.88] tracking-[-0.025em]">
           {t.format.title[0]} <span className="italic">{t.format.title[1]}</span>
         </h2>
         {sub && (
@@ -75,6 +77,19 @@ export default function FormatSelectScreen({
             {sub.format.title[1]}
           </p>
         )}
+        <figure className="anim-fade-up delay-2 absolute right-[80px] top-[148px] h-[176px] w-[208px] border border-[color:var(--color-line)] bg-paper-bright">
+          <img
+            src={selectedMark.path}
+            alt=""
+            aria-hidden="true"
+            width={184}
+            height={132}
+            className="mx-auto mt-[8px] h-[132px] w-[184px] object-contain grayscale contrast-125"
+          />
+          <figcaption className="mx-[12px] border-t border-[color:var(--color-line-soft)] pt-[7px] font-mono text-[9px] uppercase tracking-[0.12em] text-silver-dim">
+            Print Mark · {selectedMark.name}
+          </figcaption>
+        </figure>
       </div>
 
       {/* Two formats, side by side — a real comparison, not a reveal */}
